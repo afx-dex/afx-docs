@@ -1,4 +1,4 @@
-// Phemex DEX — Protobuf definitions for API clients.
+// AFX DEX — Protobuf definitions for API clients.
 //
 // These messages are used by Agent-signed actions.
 // Serialize the action to protobuf bytes, then compute

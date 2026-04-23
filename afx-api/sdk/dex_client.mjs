@@ -1,7 +1,7 @@
 /**
- * Phemex DEX JavaScript SDK
+ * AFX DEX JavaScript SDK
  *
- * Lightweight client for the Phemex DEX API. Handles EIP-712 signing,
+ * Lightweight client for the AFX DEX API. Handles EIP-712 signing,
  * protobuf serialization, and HTTP requests.
  *
  * Dependencies:

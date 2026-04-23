@@ -1,7 +1,7 @@
 """
-Phemex DEX Python SDK
+AFX DEX Python SDK
 
-Lightweight client for the Phemex DEX API. Handles EIP-712 signing,
+Lightweight client for the AFX DEX API. Handles EIP-712 signing,
 protobuf serialization, and HTTP requests.
 
 Dependencies:
@@ -219,7 +219,7 @@ MARGIN_MODE = {"CROSS": 1, "ISOLATED": 2}
 # ═══════════════════════════════════════════════════════════════════
 
 class DexClient:
-    """Phemex DEX API client."""
+    """AFX DEX API client."""
 
     def __init__(self, master_key: str, agent_key: str, testnet: bool = True):
         env = TESTNET if testnet else MAINNET

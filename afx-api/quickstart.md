@@ -1,5 +1,5 @@
 ---
-description: Place your first trade on Phemex DEX in 5 minutes.
+description: Place your first trade on AFX DEX in 5 minutes.
 icon: rocket
 ---
 

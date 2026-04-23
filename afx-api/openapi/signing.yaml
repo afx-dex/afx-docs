@@ -1,9 +1,9 @@
 openapi: 3.0.3
 info:
-  title: Phemex DEX Signature Guide
+  title: AFX DEX Signature Guide
   version: 1.0.0
   description: |
-    Phemex DEX is stateless — no sessions, no tokens. All requests are authenticated via [EIP-712](https://eips.ethereum.org/EIPS/eip-712) structured signatures.
+    AFX DEX is stateless — no sessions, no tokens. All requests are authenticated via [EIP-712](https://eips.ethereum.org/EIPS/eip-712) structured signatures.
 
     **Two wallet roles:**
     | Role | Description |

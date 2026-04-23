@@ -1,5 +1,5 @@
 ---
-description: Programmatic interface for perpetual contract trading on the Phemex DEX.
+description: Programmatic interface for perpetual contract trading on the AFX DEX.
 icon: brackets-curly
 layout:
   width: wide
@@ -17,7 +17,7 @@ layout:
 
 # API
 
-Phemex DEX is a fully on-chain perpetual futures exchange. No API keys required — all requests are authenticated via EIP-712 signatures from Ethereum wallets.
+AFX DEX is a fully on-chain perpetual futures exchange. No API keys required — all requests are authenticated via EIP-712 signatures from Ethereum wallets.
 
 <a href="quickstart.md" class="button primary">Quick Start — First Trade in 5 Minutes</a>
 
