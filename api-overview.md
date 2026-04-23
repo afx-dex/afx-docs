@@ -1,2 +1,2 @@
-# afx-docs
-afx official docs
+# afx-api
+

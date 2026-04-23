@@ -5,7 +5,7 @@ Lightweight client for the AFX DEX API. Handles EIP-712 signing,
 protobuf serialization, and HTTP requests.
 
 Dependencies:
-    pip install eth-account requests websockets
+    pip install eth-account requests websockets protobuf
 
 Usage:
     from dex_client import DexClient
@@ -29,6 +29,8 @@ from typing import Optional
 import requests
 from eth_account import Account
 from eth_hash.auto import keccak
+
+import dex_pb2
 
 # ═══════════════════════════════════════════════════════════════════
 #  Config
@@ -61,157 +63,28 @@ ZERO_ADDR = "0x" + "0" * 40
 
 
 # ═══════════════════════════════════════════════════════════════════
-#  Protobuf Encoder (hand-rolled, no codegen needed)
+#  Protobuf helpers (uses generated dex_pb2 from dex.proto)
 # ═══════════════════════════════════════════════════════════════════
 
-class Proto:
-    """Minimal protobuf encoder for DEX messages."""
-
-    @staticmethod
-    def _varint(value):
-        buf = bytearray()
-        while value > 0x7F:
-            buf.append((value & 0x7F) | 0x80)
-            value >>= 7
-        buf.append(value & 0x7F)
-        return bytes(buf)
-
-    @staticmethod
-    def _signed_varint(value):
-        """Encode a signed int64 as varint (two's complement for negatives)."""
-        if value < 0:
-            value = value + (1 << 64)
-        return Proto._varint(value)
-
-    @staticmethod
-    def _field(field_num, wire_type, data):
-        return Proto._varint((field_num << 3) | wire_type) + data
-
-    @staticmethod
-    def string(field_num, s):
-        if not s:
-            return b""
-        encoded = s.encode("utf-8")
-        return Proto._field(field_num, 2, Proto._varint(len(encoded)) + encoded)
-
-    @staticmethod
-    def int64(field_num, value):
-        if value == 0:
-            return b""
-        return Proto._field(field_num, 0, Proto._signed_varint(value))
-
-    @staticmethod
-    def bool_(field_num, value):
-        if not value:
-            return b""
-        return Proto._field(field_num, 0, Proto._varint(1))
-
-    @staticmethod
-    def enum(field_num, value):
-        return Proto.int64(field_num, value)
-
-    @staticmethod
-    def embedded(field_num, data):
-        return Proto._field(field_num, 2, Proto._varint(len(data)) + data)
-
-    # ── Message builders ──
-
-    @staticmethod
-    def place_orders(orders):
-        outer = b""
-        for o in orders:
-            inner = b""
-            inner += Proto.int64(1, o.get("cl_ord_id", 0))
-            inner += Proto.int64(2, o["symbol_code"])
-            inner += Proto.string(3, o["ord_px"])
-            inner += Proto.string(4, o["ord_qty"])
-            inner += Proto.string(5, o.get("trigger_px", ""))
-            inner += Proto.enum(6, o.get("ord_type", 0))
-            inner += Proto.enum(7, o.get("ord_side", 0))
-            inner += Proto.enum(8, o.get("time_in_force", 0))
-            inner += Proto.enum(9, o.get("reduce_only_option", 0))
-            inner += Proto.int64(10, o.get("parent_ord_id", 0))
-            inner += Proto.enum(11, o.get("tpsl_trigger_type", 0))
-            inner += Proto.string(12, o.get("slippage_pct", ""))
-            outer += Proto.embedded(1, inner)
-        return outer
-
-    @staticmethod
-    def cancel_orders(cancels):
-        outer = b""
-        for c in cancels:
-            inner = b""
-            inner += Proto.int64(1, c["symbol_code"])
-            inner += Proto.int64(2, c.get("cl_ord_id", 0))
-            inner += Proto.int64(3, c.get("ord_id", 0))
-            outer += Proto.embedded(1, inner)
-        return outer
-
-    @staticmethod
-    def cancel_all(symbol_code, is_conditional=False):
-        return Proto.int64(1, symbol_code) + Proto.bool_(2, is_conditional)
-
-    @staticmethod
-    def set_leverage(symbol_code, leverage):
-        return Proto.int64(1, symbol_code) + Proto.string(2, leverage)
-
-    @staticmethod
-    def set_margin_mode(symbol_code, margin_mode):
-        return Proto.int64(1, symbol_code) + Proto.enum(2, margin_mode)
-
-    @staticmethod
-    def assign_pos_margin(symbol_code, amount):
-        return Proto.int64(1, symbol_code) + Proto.string(2, amount)
-
-    @staticmethod
-    def vault_create(name, description, amount, currency_code):
-        return (Proto.string(1, name) + Proto.string(2, description) +
-                Proto.string(3, amount) + Proto.int64(4, currency_code))
-
-    @staticmethod
-    def vault_create_sub_vault():
-        return b""
-
-    @staticmethod
-    def vault_deposit(amount, currency_code):
-        return Proto.string(1, amount) + Proto.int64(2, currency_code)
-
-    @staticmethod
-    def vault_withdraw(amount, currency_code):
-        return Proto.string(1, amount) + Proto.int64(2, currency_code)
-
-    @staticmethod
-    def vault_pre_withdraw(amount, currency_code):
-        return Proto.string(1, amount) + Proto.int64(2, currency_code)
-
-    @staticmethod
-    def vault_rebalance(from_addr, to_addr, amount, currency_code):
-        return (Proto.string(1, from_addr) + Proto.string(2, to_addr) +
-                Proto.string(3, amount) + Proto.int64(4, currency_code))
-
-    @staticmethod
-    def vault_update_owner(owner):
-        return Proto.string(1, owner)
-
-    @staticmethod
-    def vault_close():
-        return b""
-
-    @staticmethod
-    def bind_referral(code):
-        return Proto.string(1, code)
+# Enum maps (string → protobuf int value)
+ORD_TYPE = {"LIMIT": dex_pb2.LIMIT, "MARKET": dex_pb2.MARKET}
+ORD_SIDE = {"BUY": dex_pb2.BUY, "SELL": dex_pb2.SELL,
+            "BUY_CLOSE_HEDGE": dex_pb2.BUY_CLOSE_HEDGE,
+            "SELL_CLOSE_HEDGE": dex_pb2.SELL_CLOSE_HEDGE}
+ORD_TIF = {"GTC": dex_pb2.GTC, "IOC": dex_pb2.IOC,
+           "FOK": dex_pb2.FOK, "POST_ONLY": dex_pb2.POST_ONLY}
+REDUCE_ONLY = {"REDUCE_ONLY": dex_pb2.REDUCE_ONLY,
+               "TP_FROM_POSITION": dex_pb2.TP_FROM_POSITION,
+               "SL_FROM_POSITION": dex_pb2.SL_FROM_POSITION}
+TRIGGER_TYPE = {"LAST_PRICE": dex_pb2.LAST_PRICE,
+                "MARK_PRICE": dex_pb2.MARK_PRICE,
+                "INDEX_PRICE": dex_pb2.INDEX_PRICE}
+MARGIN_MODE = {"CROSS": dex_pb2.CROSS, "ISOLATED": dex_pb2.ISOLATED}
 
 
-# ═══════════════════════════════════════════════════════════════════
-#  Enum maps (string → int)
-# ═══════════════════════════════════════════════════════════════════
-
-ORD_TYPE = {"LIMIT": 1, "MARKET": 2}
-ORD_SIDE = {"BUY": 1, "SELL": 2, "BUY_CLOSE_HEDGE": 3, "SELL_CLOSE_HEDGE": 4}
-ORD_TIF = {"GTC": 1, "IOC": 2, "FOK": 3, "POST_ONLY": 4}
-REDUCE_ONLY = {"REDUCE_ONLY": 1, "TP_FROM_POSITION": 2, "SL_FROM_POSITION": 3}
-TRIGGER_TYPE = {"LAST_PRICE": 1, "MARK_PRICE": 2, "INDEX_PRICE": 3}
-MARGIN_MODE = {"CROSS": 1, "ISOLATED": 2}
+def _serialize(msg):
+    """Serialize a protobuf message to bytes."""
+    return msg.SerializeToString()
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -368,26 +241,26 @@ class DexClient:
     def place_order(self, symbol_code, px, qty, side="BUY",
                     ord_type="LIMIT", tif="GTC", **kwargs):
         """Place a single order."""
-        order = {
-            "symbol_code": symbol_code,
-            "ord_px": px,
-            "ord_qty": qty,
-            "ord_type": ORD_TYPE[ord_type],
-            "ord_side": ORD_SIDE[side],
-            "time_in_force": ORD_TIF[tif],
-        }
+        order = dex_pb2.MsgPlaceOrder(
+            symbol_code=symbol_code,
+            ord_px=px,
+            ord_qty=qty,
+            ord_type=ORD_TYPE[ord_type],
+            ord_side=ORD_SIDE[side],
+            time_in_force=ORD_TIF[tif],
+        )
         if kwargs.get("reduce_only"):
-            order["reduce_only_option"] = REDUCE_ONLY[kwargs["reduce_only"]]
+            order.reduce_only_option = REDUCE_ONLY[kwargs["reduce_only"]]
         if kwargs.get("trigger_px"):
-            order["trigger_px"] = kwargs["trigger_px"]
+            order.trigger_px = kwargs["trigger_px"]
         if kwargs.get("trigger_type"):
-            order["tpsl_trigger_type"] = TRIGGER_TYPE[kwargs["trigger_type"]]
+            order.tpsl_trigger_type = TRIGGER_TYPE[kwargs["trigger_type"]]
         if kwargs.get("slippage_pct"):
-            order["slippage_pct"] = kwargs["slippage_pct"]
+            order.slippage_pct = kwargs["slippage_pct"]
         if kwargs.get("cl_ord_id"):
-            order["cl_ord_id"] = kwargs["cl_ord_id"]
+            order.cl_ord_id = kwargs["cl_ord_id"]
 
-        proto = Proto.place_orders([order])
+        msg = dex_pb2.MsgPlaceOrders(orders=[order])
         action = {
             "type": "placeOrder",
             "orders": [{
@@ -398,83 +271,89 @@ class DexClient:
                             "slippagePct", "clOrdId", "parentOrdId")},
             }],
         }
-        return self._agent_sign_and_send(action, proto)
+        return self._agent_sign_and_send(action, _serialize(msg))
 
     def cancel_order(self, symbol_code, ord_id=None, cl_ord_id=None):
         """Cancel an order by ordId or clOrdId."""
-        cancel = {"symbol_code": symbol_code}
+        cancel = dex_pb2.MsgCancelOrder(symbol_code=symbol_code)
         action_cancel = {"symbolCode": symbol_code}
         if ord_id:
-            cancel["ord_id"] = int(ord_id)
+            cancel.ord_id = int(ord_id)
             action_cancel["ordId"] = str(ord_id)
         if cl_ord_id:
-            cancel["cl_ord_id"] = int(cl_ord_id)
+            cancel.cl_ord_id = int(cl_ord_id)
             action_cancel["clOrdId"] = str(cl_ord_id)
 
-        proto = Proto.cancel_orders([cancel])
+        msg = dex_pb2.MsgCancelOrders(orders=[cancel])
         return self._agent_sign_and_send(
-            {"type": "cancelOrder", "cancels": [action_cancel]}, proto)
+            {"type": "cancelOrder", "cancels": [action_cancel]}, _serialize(msg))
 
     def cancel_all(self, symbol_code, conditional=False):
         """Cancel all orders for a symbol."""
-        proto = Proto.cancel_all(symbol_code, conditional)
+        msg = dex_pb2.MsgCancelAll(
+            symbol_code=symbol_code, is_conditional_order=conditional)
         return self._agent_sign_and_send(
             {"type": "cancelAll", "symbolCode": symbol_code,
-             "conditionalOrder": conditional}, proto)
+             "conditionalOrder": conditional}, _serialize(msg))
 
     def set_leverage(self, symbol_code, leverage):
         """Set leverage for a symbol."""
-        proto = Proto.set_leverage(symbol_code, str(leverage))
+        msg = dex_pb2.MsgSetLeverage(
+            symbol_code=symbol_code, leverage=str(leverage))
         return self._agent_sign_and_send(
             {"type": "setLeverage", "symbolCode": symbol_code,
-             "leverage": str(leverage)}, proto)
+             "leverage": str(leverage)}, _serialize(msg))
 
     def set_margin_mode(self, symbol_code, mode):
         """Set margin mode (CROSS / ISOLATED)."""
-        proto = Proto.set_margin_mode(symbol_code, MARGIN_MODE[mode])
+        msg = dex_pb2.MsgSetMarginMode(
+            symbol_code=symbol_code, margin_mode=MARGIN_MODE[mode])
         return self._agent_sign_and_send(
             {"type": "setMarginMode", "symbolCode": symbol_code,
-             "marginMode": mode}, proto)
+             "marginMode": mode}, _serialize(msg))
 
     def assign_pos_margin(self, symbol_code, amount):
         """Assign margin to isolated position."""
-        proto = Proto.assign_pos_margin(symbol_code, str(amount))
+        msg = dex_pb2.MsgAssignPosMargin(
+            symbol_code=symbol_code, assigned_pos_margin=str(amount))
         return self._agent_sign_and_send(
             {"type": "assignPosMargin", "symbolCode": symbol_code,
-             "assignedPosMargin": str(amount)}, proto)
+             "assignedPosMargin": str(amount)}, _serialize(msg))
 
     def bind_referral(self, code):
         """Bind a referral code."""
-        proto = Proto.bind_referral(code)
+        msg = dex_pb2.MsgBindReferral(referral_code=code)
         return self._agent_sign_and_send(
-            {"type": "bindReferral", "referralCode": code}, proto)
+            {"type": "bindReferral", "referralCode": code}, _serialize(msg))
 
     # ── Vault ────────────────────────────────────────────────────
 
     def vault_create(self, name, description, amount, currency_code=1):
-        proto = Proto.vault_create(name, description, str(amount), currency_code)
+        msg = dex_pb2.MsgVaultCreate(
+            name=name, description=description,
+            amount=str(amount), currency_code=currency_code)
         return self._agent_sign_and_send(
             {"type": "vaultCreate", "name": name, "description": description,
-             "amount": str(amount), "currencyCode": currency_code}, proto)
+             "amount": str(amount), "currencyCode": currency_code}, _serialize(msg))
 
     def vault_deposit(self, vault_address, amount, currency_code=1):
-        proto = Proto.vault_deposit(str(amount), currency_code)
+        msg = dex_pb2.MsgVaultDeposit(amount=str(amount), currency_code=currency_code)
         return self._agent_sign_and_send(
             {"type": "vaultDeposit", "amount": str(amount),
              "currencyCode": currency_code},
-            proto, vault_address=vault_address)
+            _serialize(msg), vault_address=vault_address)
 
     def vault_withdraw(self, vault_address, amount, currency_code=1):
-        proto = Proto.vault_withdraw(str(amount), currency_code)
+        msg = dex_pb2.MsgVaultWithdraw(amount=str(amount), currency_code=currency_code)
         return self._agent_sign_and_send(
             {"type": "vaultWithdraw", "amount": str(amount),
              "currencyCode": currency_code},
-            proto, vault_address=vault_address)
+            _serialize(msg), vault_address=vault_address)
 
     def vault_close(self, vault_address):
-        proto = Proto.vault_close()
+        msg = dex_pb2.MsgVaultClose()
         return self._agent_sign_and_send(
-            {"type": "vaultClose"}, proto, vault_address=vault_address)
+            {"type": "vaultClose"}, _serialize(msg), vault_address=vault_address)
 
     # ── Info queries ─────────────────────────────────────────────
 
