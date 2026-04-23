@@ -12,7 +12,5 @@ GET /info/...
 ```
 
 {% hint style="info" %}
-Upload `openapi/info.yaml` to GitBook as an OpenAPI spec to render the interactive API reference below.
+The OpenAPI spec for these endpoints is available at `openapi/info.yaml`. Upload it to GitBook to render the interactive API reference on this page.
 {% endhint %}
-
-<!-- After uploading info.yaml, replace these with actual openapi blocks -->

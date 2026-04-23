@@ -251,7 +251,7 @@ await client.subscribe(
         <tr>
             <td><strong>Authentication</strong></td>
             <td>How EIP-712 signing works — Agent vs Master wallet.</td>
-            <td><a href="authentication.md">Authentication</a></td>
+            <td><a href="signing.md">Authentication</a></td>
         </tr>
         <tr>
             <td><strong>Exchange API</strong></td>
