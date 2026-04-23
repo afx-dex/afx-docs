@@ -40,5 +40,5 @@
               kind: openapi
               spec: websocket
         ```
-    * [SDK & Protobuf](afx-api/api-overview/sdk.md)
     * [Signing](afx-api/api-overview/signing.md)
+    * [SDK & Protobuf](afx-api/api-overview/sdk.md)
