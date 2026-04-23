@@ -1,0 +1,1254 @@
+openapi: 3.0.3
+info:
+  title: Phemex DEX Exchange API
+  version: 1.0.0
+  description: |
+    All trading operations are submitted through `POST /api/v1/exchange`, routed by `action.type`.
+    Every request must include an EIP-712 signature. See the **Signature** page for details.
+
+servers:
+  - url: https://api10.afx.xyz
+    description: Mainnet
+  - url: https://api10-testnet.afx.xyz
+    description: Testnet
+
+paths:
+  # ═══════════════════════════════════════════════════════════════════
+  #  Orders
+  # ═══════════════════════════════════════════════════════════════════
+  /exchange/placeOrder:
+    post:
+      operationId: placeOrder
+      summary: Place Order
+      tags: [Orders]
+      description: |
+        Submit one or more orders. Supports limit, market, and conditional (TP/SL) orders.
+
+        **Signature:** Agent · **Protobuf:** `MsgPlaceOrders`
+
+        ```protobuf
+        message MsgPlaceOrder {
+          int64  cl_ord_id           = 1;
+          int64  symbol_code         = 2;
+          string ord_px              = 3;
+          string ord_qty             = 4;
+          string trigger_px          = 5;
+          OrdType                   ord_type           = 6;
+          OrdSide                   ord_side           = 7;
+          OrdTIF                    time_in_force      = 8;
+          ReduceOnlyOption          reduce_only_option = 9;
+          int64  parent_ord_id      = 10;
+          ConditionalOrdTriggerType tpsl_trigger_type  = 11;
+          string slippage_pct       = 12;
+        }
+        message MsgPlaceOrders {
+          repeated MsgPlaceOrder orders = 1;
+        }
+        ```
+
+        **Enum Reference:**
+        | Enum | Values |
+        |------|--------|
+        | OrdType | LIMIT=1, MARKET=2 |
+        | OrdSide | BUY=1, SELL=2, BUY_CLOSE_HEDGE=3, SELL_CLOSE_HEDGE=4 |
+        | OrdTIF | GTC=1, IOC=2, FOK=3, POST_ONLY=4 |
+        | ReduceOnlyOption | REDUCE_ONLY=1, TP_FROM_POSITION=2, SL_FROM_POSITION=3 |
+        | ConditionalOrdTriggerType | LAST_PRICE=1, MARK_PRICE=2, INDEX_PRICE=3 |
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaceOrderRequest"
+            examples:
+              limitOrder:
+                summary: Limit Buy
+                value:
+                  action:
+                    type: placeOrder
+                    orders:
+                      - symbolCode: 1
+                        ordPx: "40000.5"
+                        ordQty: "0.5"
+                        ordType: LIMIT
+                        ordSide: BUY
+                        timeInForce: GTC
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+              marketOrder:
+                summary: Market Buy
+                value:
+                  action:
+                    type: placeOrder
+                    orders:
+                      - symbolCode: 1
+                        ordPx: "0"
+                        ordQty: "0.1"
+                        ordType: MARKET
+                        ordSide: BUY
+                        timeInForce: IOC
+                        slippagePct: "1"
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+              stopLoss:
+                summary: Stop Loss
+                value:
+                  action:
+                    type: placeOrder
+                    orders:
+                      - symbolCode: 1
+                        ordPx: "0"
+                        ordQty: "0"
+                        ordType: MARKET
+                        ordSide: SELL
+                        timeInForce: IOC
+                        reduce_only_option: SL_FROM_POSITION
+                        triggerPx: "38000"
+                        tpslTriggerType: LAST_PRICE
+                        slippagePct: "1"
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            import { DexClient } from "./dex_client.mjs";
+
+            const client = await DexClient.create({
+              masterKey: "0xYOUR_MASTER_KEY",
+              agentKey:  "0xYOUR_AGENT_KEY",
+              testnet:   true,
+            });
+
+            // Limit buy
+            const result = await client.placeOrder({
+              symbolCode: 1, px: "40000.5", qty: "0.5",
+              side: "BUY", ordType: "LIMIT", tif: "GTC",
+            });
+            console.log(result);
+
+            // Market buy
+            const result2 = await client.placeOrder({
+              symbolCode: 1, px: "0", qty: "0.1",
+              side: "BUY", ordType: "MARKET", tif: "IOC",
+              slippagePct: "1",
+            });
+
+            // Stop loss
+            const result3 = await client.placeOrder({
+              symbolCode: 1, px: "0", qty: "0",
+              side: "SELL", ordType: "MARKET", tif: "IOC",
+              reduce_only_option: "SL_FROM_POSITION",
+              triggerPx: "38000", tpslTriggerType: "LAST_PRICE",
+              slippagePct: "1",
+            });
+        - lang: Python
+          label: Python
+          source: |
+            from dex_client import DexClient
+
+            client = DexClient(
+                master_key="0xYOUR_MASTER_KEY",
+                agent_key="0xYOUR_AGENT_KEY",
+                testnet=True,
+            )
+
+            # Limit buy
+            result = client.place_order(
+                symbol_code=1, px="40000.5", qty="0.5",
+                side="BUY", ord_type="LIMIT", tif="GTC",
+            )
+            print(result)
+
+            # Market buy
+            result2 = client.place_order(
+                symbol_code=1, px="0", qty="0.1",
+                side="BUY", ord_type="MARKET", tif="IOC",
+                slippage_pct="1",
+            )
+
+  /exchange/cancelOrder:
+    post:
+      operationId: cancelOrder
+      summary: Cancel Order
+      tags: [Orders]
+      description: |
+        Cancel one or more orders by orderId or clOrdId.
+
+        **Signature:** Agent · **Protobuf:** `MsgCancelOrders`
+
+        ```protobuf
+        message MsgCancelOrder {
+          int64 symbol_code = 1;
+          int64 cl_ord_id   = 2;
+          int64 ord_id      = 3;
+        }
+        message MsgCancelOrders {
+          repeated MsgCancelOrder orders = 1;
+        }
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CancelOrderRequest"
+            examples:
+              byOrdId:
+                summary: Cancel by orderId
+                value:
+                  action:
+                    type: cancelOrder
+                    cancels:
+                      - symbolCode: 1
+                        ordId: "12345"
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+              byClOrdId:
+                summary: Cancel by clOrdId
+                value:
+                  action:
+                    type: cancelOrder
+                    cancels:
+                      - symbolCode: 1
+                        clOrdId: "99001"
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            // Cancel by system order ID
+            await client.cancelOrder({ symbolCode: 1, ordId: "12345" });
+
+            // Cancel by client order ID
+            await client.cancelOrder({ symbolCode: 1, clOrdId: "99001" });
+        - lang: Python
+          label: Python
+          source: |
+            # Cancel by system order ID
+            client.cancel_order(symbol_code=1, ord_id="12345")
+
+            # Cancel by client order ID
+            client.cancel_order(symbol_code=1, cl_ord_id="99001")
+
+  /exchange/cancelAll:
+    post:
+      operationId: cancelAll
+      summary: Cancel All Orders
+      tags: [Orders]
+      description: |
+        Cancel all orders for a symbol.
+
+        **Signature:** Agent · **Protobuf:** `MsgCancelAll`
+
+        ```protobuf
+        message MsgCancelAll {
+          int64 symbol_code          = 1;
+          bool  is_conditional_order = 2;
+        }
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CancelAllRequest"
+            examples:
+              default:
+                value:
+                  action:
+                    type: cancelAll
+                    symbolCode: 1
+                    conditionalOrder: false
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            await client.cancelAll({ symbolCode: 1 });
+
+            // Cancel conditional orders only
+            await client.cancelAll({ symbolCode: 1, conditional: true });
+        - lang: Python
+          label: Python
+          source: |
+            client.cancel_all(symbol_code=1)
+
+            # Cancel conditional orders only
+            client.cancel_all(symbol_code=1, conditional=True)
+
+  # ═══════════════════════════════════════════════════════════════════
+  #  Account Settings
+  # ═══════════════════════════════════════════════════════════════════
+  /exchange/setLeverage:
+    post:
+      operationId: setLeverage
+      summary: Set Leverage
+      tags: [Account]
+      description: |
+        Set leverage for a symbol.
+
+        **Signature:** Agent · **Protobuf:** `MsgSetLeverage`
+
+        ```protobuf
+        message MsgSetLeverage {
+          int64  symbol_code = 1;
+          string leverage    = 2;
+        }
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetLeverageRequest"
+            examples:
+              default:
+                value:
+                  action:
+                    type: setLeverage
+                    symbolCode: 1
+                    leverage: "10"
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            await client.setLeverage({ symbolCode: 1, leverage: "10" });
+        - lang: Python
+          label: Python
+          source: |
+            client.set_leverage(symbol_code=1, leverage="10")
+
+  /exchange/setMarginMode:
+    post:
+      operationId: setMarginMode
+      summary: Set Margin Mode
+      tags: [Account]
+      description: |
+        Set margin mode for a symbol.
+
+        **Signature:** Agent · **Protobuf:** `MsgSetMarginMode`
+
+        ```protobuf
+        message MsgSetMarginMode {
+          int64              symbol_code = 1;
+          PositionMarginMode margin_mode = 2;  // CROSS=1, ISOLATED=2
+        }
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetMarginModeRequest"
+            examples:
+              default:
+                value:
+                  action:
+                    type: setMarginMode
+                    symbolCode: 1
+                    marginMode: CROSS
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            await client.setMarginMode({ symbolCode: 1, mode: "CROSS" });
+        - lang: Python
+          label: Python
+          source: |
+            client.set_margin_mode(symbol_code=1, mode="CROSS")
+
+  /exchange/assignPosMargin:
+    post:
+      operationId: assignPosMargin
+      summary: Assign Position Margin
+      tags: [Account]
+      description: |
+        Add or remove margin for an isolated position.
+
+        **Signature:** Agent · **Protobuf:** `MsgAssignPosMargin`
+
+        ```protobuf
+        message MsgAssignPosMargin {
+          int64  symbol_code        = 1;
+          string assigned_pos_margin = 2;
+        }
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignPosMarginRequest"
+            examples:
+              default:
+                value:
+                  action:
+                    type: assignPosMargin
+                    symbolCode: 1
+                    assignedPosMargin: "100"
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            await client.assignPosMargin({ symbolCode: 1, amount: "100" });
+        - lang: Python
+          label: Python
+          source: |
+            client.assign_pos_margin(symbol_code=1, amount="100")
+
+  # ═══════════════════════════════════════════════════════════════════
+  #  Master Signature Operations
+  # ═══════════════════════════════════════════════════════════════════
+  /exchange/approveAgent:
+    post:
+      operationId: approveAgent
+      summary: Approve Agent
+      tags: [Authorization]
+      description: |
+        Authorize an Agent wallet to trade on behalf of the Master wallet.
+
+        **Signature:** Master · **No protobuf** — fields are signed directly via EIP-712.
+
+        **EIP-712 type:**
+        ```json
+        {
+          "ApproveAgent": [
+            { "name": "dexChain",     "type": "string"  },
+            { "name": "agentAddress", "type": "address" },
+            { "name": "agentName",    "type": "string"  },
+            { "name": "nonce",        "type": "uint64"  },
+            { "name": "expiryAfter",  "type": "uint64"  }
+          ]
+        }
+        ```
+        Domain name: `"SignTransaction"`
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApproveAgentRequest"
+            examples:
+              default:
+                value:
+                  action:
+                    type: approveAgent
+                    agentAddress: "0x76b6c4dc45f39463a1c8f6500c94b247c53fe184"
+                    agentName: "my-trading-bot"
+                    dexChain: "Mainnet"
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+                  expiryAfter: 1763023686
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            await client.approveAgent({ agentName: "my-trading-bot" });
+        - lang: Python
+          label: Python
+          source: |
+            client.approve_agent(agent_name="my-trading-bot")
+
+  /exchange/withdraw:
+    post:
+      operationId: withdraw
+      summary: Withdraw
+      tags: [Authorization]
+      description: |
+        Withdraw funds from DEX to an external address.
+
+        **Signature:** Master · **No protobuf**
+
+        **EIP-712 type:**
+        ```json
+        {
+          "Withdraw": [
+            { "name": "dexChain",    "type": "string"  },
+            { "name": "destination", "type": "address" },
+            { "name": "amount",      "type": "string"  },
+            { "name": "nonce",       "type": "uint64"  },
+            { "name": "expiryAfter", "type": "uint64"  }
+          ]
+        }
+        ```
+        Domain name: `"SignTransaction"`. `dexChain` is determined by the server environment.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WithdrawRequest"
+            examples:
+              default:
+                value:
+                  action:
+                    type: withdraw
+                    destination: "0xabc123..."
+                    amount: "100"
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            await client.withdraw({ destination: "0xabc...", amount: "100" });
+        - lang: Python
+          label: Python
+          source: |
+            client.withdraw(destination="0xabc...", amount="100")
+
+  /exchange/usdSend:
+    post:
+      operationId: usdSend
+      summary: USD Transfer
+      tags: [Authorization]
+      description: |
+        Transfer USD between DEX accounts.
+
+        **Signature:** Master · **No protobuf**
+
+        **EIP-712 type:**
+        ```json
+        {
+          "UsdTransfer": [
+            { "name": "dexChain",    "type": "string"  },
+            { "name": "to",          "type": "address" },
+            { "name": "amount",      "type": "string"  },
+            { "name": "nonce",       "type": "uint64"  },
+            { "name": "expiryAfter", "type": "uint64"  }
+          ]
+        }
+        ```
+        Domain name: `"SignTransaction"`
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UsdSendRequest"
+            examples:
+              default:
+                value:
+                  action:
+                    type: usdSend
+                    to: "0xabc123..."
+                    amount: "50"
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            await client.usdSend({ to: "0xabc...", amount: "50" });
+        - lang: Python
+          label: Python
+          source: |
+            client.usd_send(to="0xabc...", amount="50")
+
+  # ═══════════════════════════════════════════════════════════════════
+  #  Referral
+  # ═══════════════════════════════════════════════════════════════════
+  /exchange/bindReferral:
+    post:
+      operationId: bindReferral
+      summary: Bind Referral
+      tags: [Referral]
+      description: |
+        Bind a referral code to the account.
+
+        **Signature:** Agent · **Protobuf:** `MsgBindReferral`
+
+        ```protobuf
+        // package: dex.offchain.referral.v1
+        message MsgBindReferral {
+          string referral_code = 1;
+        }
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BindReferralRequest"
+            examples:
+              default:
+                value:
+                  action:
+                    type: bindReferral
+                    referralCode: "ABC123"
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            await client.bindReferral({ code: "ABC123" });
+        - lang: Python
+          label: Python
+          source: |
+            client.bind_referral(code="ABC123")
+
+  # ═══════════════════════════════════════════════════════════════════
+  #  Vault Operations
+  # ═══════════════════════════════════════════════════════════════════
+  /exchange/vaultCreate:
+    post:
+      operationId: vaultCreate
+      summary: Create Vault
+      tags: [Vault]
+      description: |
+        Create a new vault with initial deposit.
+
+        **Signature:** Agent · **Protobuf:** `MsgVaultCreate`
+
+        ```protobuf
+        message MsgVaultCreate {
+          string name          = 1;
+          string description   = 2;
+          string amount        = 3;
+          int64  currency_code = 4;
+        }
+        ```
+
+        Response `data` includes additional field `vault` — the newly created vault address.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VaultCreateRequest"
+            examples:
+              default:
+                value:
+                  action:
+                    type: vaultCreate
+                    name: "My Vault"
+                    description: "Automated trading vault"
+                    amount: "1000"
+                    currencyCode: 1
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+      responses:
+        "200":
+          description: Vault created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer, example: 0 }
+                  message: { type: string, example: success }
+                  data:
+                    type: object
+                    properties:
+                      txHash: { type: string }
+                      txCode: { type: integer }
+                      txMsg: { type: string }
+                      vault: { type: string, description: "New vault address" }
+              examples:
+                success:
+                  value:
+                    code: 0
+                    message: success
+                    data:
+                      txHash: "0x..."
+                      txCode: 0
+                      txMsg: ""
+                      vault: "0x4b90BBE5Bc03Bf8981b48f7aCb2ccCa271e6CCEd"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const result = await client.vaultCreate({
+              name: "My Vault", description: "Automated trading vault",
+              amount: "1000", currencyCode: 1,
+            });
+            console.log(result.data.vault); // new vault address
+        - lang: Python
+          label: Python
+          source: |
+            result = client.vault_create(
+                name="My Vault", description="Automated trading vault",
+                amount="1000", currency_code=1,
+            )
+            print(result["data"]["vault"])  # new vault address
+
+  /exchange/vaultCreateSubVault:
+    post:
+      operationId: vaultCreateSubVault
+      summary: Create Sub-Vault
+      tags: [Vault]
+      description: |
+        Create a sub-vault under a parent vault. Parent vault specified via outer `vaultAddress` field.
+
+        **Signature:** Agent · **Protobuf:** `MsgVaultCreateSubVault`
+
+        ```protobuf
+        message MsgVaultCreateSubVault {}  // empty message
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            examples:
+              default:
+                value:
+                  action:
+                    type: vaultCreateSubVault
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+                  vaultAddress: "0x4b90BBE5..."
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            // Parent vault address is required
+            await client.vaultCreateSubVault({ vaultAddress: "0x4b90BBE5..." });
+        - lang: Python
+          label: Python
+          source: |
+            # Parent vault address is required
+            # (not yet in SDK — use raw agent_sign_and_send)
+
+  /exchange/vaultDeposit:
+    post:
+      operationId: vaultDeposit
+      summary: Vault Deposit
+      tags: [Vault]
+      description: |
+        Deposit funds into a vault. Vault address specified via outer `vaultAddress` field.
+
+        **Signature:** Agent · **Protobuf:** `MsgVaultDeposit`
+
+        ```protobuf
+        message MsgVaultDeposit {
+          string amount        = 1;
+          int64  currency_code = 2;
+        }
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            examples:
+              default:
+                value:
+                  action:
+                    type: vaultDeposit
+                    amount: "100"
+                    currencyCode: 1
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+                  vaultAddress: "0x4b90BBE5..."
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            await client.vaultDeposit({ vaultAddress: "0x4b90BBE5...", amount: "100" });
+        - lang: Python
+          label: Python
+          source: |
+            client.vault_deposit(vault_address="0x4b90BBE5...", amount="100")
+
+  /exchange/vaultWithdraw:
+    post:
+      operationId: vaultWithdraw
+      summary: Vault Withdraw
+      tags: [Vault]
+      description: |
+        Withdraw from a vault by amount. Vault address specified via outer `vaultAddress` field.
+
+        **Signature:** Agent · **Protobuf:** `MsgVaultWithdraw`
+
+        ```protobuf
+        message MsgVaultWithdraw {
+          string amount        = 1;
+          int64  currency_code = 2;
+        }
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            examples:
+              default:
+                value:
+                  action:
+                    type: vaultWithdraw
+                    amount: "50"
+                    currencyCode: 1
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+                  vaultAddress: "0x4b90BBE5..."
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            await client.vaultWithdraw({ vaultAddress: "0x4b90BBE5...", amount: "50" });
+        - lang: Python
+          label: Python
+          source: |
+            client.vault_withdraw(vault_address="0x4b90BBE5...", amount="50")
+
+  /exchange/vaultPreWithdraw:
+    post:
+      operationId: vaultPreWithdraw
+      summary: Vault Pre-Withdraw
+      tags: [Vault]
+      description: |
+        Request a pre-withdrawal from vault. Vault address via outer `vaultAddress` field.
+
+        **Signature:** Agent · **Protobuf:** `MsgVaultPreWithdraw`
+
+        ```protobuf
+        message MsgVaultPreWithdraw {
+          string amount        = 1;
+          int64  currency_code = 2;
+        }
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            examples:
+              default:
+                value:
+                  action:
+                    type: vaultPreWithdraw
+                    amount: "50"
+                    currencyCode: 1
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+                  vaultAddress: "0x4b90BBE5..."
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            await client.vaultPreWithdraw({ vaultAddress: "0x4b90BBE5...", amount: "50" });
+        - lang: Python
+          label: Python
+          source: |
+            # vaultPreWithdraw uses same pattern as vaultWithdraw
+            client.vault_withdraw(vault_address="0x4b90BBE5...", amount="50")
+
+  /exchange/vaultRebalance:
+    post:
+      operationId: vaultRebalance
+      summary: Vault Rebalance
+      tags: [Vault]
+      description: |
+        Rebalance funds between vaults. Outer `vaultAddress` specifies the main vault.
+
+        **Signature:** Agent · **Protobuf:** `MsgVaultRebalance`
+
+        ```protobuf
+        message MsgVaultRebalance {
+          string from          = 1;
+          string to            = 2;
+          string amount        = 3;
+          int64  currency_code = 4;
+        }
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            examples:
+              default:
+                value:
+                  action:
+                    type: vaultRebalance
+                    from: "0xSubVault1..."
+                    to: "0xSubVault2..."
+                    amount: "500"
+                    currencyCode: 1
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+                  vaultAddress: "0xMainVault..."
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            await client.vaultRebalance({
+              vaultAddress: "0xMainVault...",
+              from: "0xSubVault1...", to: "0xSubVault2...",
+              amount: "500",
+            });
+        - lang: Python
+          label: Python
+          source: |
+            # vaultRebalance — use raw API or extend SDK
+            # client._agent_sign_and_send(action, proto, vault_address=...)
+
+  /exchange/vaultUpdateOwner:
+    post:
+      operationId: vaultUpdateOwner
+      summary: Vault Update Owner
+      tags: [Vault]
+      description: |
+        Transfer vault ownership. Vault address via outer `vaultAddress` field.
+
+        **Signature:** Agent · **Protobuf:** `MsgVaultUpdateOwner`
+
+        ```protobuf
+        message MsgVaultUpdateOwner {
+          string owner = 1;
+        }
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            examples:
+              default:
+                value:
+                  action:
+                    type: vaultUpdateOwner
+                    owner: "0xNewOwner..."
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+                  vaultAddress: "0x4b90BBE5..."
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            await client.vaultUpdateOwner({
+              vaultAddress: "0x4b90BBE5...", owner: "0xNewOwner...",
+            });
+        - lang: Python
+          label: Python
+          source: |
+            # vaultUpdateOwner — use raw API or extend SDK
+
+  /exchange/vaultClose:
+    post:
+      operationId: vaultClose
+      summary: Close Vault
+      tags: [Vault]
+      description: |
+        Close a vault. Vault address via outer `vaultAddress` field.
+
+        **Signature:** Agent · **Protobuf:** `MsgVaultClose`
+
+        ```protobuf
+        message MsgVaultClose {}  // empty message
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            examples:
+              default:
+                value:
+                  action:
+                    type: vaultClose
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+                  vaultAddress: "0x4b90BBE5..."
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            await client.vaultClose({ vaultAddress: "0x4b90BBE5..." });
+        - lang: Python
+          label: Python
+          source: |
+            client.vault_close(vault_address="0x4b90BBE5...")
+
+# ═══════════════════════════════════════════════════════════════════
+#  Components
+# ═══════════════════════════════════════════════════════════════════
+components:
+  responses:
+    ExchangeOk:
+      description: Transaction submitted
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ExchangeResponse"
+          examples:
+            success:
+              value: { code: 0, message: success, data: { txHash: "0xabc...", txCode: 0, txMsg: "" } }
+            signatureFailed:
+              summary: Signature failed
+              value: { code: 40204, message: "Signature verification failed", data: null }
+
+  schemas:
+    Signature:
+      type: object
+      required: [r, s, v]
+      properties:
+        r: { type: string, description: "32-byte hex" }
+        s: { type: string, description: "32-byte hex" }
+        v: { type: integer, description: "27 or 28" }
+
+    ExchangeResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: |
+            `0` success · `40201` unsupported action · `40204` bad signature ·
+            `40207` invalid nonce · `40208` expired · `40220` rate limited ·
+            `40230` chain error · `40231` broadcast failed ·
+            `40280` action disabled · `40281` address banned
+        message: { type: string }
+        data:
+          type: object
+          nullable: true
+          properties:
+            txHash: { type: string }
+            txCode: { type: integer }
+            txMsg: { type: string }
+
+    PlaceOrderRequest:
+      type: object
+      required: [action, signature, nonce]
+      properties:
+        action:
+          type: object
+          required: [type, orders]
+          properties:
+            type: { type: string, enum: [placeOrder] }
+            orders:
+              type: array
+              minItems: 1
+              items:
+                type: object
+                required: [symbolCode, ordPx, ordQty, ordType, ordSide, timeInForce]
+                properties:
+                  symbolCode: { type: integer, format: int64, example: 1 }
+                  ordPx: { type: string, description: "Limit `> 0`, Market `\"0\"`" }
+                  ordQty: { type: string }
+                  ordType: { type: string, enum: [LIMIT, MARKET] }
+                  ordSide: { type: string, enum: [BUY, SELL, BUY_CLOSE_HEDGE, SELL_CLOSE_HEDGE] }
+                  timeInForce: { type: string, enum: [GTC, IOC, FOK, POST_ONLY] }
+                  clOrdId: { type: integer, format: int64 }
+                  parentOrdId: { type: integer, format: int64 }
+                  reduce_only_option: { type: string, enum: [REDUCE_ONLY, TP_FROM_POSITION, SL_FROM_POSITION] }
+                  triggerPx: { type: string }
+                  tpslTriggerType: { type: string, enum: [LAST_PRICE, MARK_PRICE, INDEX_PRICE] }
+                  slippagePct: { type: string }
+        signature: { $ref: "#/components/schemas/Signature" }
+        nonce: { type: integer, format: int64 }
+        expiryAfter: { type: integer, format: int64, nullable: true }
+        vaultAddress: { type: string, nullable: true }
+
+    CancelOrderRequest:
+      type: object
+      required: [action, signature, nonce]
+      properties:
+        action:
+          type: object
+          required: [type, cancels]
+          properties:
+            type: { type: string, enum: [cancelOrder] }
+            cancels:
+              type: array
+              minItems: 1
+              items:
+                type: object
+                required: [symbolCode]
+                properties:
+                  symbolCode: { type: string }
+                  clOrdId: { type: string, description: "Client order ID (clOrdId or ordId required)" }
+                  ordId: { type: string, description: "System order ID (clOrdId or ordId required)" }
+        signature: { $ref: "#/components/schemas/Signature" }
+        nonce: { type: integer, format: int64 }
+        vaultAddress: { type: string, nullable: true }
+
+    CancelAllRequest:
+      type: object
+      required: [action, signature, nonce]
+      properties:
+        action:
+          type: object
+          required: [type, symbolCode]
+          properties:
+            type: { type: string, enum: [cancelAll] }
+            symbolCode: { type: integer, format: int64 }
+            conditionalOrder: { type: boolean, default: false }
+        signature: { $ref: "#/components/schemas/Signature" }
+        nonce: { type: integer, format: int64 }
+        vaultAddress: { type: string, nullable: true }
+
+    SetLeverageRequest:
+      type: object
+      required: [action, signature, nonce]
+      properties:
+        action:
+          type: object
+          required: [type, symbolCode, leverage]
+          properties:
+            type: { type: string, enum: [setLeverage] }
+            symbolCode: { type: integer, format: int64 }
+            leverage: { type: string, description: ">= 1, max 2 decimal places" }
+        signature: { $ref: "#/components/schemas/Signature" }
+        nonce: { type: integer, format: int64 }
+        vaultAddress: { type: string, nullable: true }
+
+    SetMarginModeRequest:
+      type: object
+      required: [action, signature, nonce]
+      properties:
+        action:
+          type: object
+          required: [type, symbolCode, marginMode]
+          properties:
+            type: { type: string, enum: [setMarginMode] }
+            symbolCode: { type: integer, format: int64 }
+            marginMode: { type: string, enum: [CROSS, ISOLATED] }
+        signature: { $ref: "#/components/schemas/Signature" }
+        nonce: { type: integer, format: int64 }
+        vaultAddress: { type: string, nullable: true }
+
+    AssignPosMarginRequest:
+      type: object
+      required: [action, signature, nonce]
+      properties:
+        action:
+          type: object
+          required: [type, symbolCode, assignedPosMargin]
+          properties:
+            type: { type: string, enum: [assignPosMargin] }
+            symbolCode: { type: integer, format: int64 }
+            assignedPosMargin: { type: string, description: "Amount to assign (non-zero)" }
+        signature: { $ref: "#/components/schemas/Signature" }
+        nonce: { type: integer, format: int64 }
+        vaultAddress: { type: string, nullable: true }
+
+    ApproveAgentRequest:
+      type: object
+      required: [action, signature, nonce]
+      properties:
+        action:
+          type: object
+          required: [type, agentAddress, agentName, dexChain]
+          properties:
+            type: { type: string, enum: [approveAgent] }
+            agentAddress: { type: string, description: "Agent wallet address (0x hex)" }
+            agentName: { type: string }
+            dexChain: { type: string, enum: [Mainnet, Testnet] }
+            referralCode: { type: string, description: "Referral code (only effective on first approve)" }
+        signature: { $ref: "#/components/schemas/Signature" }
+        nonce: { type: integer, format: int64 }
+        expiryAfter: { type: integer, format: int64, nullable: true }
+
+    WithdrawRequest:
+      type: object
+      required: [action, signature, nonce]
+      properties:
+        action:
+          type: object
+          required: [type, destination, amount]
+          properties:
+            type: { type: string, enum: [withdraw] }
+            destination: { type: string, description: "Recipient address (0x hex)" }
+            amount: { type: string, description: ">= 1" }
+        signature: { $ref: "#/components/schemas/Signature" }
+        nonce: { type: integer, format: int64 }
+        expiryAfter: { type: integer, format: int64, nullable: true }
+
+    UsdSendRequest:
+      type: object
+      required: [action, signature, nonce]
+      properties:
+        action:
+          type: object
+          required: [type, to, amount]
+          properties:
+            type: { type: string, enum: [usdSend] }
+            to: { type: string, description: "Recipient address (0x hex)" }
+            amount: { type: string, description: ">= 1" }
+        signature: { $ref: "#/components/schemas/Signature" }
+        nonce: { type: integer, format: int64 }
+        expiryAfter: { type: integer, format: int64, nullable: true }
+
+    BindReferralRequest:
+      type: object
+      required: [action, signature, nonce]
+      properties:
+        action:
+          type: object
+          required: [type, referralCode]
+          properties:
+            type: { type: string, enum: [bindReferral] }
+            referralCode: { type: string }
+        signature: { $ref: "#/components/schemas/Signature" }
+        nonce: { type: integer, format: int64 }
+
+    VaultCreateRequest:
+      type: object
+      required: [action, signature, nonce]
+      properties:
+        action:
+          type: object
+          required: [type, name, description, amount, currencyCode]
+          properties:
+            type: { type: string, enum: [vaultCreate] }
+            name: { type: string }
+            description: { type: string }
+            amount: { type: string, description: "Initial deposit amount" }
+            currencyCode: { type: integer, format: int64 }
+        signature: { $ref: "#/components/schemas/Signature" }
+        nonce: { type: integer, format: int64 }

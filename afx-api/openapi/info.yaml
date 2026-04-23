@@ -1,0 +1,1170 @@
+openapi: 3.0.3
+info:
+  title: Phemex DEX Info API
+  version: 1.0.0
+  description: |
+    Query endpoints for account data, orders, positions, trades, market data, and more.
+    All endpoints are `GET` requests. No signature required.
+
+    **Response format:**
+    ```json
+    { "code": 0, "message": "success", "data": { ... } }
+    ```
+
+servers:
+  - url: https://api10.afx.xyz
+    description: Mainnet
+  - url: https://api10-testnet.afx.xyz
+    description: Testnet
+
+paths:
+  # ═══════════════════════════════════════════════════════════════════
+  #  Account
+  # ═══════════════════════════════════════════════════════════════════
+  /info/account/wallet:
+    get:
+      operationId: queryWallet
+      summary: Query Wallet Balances
+      tags: [Account]
+      parameters:
+        - name: userAddr
+          in: query
+          required: true
+          schema: { type: string }
+          description: User address (0x hex)
+        - name: currency
+          in: query
+          schema: { type: integer, format: int64 }
+          description: Currency code filter
+        - name: includeZero
+          in: query
+          schema: { type: boolean, default: false }
+          description: Include zero-balance currencies
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              examples:
+                success:
+                  value:
+                    code: 0
+                    message: success
+                    data:
+                      - currencyCode: 1
+                        balance: "10000.000000000000"
+                        availableBalance: "8500.000000000000"
+                        equity: "10500.000000000000"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/account/wallet?userAddr=0xabc...`
+            );
+            console.log(await resp.json());
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/account/wallet",
+                params={"userAddr": "0xabc..."})
+            print(resp.json())
+
+  /info/account/ledger:
+    get:
+      operationId: queryLedger
+      summary: Query Account Ledger
+      tags: [Account]
+      parameters:
+        - name: userAddr
+          in: query
+          required: true
+          schema: { type: string }
+        - name: currency
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: bizType
+          in: query
+          schema: { type: string }
+          description: Business type filter
+        - name: txHash
+          in: query
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: pageSize
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: startTime
+          in: query
+          schema: { type: integer, format: int64 }
+          description: Start timestamp (ms)
+        - name: endTime
+          in: query
+          schema: { type: integer, format: int64 }
+          description: End timestamp (ms)
+      responses:
+        "200":
+          description: Paginated ledger entries
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/account/ledger?userAddr=0xabc...&page=1&pageSize=20`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/account/ledger",
+                params={"userAddr": "0xabc...", "page": 1, "pageSize": 20})
+
+  /info/account/agent:
+    get:
+      operationId: queryAgent
+      summary: Query Account Agents
+      tags: [Account]
+      parameters:
+        - name: userAddr
+          in: query
+          required: true
+          schema: { type: string }
+        - name: role
+          in: query
+          schema: { type: string }
+        - name: status
+          in: query
+          schema: { type: string }
+        - name: agentAddress
+          in: query
+          schema: { type: string }
+        - name: masterAddress
+          in: query
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: pageSize
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        "200":
+          description: Paginated agent list
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/account/agent?userAddr=0xabc...`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/account/agent",
+                params={"userAddr": "0xabc..."})
+
+  /info/account/agent/active:
+    get:
+      operationId: queryActiveAgent
+      summary: Query Active Agent
+      tags: [Account]
+      parameters:
+        - name: userAddr
+          in: query
+          required: true
+          schema: { type: string }
+        - name: agentName
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Active agent info
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/account/agent/active?userAddr=0xabc...&agentName=my-bot`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/account/agent/active",
+                params={"userAddr": "0xabc...", "agentName": "my-bot"})
+
+  # ═══════════════════════════════════════════════════════════════════
+  #  Orders
+  # ═══════════════════════════════════════════════════════════════════
+  /info/order/states:
+    get:
+      operationId: queryOrderStates
+      summary: Query Order States
+      tags: [Orders]
+      parameters:
+        - name: userAddr
+          in: query
+          required: true
+          schema: { type: string }
+        - name: symbol
+          in: query
+          schema: { type: integer, format: int64 }
+          description: Symbol code filter
+        - name: status
+          in: query
+          schema: { type: string }
+          description: Order status filter
+        - name: side
+          in: query
+          schema: { type: integer }
+          description: "Side filter (1=BUY, 2=SELL)"
+        - name: type
+          in: query
+          schema: { type: integer }
+          description: "Type filter (1=LIMIT, 2=MARKET)"
+        - name: orderId
+          in: query
+          schema: { type: string }
+        - name: clientOrderId
+          in: query
+          schema: { type: string }
+        - name: parentOrderId
+          in: query
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: pageSize
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: startTime
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: endTime
+          in: query
+          schema: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: Paginated order states
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/order/states?userAddr=0xabc...&symbol=1`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/order/states",
+                params={"userAddr": "0xabc...", "symbol": 1})
+
+  /info/order/events:
+    get:
+      operationId: queryOrderEvents
+      summary: Query Order Events
+      tags: [Orders]
+      parameters:
+        - name: userAddr
+          in: query
+          required: true
+          schema: { type: string }
+        - name: orderId
+          in: query
+          schema: { type: string }
+        - name: clientOrderId
+          in: query
+          schema: { type: string }
+        - name: symbol
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: execStatus
+          in: query
+          schema: { type: string }
+        - name: side
+          in: query
+          schema: { type: integer }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: pageSize
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: startTime
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: endTime
+          in: query
+          schema: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: Paginated order events
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/order/events?userAddr=0xabc...&orderId=12345`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/order/events",
+                params={"userAddr": "0xabc...", "orderId": "12345"})
+
+  # ═══════════════════════════════════════════════════════════════════
+  #  Positions
+  # ═══════════════════════════════════════════════════════════════════
+  /info/position/list:
+    get:
+      operationId: queryPositions
+      summary: Query Positions
+      tags: [Positions]
+      parameters:
+        - name: userAddr
+          in: query
+          required: true
+          schema: { type: string }
+        - name: symbol
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: posMode
+          in: query
+          schema: { type: integer }
+          description: "Position mode (1=ONE_WAY, 2=HEDGE)"
+        - name: includeZero
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        "200":
+          description: Position list
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/position/list?userAddr=0xabc...`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/position/list",
+                params={"userAddr": "0xabc..."})
+
+  # ═══════════════════════════════════════════════════════════════════
+  #  Trades
+  # ═══════════════════════════════════════════════════════════════════
+  /info/trade/page:
+    get:
+      operationId: queryTrades
+      summary: Query Trades
+      tags: [Trades]
+      parameters:
+        - name: userAddr
+          in: query
+          required: true
+          schema: { type: string }
+        - name: symbol
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: orderId
+          in: query
+          schema: { type: string }
+        - name: execId
+          in: query
+          schema: { type: string }
+        - name: side
+          in: query
+          schema: { type: integer }
+        - name: role
+          in: query
+          schema: { type: string }
+          description: "Maker/Taker role filter"
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: pageSize
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: startTime
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: endTime
+          in: query
+          schema: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: Paginated trade records
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/trade/page?userAddr=0xabc...&symbol=1`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/trade/page",
+                params={"userAddr": "0xabc...", "symbol": 1})
+
+  # ═══════════════════════════════════════════════════════════════════
+  #  Products
+  # ═══════════════════════════════════════════════════════════════════
+  /info/single:
+    get:
+      operationId: getProductSingle
+      summary: Query Single Product
+      tags: [Products]
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema: { type: integer, format: int64 }
+          description: Symbol code
+      responses:
+        "200":
+          description: Product metadata
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(`${BASE_URL}/info/single?symbol=1`);
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/single", params={"symbol": 1})
+
+  /info/public/product-meta:
+    get:
+      operationId: getAllProducts
+      summary: Query All Products
+      tags: [Products]
+      parameters:
+        - name: listStatus
+          in: query
+          schema: { type: integer }
+          description: Filter by listing status
+      responses:
+        "200":
+          description: All product metadata
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(`${BASE_URL}/info/public/product-meta`);
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/public/product-meta")
+
+  # ═══════════════════════════════════════════════════════════════════
+  #  Kline
+  # ═══════════════════════════════════════════════════════════════════
+  /info/kline/last:
+    get:
+      operationId: getKlineLast
+      summary: Query Latest Klines
+      tags: [Kline]
+      description: Get latest N kline candles, sorted by timestamp descending.
+      parameters:
+        - name: symbol_name
+          in: query
+          required: true
+          schema: { type: string }
+          description: "Symbol name (e.g. `BTCUSDC`)"
+        - name: interval
+          in: query
+          required: true
+          schema: { type: integer, format: int64 }
+          description: "Interval in seconds (60, 300, 900, 3600, 86400, ...)"
+        - name: limit
+          in: query
+          schema: { type: integer, default: 100 }
+          description: Number of candles to return
+      responses:
+        "200":
+          description: Kline data array
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/kline/last?symbol_name=BTCUSDC&interval=60&limit=100`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/kline/last",
+                params={"symbol_name": "BTCUSDC", "interval": 60, "limit": 100})
+
+  /info/kline/before:
+    get:
+      operationId: getKlineBefore
+      summary: Query Klines Before Timestamp
+      tags: [Kline]
+      description: Get N klines before a given timestamp. Defaults to current time.
+      parameters:
+        - name: symbol_name
+          in: query
+          required: true
+          schema: { type: string }
+        - name: interval
+          in: query
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: timestamp
+          in: query
+          schema: { type: integer, format: int64 }
+          description: Upper bound timestamp (ms). Defaults to now.
+        - name: limit
+          in: query
+          schema: { type: integer, default: 100 }
+      responses:
+        "200":
+          description: Kline data array
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/kline/before?symbol_name=BTCUSDC&interval=60&limit=200`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/kline/before",
+                params={"symbol_name": "BTCUSDC", "interval": 60, "limit": 200})
+
+  /info/kline/list:
+    get:
+      operationId: getKlineList
+      summary: Query Klines in Time Range
+      tags: [Kline]
+      description: Get all klines in a time range, sorted ascending.
+      parameters:
+        - name: symbol_name
+          in: query
+          required: true
+          schema: { type: string }
+        - name: interval
+          in: query
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: startTime
+          in: query
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: endTime
+          in: query
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: Kline data array
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/kline/list?symbol_name=BTCUSDC&interval=3600&startTime=1700000000000&endTime=1700100000000`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/kline/list", params={
+                "symbol_name": "BTCUSDC", "interval": 3600,
+                "startTime": 1700000000000, "endTime": 1700100000000,
+            })
+
+  # ═══════════════════════════════════════════════════════════════════
+  #  Funding Rate
+  # ═══════════════════════════════════════════════════════════════════
+  /info/fundingRate/current:
+    get:
+      operationId: getFundingRateCurrent
+      summary: Query Current Funding Rates
+      tags: [Funding Rate]
+      parameters:
+        - name: symbol
+          in: query
+          schema: { type: integer, format: int64 }
+          description: Symbol code. Omit for all symbols.
+      responses:
+        "200":
+          description: Current funding rate(s)
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(`${BASE_URL}/info/fundingRate/current?symbol=1`);
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/fundingRate/current",
+                params={"symbol": 1})
+
+  /info/fundingRate/history:
+    get:
+      operationId: getFundingRateHistory
+      summary: Query Funding Rate History
+      tags: [Funding Rate]
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: pageSize
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: startTime
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: endTime
+          in: query
+          schema: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: Paginated funding rate history
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/fundingRate/history?symbol=1&page=1&pageSize=20`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/fundingRate/history",
+                params={"symbol": 1, "page": 1, "pageSize": 20})
+
+  /info/funding/history:
+    get:
+      operationId: queryUserFundingHistory
+      summary: Query User Funding History
+      tags: [Funding Rate]
+      description: Query a user's funding fee settlement history.
+      parameters:
+        - name: userAddr
+          in: query
+          required: true
+          schema: { type: string }
+        - name: symbol
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: pageSize
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: startTime
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: endTime
+          in: query
+          schema: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: Paginated user funding history
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/funding/history?userAddr=0xabc...&symbol=1`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/funding/history",
+                params={"userAddr": "0xabc...", "symbol": 1})
+
+  # ═══════════════════════════════════════════════════════════════════
+  #  Vault
+  # ═══════════════════════════════════════════════════════════════════
+  /info/vault/detail:
+    get:
+      operationId: getVaultDetail
+      summary: Query Vault Detail
+      tags: [Vault]
+      description: |
+        Returns vault info (TVL, APR, PnL). If `userAddress` is provided, also returns user position data.
+        When querying a parent vault, TVL/PnL/APR aggregate all sub-vaults.
+      parameters:
+        - name: vaultAddress
+          in: query
+          required: true
+          schema: { type: string }
+        - name: userAddress
+          in: query
+          schema: { type: string }
+          description: Include user position data
+      responses:
+        "200":
+          description: Vault detail
+          content:
+            application/json:
+              examples:
+                success:
+                  value:
+                    code: 0
+                    message: success
+                    data:
+                      vaultAddress: "0x4b90BBE5..."
+                      ownerAddress: "0xfc846581..."
+                      vaultName: "test"
+                      tvl: "100.000000"
+                      price: "1.000000"
+                      apr: null
+                      status: 1
+                      yourDeposits: "100.000000"
+                      userCurrentValue: "100.000000"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/vault/detail?vaultAddress=0x4b90...&userAddress=0xfc84...`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/vault/detail", params={
+                "vaultAddress": "0x4b90...", "userAddress": "0xfc84..."})
+
+  /info/vault/user-list:
+    get:
+      operationId: getUserVaultList
+      summary: Query User's Vault List
+      tags: [Vault]
+      description: Returns all vaults where user holds shares > 0.
+      parameters:
+        - name: userAddress
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: List of vaults with user holdings
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/vault/user-list?userAddress=0xabc...`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/vault/user-list",
+                params={"userAddress": "0xabc..."})
+
+  /info/vault/user:
+    get:
+      operationId: getUserVaultInfo
+      summary: Query User Vault Position
+      tags: [Vault]
+      description: Returns user's full position info in a specific vault.
+      parameters:
+        - name: vaultAddress
+          in: query
+          required: true
+          schema: { type: string }
+        - name: userAddress
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: User vault position detail
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/vault/user?vaultAddress=0x4b90...&userAddress=0xfc84...`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/vault/user",
+                params={"vaultAddress": "0x4b90...", "userAddress": "0xfc84..."})
+
+  /info/vault/list:
+    get:
+      operationId: getVaultList
+      summary: Query All Vaults
+      tags: [Vault]
+      description: |
+        Returns all parent vaults (Active and Closed). Sub-vaults not listed.
+        TVL and APR aggregate sub-vault data.
+      parameters:
+        - name: userAddress
+          in: query
+          schema: { type: string }
+          description: Include `yourDeposit` field when provided
+      responses:
+        "200":
+          description: Vault list with total locked value
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(`${BASE_URL}/info/vault/list`);
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/vault/list")
+
+  /info/vault/history:
+    get:
+      operationId: getVaultHistory
+      summary: Query Vault History
+      tags: [Vault]
+      description: |
+        Returns vault TVL or PnL time-series data.
+
+        | interval | Range | Granularity |
+        |----------|-------|-------------|
+        | 24h | Last 24 hours | 1 hour |
+        | 7d | Last 7 days | 12 hours |
+        | 30d | Last 30 days | 1 day |
+        | all-time | All history | 1 month |
+      parameters:
+        - name: vaultAddress
+          in: query
+          required: true
+          schema: { type: string }
+        - name: type
+          in: query
+          schema: { type: string, default: tvl, enum: [tvl, pnl] }
+        - name: interval
+          in: query
+          schema: { type: string, default: 24h, enum: [24h, 7d, 30d, all-time] }
+      responses:
+        "200":
+          description: Time-series data
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/vault/history?vaultAddress=0x4b90...&type=tvl&interval=7d`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/vault/history", params={
+                "vaultAddress": "0x4b90...", "type": "tvl", "interval": "7d"})
+
+  /info/vault/events:
+    get:
+      operationId: getVaultEvents
+      summary: Query Vault Deposit/Withdraw Events
+      tags: [Vault]
+      parameters:
+        - name: vaultAddress
+          in: query
+          required: true
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: pageSize
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        "200":
+          description: Paginated deposit/withdraw events
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/vault/events?vaultAddress=0x4b90...&page=1`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/vault/events",
+                params={"vaultAddress": "0x4b90...", "page": 1})
+
+  /info/vault/depositors:
+    get:
+      operationId: getVaultDepositors
+      summary: Query Vault Depositors
+      tags: [Vault]
+      description: Returns all depositors with shares > 0.
+      parameters:
+        - name: vaultAddress
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Depositor list
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/vault/depositors?vaultAddress=0x4b90...`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/vault/depositors",
+                params={"vaultAddress": "0x4b90..."})
+
+  # ═══════════════════════════════════════════════════════════════════
+  #  Referral
+  # ═══════════════════════════════════════════════════════════════════
+  /info/referral/code:
+    get:
+      operationId: getReferralCode
+      summary: Query Referral Code
+      tags: [Referral]
+      parameters:
+        - name: userAddr
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Referral code info
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(`${BASE_URL}/info/referral/code?userAddr=0xabc...`);
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/referral/code",
+                params={"userAddr": "0xabc..."})
+
+  /info/referral/summary:
+    get:
+      operationId: getReferralSummary
+      summary: Query Referral Summary
+      tags: [Referral]
+      parameters:
+        - name: userAddr
+          in: query
+          required: true
+          schema: { type: string }
+        - name: period
+          in: query
+          schema: { type: string, default: all }
+        - name: startTime
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: endTime
+          in: query
+          schema: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: Referral summary statistics
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/referral/summary?userAddr=0xabc...&period=all`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/referral/summary",
+                params={"userAddr": "0xabc...", "period": "all"})
+
+  /info/referral/referrals:
+    get:
+      operationId: getReferrals
+      summary: Query Referral List
+      tags: [Referral]
+      parameters:
+        - name: userAddr
+          in: query
+          required: true
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 10 }
+        - name: sortBy
+          in: query
+          schema: { type: string, default: dateJoined }
+        - name: sortOrder
+          in: query
+          schema: { type: string, default: desc }
+        - name: search
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Paginated referral list
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/referral/referrals?userAddr=0xabc...&page=1&size=10`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/referral/referrals",
+                params={"userAddr": "0xabc...", "page": 1, "size": 10})
+
+  /info/referral/payouts:
+    get:
+      operationId: getPayouts
+      summary: Query Referral Payouts
+      tags: [Referral]
+      parameters:
+        - name: userAddr
+          in: query
+          required: true
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: size
+          in: query
+          schema: { type: integer, default: 10 }
+      responses:
+        "200":
+          description: Paginated payout list
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/referral/payouts?userAddr=0xabc...`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/referral/payouts",
+                params={"userAddr": "0xabc..."})
+
+  /info/referral/tiers:
+    get:
+      operationId: getTierConfigs
+      summary: Query Referral Tiers
+      tags: [Referral]
+      description: Returns referral tier configuration (no parameters).
+      responses:
+        "200":
+          description: Tier config list
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(`${BASE_URL}/info/referral/tiers`);
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/referral/tiers")
+
+  # ═══════════════════════════════════════════════════════════════════
+  #  Explorer
+  # ═══════════════════════════════════════════════════════════════════
+  /info/explore/transaction/page:
+    get:
+      operationId: queryTransactions
+      summary: Query Transactions
+      tags: [Explorer]
+      parameters:
+        - name: user
+          in: query
+          required: true
+          schema: { type: string }
+          description: User address
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: pageSize
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        "200":
+          description: Paginated transaction list
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/explore/transaction/page?user=0xabc...`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/explore/transaction/page",
+                params={"user": "0xabc..."})
+
+  /info/explore/transaction/detail:
+    get:
+      operationId: queryTransactionDetail
+      summary: Query Transaction Detail
+      tags: [Explorer]
+      parameters:
+        - name: txHash
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Transaction detail with parsed action
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/explore/transaction/detail?txHash=0xdef...`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/explore/transaction/detail",
+                params={"txHash": "0xdef..."})
+
+  /info/explore/block/detail:
+    get:
+      operationId: queryBlockDetail
+      summary: Query Block Detail
+      tags: [Explorer]
+      parameters:
+        - name: blockHeight
+          in: query
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: pageSize
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        "200":
+          description: Block detail with paginated transactions
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const resp = await fetch(
+              `${BASE_URL}/info/explore/block/detail?blockHeight=123456`
+            );
+        - lang: Python
+          label: Python
+          source: |
+            resp = requests.get(f"{BASE_URL}/info/explore/block/detail",
+                params={"blockHeight": 123456})
