@@ -15,7 +15,7 @@ Two Ethereum wallets are required:
 
 {% columns %}
 {% column %}
-#### Master Wallet
+**Master Wallet**
 
 Controls funds and permissions.
 
@@ -23,7 +23,7 @@ Used to sign `approveAgent`, `withdraw`, and `usdSend`.
 {% endcolumn %}
 
 {% column %}
-#### Agent Wallet
+**Agent Wallet**
 
 Handles day-to-day trading.
 
@@ -41,7 +41,7 @@ You can generate both from any Ethereum-compatible library (ethers.js, eth-accou
 pip install eth-account requests websockets protobuf grpcio-tools
 ```
 
-Download [`dex.proto`](sdk/dex.proto) and [`dex_client.py`](sdk/dex_client.py), then compile the protobuf:
+Download [`dex.proto`](../sdk/dex.proto) and [`dex_client.py`](../sdk/dex_client.py), then compile the protobuf:
 
 ```bash
 python -m grpc_tools.protoc --python_out=. --proto_path=. dex.proto
@@ -55,7 +55,7 @@ This generates `dex_pb2.py` which the SDK depends on.
 npm install ethers protobufjs ws
 ```
 
-Download [`dex.proto`](sdk/dex.proto) and [`dex_client.mjs`](sdk/dex_client.mjs) to the same directory. No compilation needed — protobufjs loads `.proto` files at runtime.
+Download [`dex.proto`](../sdk/dex.proto) and [`dex_client.mjs`](../sdk/dex_client.mjs) to the same directory. No compilation needed — protobufjs loads `.proto` files at runtime.
 {% endtab %}
 {% endtabs %}
 
@@ -63,7 +63,7 @@ Download [`dex.proto`](sdk/dex.proto) and [`dex_client.mjs`](sdk/dex_client.mjs)
 
 {% stepper %}
 {% step %}
-#### Initialize the client
+**Initialize the client**
 
 {% tabs %}
 {% tab title="Python" %}
@@ -93,7 +93,7 @@ const client = await DexClient.create({
 {% endstep %}
 
 {% step %}
-#### Claim testnet funds
+**Claim testnet funds**
 
 Get 500 USDC from the testnet faucet. Signed by the **Master** wallet.
 
@@ -115,7 +115,7 @@ console.log(result);  // { code: 0, message: "success", ... }
 {% endstep %}
 
 {% step %}
-#### Authorize the agent wallet
+**Authorize the agent wallet**
 
 The Master wallet grants the Agent wallet permission to trade. This only needs to be done once.
 
@@ -137,7 +137,7 @@ console.log(result);
 {% endstep %}
 
 {% step %}
-#### Query available symbols
+**Query available symbols**
 
 {% tabs %}
 {% tab title="Python" %}
@@ -166,7 +166,7 @@ products.data.perpProducts.slice(0, 3).forEach(p =>
 {% endstep %}
 
 {% step %}
-#### Place a limit order
+**Place a limit order**
 
 Signed by the **Agent** wallet. This places a buy order far below market price so it won't fill immediately.
 

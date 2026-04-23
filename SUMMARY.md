@@ -1,45 +1,44 @@
 # Table of contents
 
-* [afx-docs](api-overview.md)
-* [afx-api](afx-api/README.md)
+* [afx-api](api-overview.md)
   * [Table of contents](afx-api/SUMMARY.md)
-  * [API](afx-api/api-overview.md)
-  * [Quick Start](afx-api/quickstart.md)
-  * [Exchange API](afx-api/exchange/README.md)
-    * ```yaml
-      type: builtin:openapi
-      props:
-        models: true
-        downloadLink: false
-      dependencies:
-        spec:
-          ref:
-            kind: openapi
-            spec: exchange
-      ```
-  * [Info API](afx-api/info/README.md)
-    * ```yaml
-      type: builtin:openapi
-      props:
-        models: true
-        downloadLink: false
-      dependencies:
-        spec:
-          ref:
-            kind: openapi
-            spec: info
-      ```
-  * [WebSocket](afx-api/websocket/README.md)
-    * ```yaml
-      type: builtin:openapi
-      props:
-        models: true
-        downloadLink: false
-      dependencies:
-        spec:
-          ref:
-            kind: openapi
-            spec: websocket
-      ```
-  * [SDK & Protobuf](afx-api/sdk.md)
-  * [Signing](afx-api/signing.md)
+  * [API](afx-api/api-overview/README.md)
+    * [Quick Start](afx-api/api-overview/quickstart.md)
+    * [Exchange API](afx-api/api-overview/exchange/README.md)
+      * ```yaml
+        props:
+          models: true
+          downloadLink: false
+        type: builtin:openapi
+        dependencies:
+          spec:
+            ref:
+              kind: openapi
+              spec: exchange
+        ```
+    * [Info API](afx-api/api-overview/info/README.md)
+      * ```yaml
+        props:
+          models: true
+          downloadLink: false
+        type: builtin:openapi
+        dependencies:
+          spec:
+            ref:
+              kind: openapi
+              spec: info
+        ```
+    * [WebSocket](afx-api/api-overview/websocket/README.md)
+      * ```yaml
+        props:
+          models: true
+          downloadLink: false
+        type: builtin:openapi
+        dependencies:
+          spec:
+            ref:
+              kind: openapi
+              spec: websocket
+        ```
+    * [SDK & Protobuf](afx-api/api-overview/sdk.md)
+    * [Signing](afx-api/api-overview/signing.md)

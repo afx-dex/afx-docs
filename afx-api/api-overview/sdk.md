@@ -7,7 +7,7 @@ icon: download
 
 ## Protobuf Definition
 
-{% file src="sdk/dex.proto" %}
+{% file src="../../.gitbook/assets/dex.proto" %}
 All message and enum definitions for Agent-signed actions.
 {% endfile %}
 
@@ -36,20 +36,22 @@ python -m grpc_tools.protoc --python_out=. --proto_path=. dex.proto
 {% endtab %}
 {% endtabs %}
 
----
+***
 
 ## Python SDK
 
-{% file src="sdk/dex_client.py" %}
+{% file src="../../.gitbook/assets/dex_client.py" %}
 Python client with EIP-712 signing, protobuf serialization, and HTTP/WebSocket support.
 {% endfile %}
 
 **Dependencies:**
+
 ```bash
 pip install eth-account requests websockets protobuf
 ```
 
 **File structure:**
+
 ```
 your-project/
 ├── dex.proto          # download from above
@@ -57,33 +59,35 @@ your-project/
 └── dex_client.py      # download from above
 ```
 
----
+***
 
 ## JavaScript SDK
 
-{% file src="sdk/dex_client.mjs" %}
+{% file src="../../.gitbook/assets/dex_client.mjs" %}
 ES module client for Node.js. Uses protobufjs + ethers.js.
 {% endfile %}
 
 **Dependencies:**
+
 ```bash
 npm install ethers protobufjs ws
 ```
 
 **File structure:**
+
 ```
 your-project/
 ├── dex.proto          # download from above
 └── dex_client.mjs     # download from above
 ```
 
----
+***
 
 ## Quick Verify
 
 {% stepper %}
 {% step %}
-### Setup
+#### Setup
 
 ```bash
 # Download all files into one directory, then:
@@ -93,7 +97,7 @@ python -m grpc_tools.protoc --python_out=. --proto_path=. dex.proto
 {% endstep %}
 
 {% step %}
-### Run
+#### Run
 
 ```bash
 python dex_client.py
@@ -103,7 +107,7 @@ This generates random wallets, claims testnet funds, approves an agent, places a
 {% endstep %}
 
 {% step %}
-### Expected output
+#### Expected output
 
 ```
 Master: 0x...
