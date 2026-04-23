@@ -4,6 +4,6 @@
   * [Quick Start](quickstart.md)
   * [Signing](signing.md)
   * [Exchange API](exchange.md)
-  * [Info API](info.md)
-  * [WebSocket](websocket.md)
+  * [Info API](info/)
+  * [WebSocket](websocket/)
   * [SDK & Protobuf](sdk.md)

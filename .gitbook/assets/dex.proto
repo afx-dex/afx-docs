@@ -1,0 +1,164 @@
+// AFX DEX — Protobuf definitions for API clients.
+//
+// These messages are used by Agent-signed actions.
+// Serialize the action to protobuf bytes, then compute
+// connectionId = keccak256(proto_bytes + [vault_bytes] + nonce_le + expiry_le)
+//
+// Compile:
+//   JS:     npx protoc --js_out=import_style=commonjs:. dex.proto
+//   Python: protoc --python_out=. dex.proto
+//   Or use protobufjs (JS) / hand-rolled encoding (Python) at runtime.
+
+syntax = "proto3";
+
+// ═══════════════════════════════════════════════════════════════════
+//  Enums
+// ═══════════════════════════════════════════════════════════════════
+
+enum OrdType {
+  ORD_TYPE_NONE       = 0;
+  LIMIT               = 1;
+  MARKET              = 2;
+}
+
+enum OrdSide {
+  ORD_SIDE_NONE       = 0;
+  BUY                 = 1;
+  SELL                = 2;
+  BUY_CLOSE_HEDGE     = 3;
+  SELL_CLOSE_HEDGE    = 4;
+}
+
+enum OrdTIF {
+  ORD_TIF_NONE        = 0;
+  GTC                 = 1;  // Good Till Cancelled
+  IOC                 = 2;  // Immediate Or Cancel
+  FOK                 = 3;  // Fill Or Kill
+  POST_ONLY           = 4;
+}
+
+enum ReduceOnlyOption {
+  REDUCE_ONLY_NONE    = 0;
+  REDUCE_ONLY         = 1;
+  TP_FROM_POSITION    = 2;
+  SL_FROM_POSITION    = 3;
+}
+
+enum ConditionalOrdTriggerType {
+  TRIGGER_NONE        = 0;
+  LAST_PRICE          = 1;
+  MARK_PRICE          = 2;
+  INDEX_PRICE         = 3;
+}
+
+enum PositionMarginMode {
+  MARGIN_MODE_NONE    = 0;
+  CROSS               = 1;
+  ISOLATED            = 2;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  Orders
+// ═══════════════════════════════════════════════════════════════════
+
+message MsgPlaceOrder {
+  int64  cl_ord_id                          = 1;
+  int64  symbol_code                        = 2;
+  string ord_px                             = 3;
+  string ord_qty                            = 4;
+  string trigger_px                         = 5;
+  OrdType                   ord_type        = 6;
+  OrdSide                   ord_side        = 7;
+  OrdTIF                    time_in_force   = 8;
+  ReduceOnlyOption          reduce_only_option = 9;
+  int64  parent_ord_id                      = 10;
+  ConditionalOrdTriggerType tpsl_trigger_type = 11;
+  string slippage_pct                       = 12;
+}
+
+message MsgPlaceOrders {
+  repeated MsgPlaceOrder orders = 1;
+}
+
+message MsgCancelOrder {
+  int64 symbol_code = 1;
+  int64 cl_ord_id   = 2;
+  int64 ord_id      = 3;
+}
+
+message MsgCancelOrders {
+  repeated MsgCancelOrder orders = 1;
+}
+
+message MsgCancelAll {
+  int64 symbol_code          = 1;
+  bool  is_conditional_order = 2;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  Account Settings
+// ═══════════════════════════════════════════════════════════════════
+
+message MsgSetLeverage {
+  int64  symbol_code = 1;
+  string leverage    = 2;
+}
+
+message MsgSetMarginMode {
+  int64              symbol_code = 1;
+  PositionMarginMode margin_mode = 2;
+}
+
+message MsgAssignPosMargin {
+  int64  symbol_code         = 1;
+  string assigned_pos_margin = 2;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  Vault
+// ═══════════════════════════════════════════════════════════════════
+
+message MsgVaultCreate {
+  string name          = 1;
+  string description   = 2;
+  string amount        = 3;
+  int64  currency_code = 4;
+}
+
+message MsgVaultCreateSubVault {}
+
+message MsgVaultDeposit {
+  string amount        = 1;
+  int64  currency_code = 2;
+}
+
+message MsgVaultWithdraw {
+  string amount        = 1;
+  int64  currency_code = 2;
+}
+
+message MsgVaultPreWithdraw {
+  string amount        = 1;
+  int64  currency_code = 2;
+}
+
+message MsgVaultRebalance {
+  string from          = 1;
+  string to            = 2;
+  string amount        = 3;
+  int64  currency_code = 4;
+}
+
+message MsgVaultUpdateOwner {
+  string owner = 1;
+}
+
+message MsgVaultClose {}
+
+// ═══════════════════════════════════════════════════════════════════
+//  Referral (offchain)
+// ═══════════════════════════════════════════════════════════════════
+
+message MsgBindReferral {
+  string referral_code = 1;
+}

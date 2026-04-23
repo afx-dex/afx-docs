@@ -15,7 +15,7 @@ Two Ethereum wallets are required:
 
 {% columns %}
 {% column %}
-### Master Wallet
+#### Master Wallet
 
 Controls funds and permissions.
 
@@ -23,7 +23,7 @@ Used to sign `approveAgent`, `withdraw`, and `usdSend`.
 {% endcolumn %}
 
 {% column %}
-### Agent Wallet
+#### Agent Wallet
 
 Handles day-to-day trading.
 
@@ -57,7 +57,7 @@ Download [`dex_client.mjs`](sdk/dex_client.mjs) and [`dex.proto`](sdk/dex.proto)
 
 {% stepper %}
 {% step %}
-### Initialize the client
+#### Initialize the client
 
 {% tabs %}
 {% tab title="Python" %}
@@ -87,7 +87,7 @@ const client = await DexClient.create({
 {% endstep %}
 
 {% step %}
-### Claim testnet funds
+#### Claim testnet funds
 
 Get 500 USDC from the testnet faucet. Signed by the **Master** wallet.
 
@@ -109,7 +109,7 @@ console.log(result);  // { code: 0, message: "success", ... }
 {% endstep %}
 
 {% step %}
-### Authorize the agent wallet
+#### Authorize the agent wallet
 
 The Master wallet grants the Agent wallet permission to trade. This only needs to be done once.
 
@@ -131,7 +131,7 @@ console.log(result);
 {% endstep %}
 
 {% step %}
-### Query available symbols
+#### Query available symbols
 
 {% tabs %}
 {% tab title="Python" %}
@@ -152,15 +152,15 @@ products.data.perpProducts.slice(0, 3).forEach(p =>
 {% endtab %}
 {% endtabs %}
 
-| Symbol | Code | Max Leverage |
-| ------ | ---- | ------------ |
-| BTCUSDC | 1 | 100x |
-| ETHUSDC | 2 | 100x |
-| SOLUSDC | 3 | 50x |
+| Symbol  | Code | Max Leverage |
+| ------- | ---- | ------------ |
+| BTCUSDC | 1    | 100x         |
+| ETHUSDC | 2    | 100x         |
+| SOLUSDC | 3    | 50x          |
 {% endstep %}
 
 {% step %}
-### Place a limit order
+#### Place a limit order
 
 Signed by the **Agent** wallet. This places a buy order far below market price so it won't fill immediately.
 
@@ -239,34 +239,4 @@ await client.subscribe(
 
 ## What's Next
 
-<table data-view="cards">
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>Description</th>
-            <th data-card-target data-type="content-ref">Target</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td><strong>Authentication</strong></td>
-            <td>How EIP-712 signing works — Agent vs Master wallet.</td>
-            <td><a href="signing.md">Authentication</a></td>
-        </tr>
-        <tr>
-            <td><strong>Exchange API</strong></td>
-            <td>All trading operations — orders, leverage, vaults.</td>
-            <td><a href="exchange.md">Exchange API</a></td>
-        </tr>
-        <tr>
-            <td><strong>Info API</strong></td>
-            <td>Query account, orders, positions, market data.</td>
-            <td><a href="info.md">Info API</a></td>
-        </tr>
-        <tr>
-            <td><strong>WebSocket</strong></td>
-            <td>Real-time orderbook, kline, ticker, and account events.</td>
-            <td><a href="websocket.md">WebSocket</a></td>
-        </tr>
-    </tbody>
-</table>
+<table data-view="cards"><thead><tr><th>Title</th><th>Description</th><th data-card-target data-type="content-ref">Target</th></tr></thead><tbody><tr><td><strong>Authentication</strong></td><td>How EIP-712 signing works — Agent vs Master wallet.</td><td><a href="signing.md">signing.md</a></td></tr><tr><td><strong>Exchange API</strong></td><td>All trading operations — orders, leverage, vaults.</td><td><a href="exchange.md">exchange.md</a></td></tr><tr><td><strong>Info API</strong></td><td>Query account, orders, positions, market data.</td><td><a href="info/">info</a></td></tr><tr><td><strong>WebSocket</strong></td><td>Real-time orderbook, kline, ticker, and account events.</td><td><a href="websocket/">websocket</a></td></tr></tbody></table>
