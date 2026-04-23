@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Phemex DEX WebSocket API
+  title: AFX DEX WebSocket API
   version: 1.0.0
   description: |
     Real-time market data and account updates via WebSocket.

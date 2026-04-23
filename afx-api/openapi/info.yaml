@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Phemex DEX Info API
+  title: AFX DEX Info API
   version: 1.0.0
   description: |
     Query endpoints for account data, orders, positions, trades, market data, and more.

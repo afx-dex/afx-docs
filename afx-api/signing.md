@@ -5,7 +5,7 @@ icon: key
 
 # Signing
 
-Phemex DEX uses [EIP-712](https://eips.ethereum.org/EIPS/eip-712) structured signatures for authentication. No API keys or sessions — every Exchange request is signed by an Ethereum wallet.
+AFX DEX uses [EIP-712](https://eips.ethereum.org/EIPS/eip-712) structured signatures for authentication. No API keys or sessions — every Exchange request is signed by an Ethereum wallet.
 
 {% columns %}
 {% column %}

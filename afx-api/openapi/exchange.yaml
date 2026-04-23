@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Phemex DEX Exchange API
+  title: AFX DEX Exchange API
   version: 1.0.0
   description: |
     All trading operations are submitted through `POST /api/v1/exchange`, routed by `action.type`.
@@ -1015,6 +1015,29 @@ paths:
           source: |
             client.vault_close(vault_address="0x4b90BBE5...")
 
+  # ═══════════════════════════════════════════════════════════════════
+  #  Errors
+  # ═══════════════════════════════════════════════════════════════════
+  /errors:
+    get:
+      operationId: errorCodes
+      summary: Error Codes
+      tags: [Errors]
+      description: |
+        All Exchange API responses return a `code` field. `0` means success. Non-zero codes indicate an error.
+
+        | Code | Description |
+        | ---- | ----------- |
+        | `0` | Success |
+        | `40201` | Unsupported action type |
+        | `40204` | Signature verification failed |
+        | `40207` | Invalid nonce |
+        | `40208` | Request expired |
+        | `40220` | Rate limit exceeded |
+      responses:
+        "200":
+          description: Reference only
+
 # ═══════════════════════════════════════════════════════════════════
 #  Components
 # ═══════════════════════════════════════════════════════════════════
@@ -1029,17 +1052,14 @@ components:
           examples:
             success:
               value: { code: 0, message: success, data: { txHash: "0xabc...", txCode: 0, txMsg: "" } }
-            signatureFailed:
-              summary: Signature failed
-              value: { code: 40204, message: "Signature verification failed", data: null }
 
   schemas:
     Signature:
       type: object
       required: [r, s, v]
       properties:
-        r: { type: string, description: "32-byte hex" }
-        s: { type: string, description: "32-byte hex" }
+        r: { type: string, description: "32-byte hex, zero-padded to 64 chars" }
+        s: { type: string, description: "32-byte hex, zero-padded to 64 chars" }
         v: { type: integer, description: "27 or 28" }
 
     ExchangeResponse:
@@ -1047,11 +1067,8 @@ components:
       properties:
         code:
           type: integer
-          description: |
-            `0` success · `40201` unsupported action · `40204` bad signature ·
-            `40207` invalid nonce · `40208` expired · `40220` rate limited ·
-            `40230` chain error · `40231` broadcast failed ·
-            `40280` action disabled · `40281` address banned
+          description: "`0` = success. See Error Codes section for non-zero values."
+          example: 0
         message: { type: string }
         data:
           type: object
