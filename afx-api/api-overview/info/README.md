@@ -10,7 +10,3 @@ Query endpoints for all read-only data. No signature required.
 ```
 GET /info/...
 ```
-
-{% hint style="info" %}
-The OpenAPI spec for these endpoints is available at `openapi/info.yaml`. Upload it to GitBook to render the interactive API reference on this page.
-{% endhint %}
