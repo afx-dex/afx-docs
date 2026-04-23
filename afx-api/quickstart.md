@@ -38,10 +38,16 @@ You can generate both from any Ethereum-compatible library (ethers.js, eth-accou
 {% tabs %}
 {% tab title="Python" %}
 ```bash
-pip install eth-account requests websockets
+pip install eth-account requests websockets protobuf grpcio-tools
 ```
 
-Download [`dex_client.py`](sdk/dex_client.py) to your project directory.
+Download [`dex.proto`](sdk/dex.proto) and [`dex_client.py`](sdk/dex_client.py), then compile the protobuf:
+
+```bash
+python -m grpc_tools.protoc --python_out=. --proto_path=. dex.proto
+```
+
+This generates `dex_pb2.py` which the SDK depends on.
 {% endtab %}
 
 {% tab title="JavaScript" %}
@@ -49,7 +55,7 @@ Download [`dex_client.py`](sdk/dex_client.py) to your project directory.
 npm install ethers protobufjs ws
 ```
 
-Download [`dex_client.mjs`](sdk/dex_client.mjs) and [`dex.proto`](sdk/dex.proto) to your project directory.
+Download [`dex.proto`](sdk/dex.proto) and [`dex_client.mjs`](sdk/dex_client.mjs) to the same directory. No compilation needed — protobufjs loads `.proto` files at runtime.
 {% endtab %}
 {% endtabs %}
 

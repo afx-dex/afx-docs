@@ -315,7 +315,7 @@ paths:
     post:
       operationId: wsBlock
       summary: Block Data
-      tags: [Chain]
+      tags: [Explorer]
       description: |
         Subscribe to new block data.
 
@@ -344,7 +344,7 @@ paths:
     post:
       operationId: wsBlockHeight
       summary: Block Height
-      tags: [Chain]
+      tags: [Explorer]
       description: |
         Subscribe to block height updates (lightweight).
 
@@ -373,7 +373,7 @@ paths:
     post:
       operationId: wsTx
       summary: Transactions
-      tags: [Chain]
+      tags: [Explorer]
       description: |
         Subscribe to new transactions.
 
