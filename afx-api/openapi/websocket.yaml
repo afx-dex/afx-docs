@@ -1,0 +1,672 @@
+openapi: 3.0.3
+info:
+  title: Phemex DEX WebSocket API
+  version: 1.0.0
+  description: |
+    Real-time market data and account updates via WebSocket.
+
+    **Connection URL:** `wss://ws10.afx.xyz/ws/dex`
+
+    **Protocol:**
+    - Send `subscribe` / `unsubscribe` / `ping` messages as JSON
+    - Server pushes data on `channel` field
+    - Server sends `pong` in response to `ping`
+    - Idle connections are closed after 60s — use `ping` as heartbeat
+
+    **Rate Limits:**
+    | Limit | Value |
+    |-------|-------|
+    | Max connections per IP | 10 |
+    | Max subscriptions per connection | 50 |
+    | Max messages per second | 50 |
+
+servers:
+  - url: wss://ws10.afx.xyz/ws/dex
+    description: Mainnet
+  - url: wss://ws10-testnet.afx.xyz/ws/dex
+    description: Testnet
+
+paths:
+  # ═══════════════════════════════════════════════════════════════════
+  #  Connection
+  # ═══════════════════════════════════════════════════════════════════
+  /ws/ping:
+    post:
+      operationId: wsPing
+      summary: Ping / Pong
+      tags: [Connection]
+      description: |
+        Send a heartbeat to keep the connection alive.
+
+        **Request:**
+        ```json
+        { "method": "ping" }
+        ```
+
+        **Response:**
+        ```json
+        { "channel": "pong" }
+        ```
+      responses:
+        "200":
+          description: Pong
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            const ws = new WebSocket("wss://ws10.afx.xyz/ws/dex");
+
+            ws.onopen = () => {
+              console.log("Connected");
+
+              // Heartbeat every 30s
+              setInterval(() => ws.send(JSON.stringify({ method: "ping" })), 30000);
+            };
+
+            ws.onmessage = (event) => {
+              const msg = JSON.parse(event.data);
+              if (msg.channel === "pong") {
+                console.log("pong received");
+              } else {
+                console.log("data:", msg);
+              }
+            };
+        - lang: Python
+          label: Python
+          source: |
+            import asyncio, json, websockets
+
+            async def main():
+                uri = "wss://ws10.afx.xyz/ws/dex"
+                async with websockets.connect(uri) as ws:
+                    # Heartbeat
+                    await ws.send(json.dumps({"method": "ping"}))
+                    pong = json.loads(await ws.recv())
+                    print(pong)  # {"channel": "pong"}
+
+            asyncio.run(main())
+
+  # ═══════════════════════════════════════════════════════════════════
+  #  Public Channels
+  # ═══════════════════════════════════════════════════════════════════
+  /ws/subscribe/orderBook:
+    post:
+      operationId: wsOrderBook
+      summary: Order Book
+      tags: [Market Data]
+      description: |
+        Subscribe to order book depth updates. Sends initial snapshot then incremental deltas.
+
+        **Subscribe:**
+        ```json
+        {
+          "method": "subscribe",
+          "subscription": {
+            "type": "orderBook",
+            "symbol": "BTCUSDC",
+            "depth": 50
+          }
+        }
+        ```
+
+        **Push data:**
+        ```json
+        {
+          "channel": "orderBook",
+          "data": {
+            "symbol": "BTCUSDC",
+            "bids": [["40000.5", "1.2"], ...],
+            "asks": [["40001.0", "0.8"], ...],
+            "timestamp": 1700000000000
+          }
+        }
+        ```
+
+        | Param | Type | Required | Description |
+        |-------|------|----------|-------------|
+        | symbol | string | Yes | Symbol name |
+        | depth | integer | No | Depth level (default 5) |
+      responses:
+        "200":
+          description: Subscribed
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            ws.send(JSON.stringify({
+              method: "subscribe",
+              subscription: { type: "orderBook", symbol: "BTCUSDC", depth: 50 },
+            }));
+
+            ws.onmessage = (event) => {
+              const msg = JSON.parse(event.data);
+              if (msg.channel === "orderBook") {
+                console.log("bids:", msg.data.bids);
+                console.log("asks:", msg.data.asks);
+              }
+            };
+        - lang: Python
+          label: Python
+          source: |
+            await ws.send(json.dumps({
+                "method": "subscribe",
+                "subscription": {"type": "orderBook", "symbol": "BTCUSDC", "depth": 50},
+            }))
+
+            async for message in ws:
+                msg = json.loads(message)
+                if msg.get("channel") == "orderBook":
+                    print("bids:", msg["data"]["bids"])
+                    print("asks:", msg["data"]["asks"])
+
+  /ws/subscribe/candle:
+    post:
+      operationId: wsCandle
+      summary: Kline / Candle
+      tags: [Market Data]
+      description: |
+        Subscribe to candlestick (OHLCV) data.
+
+        **Subscribe:**
+        ```json
+        {
+          "method": "subscribe",
+          "subscription": {
+            "type": "candle",
+            "symbol": "BTCUSDC",
+            "interval": "60"
+          }
+        }
+        ```
+
+        | Param | Type | Required | Description |
+        |-------|------|----------|-------------|
+        | symbol | string | Yes | Symbol name |
+        | interval | string | Yes | Interval in seconds ("60", "300", "900", "3600", "86400") |
+      responses:
+        "200":
+          description: Subscribed
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            ws.send(JSON.stringify({
+              method: "subscribe",
+              subscription: { type: "candle", symbol: "BTCUSDC", interval: "60" },
+            }));
+        - lang: Python
+          label: Python
+          source: |
+            await ws.send(json.dumps({
+                "method": "subscribe",
+                "subscription": {"type": "candle", "symbol": "BTCUSDC", "interval": "60"},
+            }))
+
+  /ws/subscribe/trades:
+    post:
+      operationId: wsTrades
+      summary: Recent Trades
+      tags: [Market Data]
+      description: |
+        Subscribe to recent trade updates.
+
+        **Subscribe:**
+        ```json
+        {
+          "method": "subscribe",
+          "subscription": { "type": "trades", "symbol": "BTCUSDC" }
+        }
+        ```
+
+        | Param | Type | Required | Description |
+        |-------|------|----------|-------------|
+        | symbol | string | Yes | Symbol name |
+      responses:
+        "200":
+          description: Subscribed
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            ws.send(JSON.stringify({
+              method: "subscribe",
+              subscription: { type: "trades", symbol: "BTCUSDC" },
+            }));
+        - lang: Python
+          label: Python
+          source: |
+            await ws.send(json.dumps({
+                "method": "subscribe",
+                "subscription": {"type": "trades", "symbol": "BTCUSDC"},
+            }))
+
+  /ws/subscribe/ticker:
+    post:
+      operationId: wsTicker
+      summary: Ticker
+      tags: [Market Data]
+      description: |
+        Subscribe to single symbol ticker.
+
+        **Subscribe:**
+        ```json
+        {
+          "method": "subscribe",
+          "subscription": { "type": "ticker", "symbol": "BTCUSDC" }
+        }
+        ```
+
+        | Param | Type | Required | Description |
+        |-------|------|----------|-------------|
+        | symbol | string | Yes | Symbol name |
+      responses:
+        "200":
+          description: Subscribed
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            ws.send(JSON.stringify({
+              method: "subscribe",
+              subscription: { type: "ticker", symbol: "BTCUSDC" },
+            }));
+        - lang: Python
+          label: Python
+          source: |
+            await ws.send(json.dumps({
+                "method": "subscribe",
+                "subscription": {"type": "ticker", "symbol": "BTCUSDC"},
+            }))
+
+  /ws/subscribe/allTickers:
+    post:
+      operationId: wsAllTickers
+      summary: All Tickers
+      tags: [Market Data]
+      description: |
+        Subscribe to all tickers (global feed).
+
+        **Subscribe:**
+        ```json
+        { "method": "subscribe", "subscription": { "type": "allTickers" } }
+        ```
+
+        No parameters required.
+      responses:
+        "200":
+          description: Subscribed
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            ws.send(JSON.stringify({
+              method: "subscribe",
+              subscription: { type: "allTickers" },
+            }));
+        - lang: Python
+          label: Python
+          source: |
+            await ws.send(json.dumps({
+                "method": "subscribe",
+                "subscription": {"type": "allTickers"},
+            }))
+
+  /ws/subscribe/block:
+    post:
+      operationId: wsBlock
+      summary: Block Data
+      tags: [Chain]
+      description: |
+        Subscribe to new block data.
+
+        ```json
+        { "method": "subscribe", "subscription": { "type": "block" } }
+        ```
+      responses:
+        "200":
+          description: Subscribed
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            ws.send(JSON.stringify({
+              method: "subscribe",
+              subscription: { type: "block" },
+            }));
+        - lang: Python
+          label: Python
+          source: |
+            await ws.send(json.dumps({
+                "method": "subscribe", "subscription": {"type": "block"},
+            }))
+
+  /ws/subscribe/blockHeight:
+    post:
+      operationId: wsBlockHeight
+      summary: Block Height
+      tags: [Chain]
+      description: |
+        Subscribe to block height updates (lightweight).
+
+        ```json
+        { "method": "subscribe", "subscription": { "type": "blockHeight" } }
+        ```
+      responses:
+        "200":
+          description: Subscribed
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            ws.send(JSON.stringify({
+              method: "subscribe",
+              subscription: { type: "blockHeight" },
+            }));
+        - lang: Python
+          label: Python
+          source: |
+            await ws.send(json.dumps({
+                "method": "subscribe", "subscription": {"type": "blockHeight"},
+            }))
+
+  /ws/subscribe/tx:
+    post:
+      operationId: wsTx
+      summary: Transactions
+      tags: [Chain]
+      description: |
+        Subscribe to new transactions.
+
+        ```json
+        { "method": "subscribe", "subscription": { "type": "tx" } }
+        ```
+      responses:
+        "200":
+          description: Subscribed
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            ws.send(JSON.stringify({
+              method: "subscribe",
+              subscription: { type: "tx" },
+            }));
+        - lang: Python
+          label: Python
+          source: |
+            await ws.send(json.dumps({
+                "method": "subscribe", "subscription": {"type": "tx"},
+            }))
+
+  # ═══════════════════════════════════════════════════════════════════
+  #  User Channels
+  # ═══════════════════════════════════════════════════════════════════
+  /ws/subscribe/aopState:
+    post:
+      operationId: wsAopState
+      summary: Account / Order / Position State
+      tags: [User Data]
+      description: |
+        Subscribe to real-time account, order, and position state updates.
+
+        **Subscribe:**
+        ```json
+        {
+          "method": "subscribe",
+          "subscription": { "type": "aopState", "userAddress": "0xabc..." }
+        }
+        ```
+
+        | Param | Type | Required | Description |
+        |-------|------|----------|-------------|
+        | userAddress | string | Yes | User wallet address |
+      responses:
+        "200":
+          description: Subscribed
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            ws.send(JSON.stringify({
+              method: "subscribe",
+              subscription: { type: "aopState", userAddress: "0xabc..." },
+            }));
+
+            ws.onmessage = (event) => {
+              const msg = JSON.parse(event.data);
+              if (msg.channel === "aopState") {
+                const { accounts, orders, positions } = msg.data;
+                console.log("accounts:", accounts);
+                console.log("orders:", orders);
+                console.log("positions:", positions);
+              }
+            };
+        - lang: Python
+          label: Python
+          source: |
+            await ws.send(json.dumps({
+                "method": "subscribe",
+                "subscription": {"type": "aopState", "userAddress": "0xabc..."},
+            }))
+
+            async for message in ws:
+                msg = json.loads(message)
+                if msg.get("channel") == "aopState":
+                    print("accounts:", msg["data"].get("accounts"))
+                    print("orders:", msg["data"].get("orders"))
+                    print("positions:", msg["data"].get("positions"))
+
+  /ws/subscribe/orderHist:
+    post:
+      operationId: wsOrderHist
+      summary: Order History
+      tags: [User Data]
+      description: |
+        Subscribe to order history updates.
+
+        ```json
+        {
+          "method": "subscribe",
+          "subscription": { "type": "orderHist", "userAddress": "0xabc..." }
+        }
+        ```
+
+        | Param | Type | Required |
+        |-------|------|----------|
+        | userAddress | string | Yes |
+      responses:
+        "200":
+          description: Subscribed
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            ws.send(JSON.stringify({
+              method: "subscribe",
+              subscription: { type: "orderHist", userAddress: "0xabc..." },
+            }));
+        - lang: Python
+          label: Python
+          source: |
+            await ws.send(json.dumps({
+                "method": "subscribe",
+                "subscription": {"type": "orderHist", "userAddress": "0xabc..."},
+            }))
+
+  /ws/subscribe/userFilled:
+    post:
+      operationId: wsUserFilled
+      summary: User Fills
+      tags: [User Data]
+      description: |
+        Subscribe to user trade fill events.
+
+        ```json
+        {
+          "method": "subscribe",
+          "subscription": { "type": "userFilled", "userAddress": "0xabc..." }
+        }
+        ```
+      responses:
+        "200":
+          description: Subscribed
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            ws.send(JSON.stringify({
+              method: "subscribe",
+              subscription: { type: "userFilled", userAddress: "0xabc..." },
+            }));
+        - lang: Python
+          label: Python
+          source: |
+            await ws.send(json.dumps({
+                "method": "subscribe",
+                "subscription": {"type": "userFilled", "userAddress": "0xabc..."},
+            }))
+
+  /ws/subscribe/closedPosition:
+    post:
+      operationId: wsClosedPosition
+      summary: Closed Position
+      tags: [User Data]
+      description: |
+        Subscribe to closed position events.
+
+        ```json
+        {
+          "method": "subscribe",
+          "subscription": { "type": "closedPosition", "userAddress": "0xabc..." }
+        }
+        ```
+      responses:
+        "200":
+          description: Subscribed
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            ws.send(JSON.stringify({
+              method: "subscribe",
+              subscription: { type: "closedPosition", userAddress: "0xabc..." },
+            }));
+        - lang: Python
+          label: Python
+          source: |
+            await ws.send(json.dumps({
+                "method": "subscribe",
+                "subscription": {"type": "closedPosition", "userAddress": "0xabc..."},
+            }))
+
+  /ws/subscribe/userFunding:
+    post:
+      operationId: wsUserFunding
+      summary: User Funding
+      tags: [User Data]
+      description: |
+        Subscribe to user funding settlement events.
+
+        ```json
+        {
+          "method": "subscribe",
+          "subscription": { "type": "userFunding", "userAddress": "0xabc..." }
+        }
+        ```
+      responses:
+        "200":
+          description: Subscribed
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            ws.send(JSON.stringify({
+              method: "subscribe",
+              subscription: { type: "userFunding", userAddress: "0xabc..." },
+            }));
+        - lang: Python
+          label: Python
+          source: |
+            await ws.send(json.dumps({
+                "method": "subscribe",
+                "subscription": {"type": "userFunding", "userAddress": "0xabc..."},
+            }))
+
+  /ws/subscribe/userEvent:
+    post:
+      operationId: wsUserEvent
+      summary: User Events
+      tags: [User Data]
+      description: |
+        Subscribe to general user events (deposits, withdrawals, etc.).
+
+        ```json
+        {
+          "method": "subscribe",
+          "subscription": { "type": "userEvent", "userAddress": "0xabc..." }
+        }
+        ```
+      responses:
+        "200":
+          description: Subscribed
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            ws.send(JSON.stringify({
+              method: "subscribe",
+              subscription: { type: "userEvent", userAddress: "0xabc..." },
+            }));
+        - lang: Python
+          label: Python
+          source: |
+            await ws.send(json.dumps({
+                "method": "subscribe",
+                "subscription": {"type": "userEvent", "userAddress": "0xabc..."},
+            }))
+
+  # ═══════════════════════════════════════════════════════════════════
+  #  Unsubscribe
+  # ═══════════════════════════════════════════════════════════════════
+  /ws/unsubscribe:
+    post:
+      operationId: wsUnsubscribe
+      summary: Unsubscribe
+      tags: [Connection]
+      description: |
+        Unsubscribe from a channel. Send the same `subscription` object used to subscribe.
+
+        **Request:**
+        ```json
+        {
+          "method": "unsubscribe",
+          "subscription": { "type": "orderBook", "symbol": "BTCUSDC", "depth": 50 }
+        }
+        ```
+
+        **Response:**
+        ```json
+        {
+          "method": "unsubscribe",
+          "success": true,
+          "subject": "orderBook.BTCUSDC.50"
+        }
+        ```
+      responses:
+        "200":
+          description: Unsubscribed
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            ws.send(JSON.stringify({
+              method: "unsubscribe",
+              subscription: { type: "orderBook", symbol: "BTCUSDC", depth: 50 },
+            }));
+        - lang: Python
+          label: Python
+          source: |
+            await ws.send(json.dumps({
+                "method": "unsubscribe",
+                "subscription": {"type": "orderBook", "symbol": "BTCUSDC", "depth": 50},
+            }))

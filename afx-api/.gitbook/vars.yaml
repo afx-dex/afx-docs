@@ -1,0 +1,8 @@
+mainnet_exchange_url: https://api10.afx.xyz/api/v1/exchange
+mainnet_info_url: https://api10.afx.xyz/info
+mainnet_ws_url: wss://ws10.afx.xyz/ws/dex
+testnet_exchange_url: https://api10-testnet.afx.xyz/api/v1/exchange
+testnet_info_url: https://api10-testnet.afx.xyz/info
+testnet_ws_url: wss://ws10-testnet.afx.xyz/ws/dex
+mainnet_chain_id: "42161"
+testnet_chain_id: "421614"

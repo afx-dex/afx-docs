@@ -1,0 +1,596 @@
+openapi: 3.0.3
+info:
+  title: Phemex DEX Signature Guide
+  version: 1.0.0
+  description: |
+    Phemex DEX is stateless — no sessions, no tokens. All requests are authenticated via [EIP-712](https://eips.ethereum.org/EIPS/eip-712) structured signatures.
+
+    **Two wallet roles:**
+    | Role | Description |
+    |------|-------------|
+    | **Master Wallet** | User's main wallet. Controls funds and permissions. |
+    | **Agent Wallet** | Authorized by Master (via `approveAgent`). Executes daily trading. |
+
+    **Two signature types:**
+    | Type | Domain Name | Signer | Used By |
+    |------|-------------|--------|---------|
+    | **Agent** | `Exchange` | Agent Wallet | placeOrder, cancelOrder, setLeverage, vault operations, etc. |
+    | **Master** | `SignTransaction` | Master Wallet | approveAgent, withdraw, usdSend, faucetClaim |
+
+servers:
+  - url: https://api10.afx.xyz
+    description: Mainnet
+  - url: https://api10-testnet.afx.xyz
+    description: Testnet
+
+paths:
+  /signing/agent:
+    post:
+      operationId: agentSignature
+      summary: Agent Signature
+      description: |
+        Used for most trading operations: placing/canceling orders, setting leverage, vault operations, etc.
+
+        The Agent wallet signs a hash derived from the **protobuf-serialized** action payload.
+
+        ---
+
+        ## Process
+
+        ### Step 1 — Serialize action to Protobuf
+
+        Encode the action fields using the corresponding protobuf message (e.g. `MsgPlaceOrders` for placeOrder).
+
+        - JSON camelCase fields map to protobuf snake_case
+        - Enum values use **integers** in protobuf (e.g. `LIMIT` → `1`)
+        - Zero values are omitted per proto3 rules
+
+        ### Step 2 — Compute connectionId
+
+        ```
+        connectionId = keccak256(
+            proto_bytes
+            + bytes(vaultAddress)              // strip 0x, decode hex. empty if null
+            + little_endian_uint64(nonce)       // 8 bytes
+            + little_endian_uint64(expiryAfter) // 8 bytes, null → 0
+        )
+        ```
+
+        ### Step 3 — Sign EIP-712
+
+        ```json
+        {
+          "types": {
+            "EIP712Domain": [
+              { "name": "name",              "type": "string"  },
+              { "name": "version",           "type": "string"  },
+              { "name": "chainId",           "type": "uint256" },
+              { "name": "verifyingContract", "type": "address" }
+            ],
+            "Agent": [
+              { "name": "source",       "type": "string"  },
+              { "name": "connectionId", "type": "bytes32" }
+            ]
+          },
+          "primaryType": "Agent",
+          "domain": {
+            "name":              "Exchange",
+            "version":           "1",
+            "chainId":           421614,
+            "verifyingContract": "0x0000000000000000000000000000000000000000"
+          },
+          "message": {
+            "source":       "a",
+            "connectionId": "0x<step2_result>"
+          }
+        }
+        ```
+
+        | Field | Value |
+        |-------|-------|
+        | `source` | `"a"` = Mainnet, `"b"` = Testnet |
+        | `chainId` | Use the actual chain ID of the target network |
+        | `verifyingContract` | Always zero address |
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: object
+                  description: Action payload (varies by action type)
+                signature:
+                  type: object
+                  properties:
+                    r: { type: string, description: "32-byte hex" }
+                    s: { type: string, description: "32-byte hex" }
+                    v: { type: integer, description: "27 or 28" }
+                nonce:
+                  type: integer
+                  format: int64
+                  description: Millisecond timestamp
+                expiryAfter:
+                  type: integer
+                  nullable: true
+                  description: Expiry (seconds). `null` = no expiry.
+                vaultAddress:
+                  type: string
+                  nullable: true
+                  description: Vault address if operating on behalf of vault
+            examples:
+              placeOrder:
+                summary: placeOrder (Agent sign)
+                value:
+                  action:
+                    type: placeOrder
+                    orders:
+                      - symbolCode: 1
+                        ordPx: "40000.5"
+                        ordQty: "0.5"
+                        ordType: LIMIT
+                        ordSide: BUY
+                        timeInForce: GTC
+                  signature:
+                    r: "0x1a2b3c..."
+                    s: "0x4d5e6f..."
+                    v: 27
+                  nonce: 1763023626904
+                  expiryAfter: null
+                  vaultAddress: null
+      responses:
+        "200":
+          description: See specific action endpoint for response details
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript (ethers.js v6)
+          source: |
+            import { ethers } from "ethers";
+            import protobuf from "protobufjs";
+
+            // ── Config ─────────────────────────────────────────────────
+            const AGENT_KEY = "0xYOUR_AGENT_PRIVATE_KEY";
+            const CHAIN_ID  = 421614;
+            const SOURCE    = "a";  // "a" Mainnet, "b" Testnet
+            const BASE_URL  = "https://api10.afx.xyz";
+
+            const agent = new ethers.Wallet(AGENT_KEY);
+
+            // ── 1. Build action (placeOrder as example) ────────────────
+            const action = {
+              type: "placeOrder",
+              orders: [{
+                symbolCode: 1, ordPx: "40000.5", ordQty: "0.5",
+                ordType: "LIMIT", ordSide: "BUY", timeInForce: "GTC",
+              }],
+            };
+
+            // ── 2. Serialize to Protobuf ───────────────────────────────
+            const root = await protobuf.load("dex.proto");
+            const MsgPlaceOrders = root.lookupType("MsgPlaceOrders");
+            const protoBytes = MsgPlaceOrders.encode(
+              MsgPlaceOrders.create({
+                orders: [{
+                  symbolCode: 1, ordPx: "40000.5", ordQty: "0.5",
+                  ordType: 1, ordSide: 1, timeInForce: 1,
+                }],
+              })
+            ).finish();
+
+            // ── 3. Compute connectionId ────────────────────────────────
+            const nonce       = Date.now();
+            const expiryAfter = 0;
+            const vaultAddress = null;
+
+            const parts = [protoBytes];
+
+            // If vaultAddress is set, insert raw bytes
+            if (vaultAddress) {
+              parts.push(Buffer.from(vaultAddress.slice(2), "hex"));
+            }
+
+            const nonceBuf = Buffer.alloc(8);
+            nonceBuf.writeBigUInt64LE(BigInt(nonce));
+            parts.push(nonceBuf);
+
+            const expiryBuf = Buffer.alloc(8);
+            expiryBuf.writeBigUInt64LE(BigInt(expiryAfter));
+            parts.push(expiryBuf);
+
+            const connectionId = ethers.keccak256(Buffer.concat(parts));
+
+            // ── 4. Sign EIP-712 ────────────────────────────────────────
+            const rawSig = await agent.signTypedData(
+              {
+                name: "Exchange", version: "1",
+                chainId: CHAIN_ID,
+                verifyingContract: "0x" + "0".repeat(40),
+              },
+              {
+                Agent: [
+                  { name: "source",       type: "string"  },
+                  { name: "connectionId", type: "bytes32" },
+                ],
+              },
+              { source: SOURCE, connectionId },
+            );
+            const { r, s, v } = ethers.Signature.from(rawSig);
+
+            // ── 5. Send ────────────────────────────────────────────────
+            const resp = await fetch(`${BASE_URL}/api/v1/exchange`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action,
+                signature: { r, s, v },
+                nonce,
+                expiryAfter:  null,
+                vaultAddress: null,
+              }),
+            });
+            console.log(await resp.json());
+        - lang: Python
+          label: Python (eth-account)
+          source: |
+            import time, struct, requests
+            from eth_account import Account
+            from eth_hash.auto import keccak
+            from dex_proto import dex_pb2
+
+            # pip install eth-account eth-hash[pycryptodome] requests protobuf
+
+            AGENT_KEY = "0xYOUR_AGENT_PRIVATE_KEY"
+            CHAIN_ID  = 421614
+            SOURCE    = "a"  # "a" Mainnet, "b" Testnet
+            BASE_URL  = "https://api10.afx.xyz"
+
+            # ── 1. Build action (placeOrder as example) ────────────────
+            action = {
+                "type": "placeOrder",
+                "orders": [{
+                    "symbolCode": 1, "ordPx": "40000.5", "ordQty": "0.5",
+                    "ordType": "LIMIT", "ordSide": "BUY", "timeInForce": "GTC",
+                }],
+            }
+
+            # ── 2. Serialize to Protobuf ───────────────────────────────
+            msg = dex_pb2.MsgPlaceOrders()
+            o = msg.orders.add()
+            o.symbol_code, o.ord_px, o.ord_qty = 1, "40000.5", "0.5"
+            o.ord_type, o.ord_side, o.time_in_force = 1, 1, 1
+            proto_bytes = msg.SerializeToString()
+
+            # ── 3. Compute connectionId ────────────────────────────────
+            nonce         = int(time.time() * 1000)
+            expiry_after  = 0
+            vault_address = None
+
+            parts = bytearray(proto_bytes)
+
+            # If vault_address is set, insert raw bytes
+            if vault_address:
+                parts += bytes.fromhex(vault_address[2:])
+
+            parts += struct.pack("<Q", nonce)
+            parts += struct.pack("<Q", expiry_after)
+
+            connection_id = keccak(bytes(parts))
+
+            # ── 4. Sign EIP-712 ────────────────────────────────────────
+            signed = Account.sign_typed_data(AGENT_KEY, full_message={
+                "types": {
+                    "EIP712Domain": [
+                        {"name": "name",              "type": "string"},
+                        {"name": "version",           "type": "string"},
+                        {"name": "chainId",           "type": "uint256"},
+                        {"name": "verifyingContract", "type": "address"},
+                    ],
+                    "Agent": [
+                        {"name": "source",       "type": "string"},
+                        {"name": "connectionId", "type": "bytes32"},
+                    ],
+                },
+                "primaryType": "Agent",
+                "domain": {
+                    "name": "Exchange", "version": "1",
+                    "chainId": CHAIN_ID,
+                    "verifyingContract": "0x" + "0" * 40,
+                },
+                "message": {
+                    "source": SOURCE,
+                    "connectionId": "0x" + connection_id.hex(),
+                },
+            })
+
+            # ── 5. Send ────────────────────────────────────────────────
+            resp = requests.post(f"{BASE_URL}/api/v1/exchange", json={
+                "action":       action,
+                "signature":    {"r": "0x" + format(signed.r, "064x"), "s": "0x" + format(signed.s, "064x"), "v": signed.v},
+                "nonce":        nonce,
+                "expiryAfter":  None,
+                "vaultAddress": None,
+            })
+            print(resp.json())
+
+  /signing/master:
+    post:
+      operationId: masterSignature
+      summary: Master Signature
+      description: |
+        Used for privileged operations: `approveAgent`, `withdraw`, `usdSend`, `faucetClaim`.
+
+        The Master wallet signs the action fields **directly** as an EIP-712 message — no protobuf involved.
+
+        Each action has its own EIP-712 type definition. The shared domain is:
+
+        ```json
+        {
+          "name":              "SignTransaction",
+          "version":           "1",
+          "chainId":           421614,
+          "verifyingContract": "0x0000000000000000000000000000000000000000"
+        }
+        ```
+
+        `nonce` and `expiryAfter` come from the outer request fields. When `expiryAfter` is `null`, use `0` in the signature.
+
+        ---
+
+        ## approveAgent
+
+        Authorize an Agent wallet to trade on behalf of the Master.
+
+        **EIP-712 type:**
+        ```json
+        {
+          "ApproveAgent": [
+            { "name": "dexChain",     "type": "string"  },
+            { "name": "agentAddress", "type": "address" },
+            { "name": "agentName",    "type": "string"  },
+            { "name": "nonce",        "type": "uint64"  },
+            { "name": "expiryAfter",  "type": "uint64"  }
+          ]
+        }
+        ```
+
+        | Field | Description |
+        |-------|-------------|
+        | `dexChain` | `"Mainnet"` or `"Testnet"` |
+        | `agentAddress` | Agent wallet address (`0x` hex) |
+        | `agentName` | Agent name (free text) |
+
+        ---
+
+        ## withdraw
+
+        Withdraw funds from DEX to an external address.
+
+        **EIP-712 type:**
+        ```json
+        {
+          "Withdraw": [
+            { "name": "dexChain",    "type": "string"  },
+            { "name": "destination", "type": "address" },
+            { "name": "amount",      "type": "string"  },
+            { "name": "nonce",       "type": "uint64"  },
+            { "name": "expiryAfter", "type": "uint64"  }
+          ]
+        }
+        ```
+
+        | Field | Description |
+        |-------|-------------|
+        | `dexChain` | Must match current environment |
+        | `destination` | Recipient address (`0x` hex) |
+        | `amount` | Withdrawal amount (>= 1) |
+
+        ---
+
+        ## usdSend
+
+        Transfer USD between DEX accounts.
+
+        **EIP-712 type:**
+        ```json
+        {
+          "UsdTransfer": [
+            { "name": "dexChain",    "type": "string"  },
+            { "name": "to",          "type": "address" },
+            { "name": "amount",      "type": "string"  },
+            { "name": "nonce",       "type": "uint64"  },
+            { "name": "expiryAfter", "type": "uint64"  }
+          ]
+        }
+        ```
+
+        ---
+
+        ## faucetClaim (Testnet only)
+
+        Claim testnet tokens. No action fields needed.
+
+        **EIP-712 type:**
+        ```json
+        {
+          "TestnetFaucetClaim": [
+            { "name": "dexChain", "type": "string" }
+          ]
+        }
+        ```
+
+        Message: `{ "dexChain": "Testnet" }`. chainId fixed `421614`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: object
+                  description: Action payload (varies by action type)
+                signature:
+                  type: object
+                  properties:
+                    r: { type: string }
+                    s: { type: string }
+                    v: { type: integer }
+                nonce:
+                  type: integer
+                  format: int64
+                expiryAfter:
+                  type: integer
+                  nullable: true
+            examples:
+              approveAgent:
+                summary: approveAgent
+                value:
+                  action:
+                    type: approveAgent
+                    agentAddress: "0x76b6c4dc45f39463a1c8f6500c94b247c53fe184"
+                    agentName: "my-trading-bot"
+                    dexChain: "Mainnet"
+                  signature:
+                    r: "0x..."
+                    s: "0x..."
+                    v: 27
+                  nonce: 1763023626904
+                  expiryAfter: 1763023686
+              withdraw:
+                summary: withdraw
+                value:
+                  action:
+                    type: withdraw
+                    destination: "0xabc123..."
+                    amount: "100"
+                  signature:
+                    r: "0x..."
+                    s: "0x..."
+                    v: 27
+                  nonce: 1763023626904
+      responses:
+        "200":
+          description: See specific action endpoint for response details
+      x-codeSamples:
+        - lang: JavaScript
+          label: "JavaScript — approveAgent"
+          source: |
+            import { ethers } from "ethers";
+
+            const MASTER_KEY = "0xYOUR_MASTER_PRIVATE_KEY";
+            const CHAIN_ID   = 421614;
+            const BASE_URL   = "https://api10.afx.xyz";
+
+            const master = new ethers.Wallet(MASTER_KEY);
+
+            // ── Action ─────────────────────────────────────────────────
+            const action = {
+              type:         "approveAgent",
+              agentAddress: "0x76b6c4dc45f39463a1c8f6500c94b247c53fe184",
+              agentName:    "my-trading-bot",
+              dexChain:     "Mainnet",
+            };
+
+            const nonce       = Date.now();
+            const expiryAfter = Math.floor(Date.now() / 1000) + 60; // 60s
+
+            // ── Sign EIP-712 (no protobuf needed) ──────────────────────
+            const rawSig = await master.signTypedData(
+              {
+                name: "SignTransaction", version: "1",
+                chainId: CHAIN_ID,
+                verifyingContract: "0x" + "0".repeat(40),
+              },
+              {
+                ApproveAgent: [
+                  { name: "dexChain",     type: "string"  },
+                  { name: "agentAddress", type: "address" },
+                  { name: "agentName",    type: "string"  },
+                  { name: "nonce",        type: "uint64"  },
+                  { name: "expiryAfter",  type: "uint64"  },
+                ],
+              },
+              {
+                dexChain:     "Mainnet",
+                agentAddress: "0x76b6c4dc45f39463a1c8f6500c94b247c53fe184",
+                agentName:    "my-trading-bot",
+                nonce:        nonce,
+                expiryAfter:  expiryAfter,
+              },
+            );
+            const { r, s, v } = ethers.Signature.from(rawSig);
+
+            // ── Send ───────────────────────────────────────────────────
+            const resp = await fetch(`${BASE_URL}/api/v1/exchange`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action,
+                signature: { r, s, v },
+                nonce,
+                expiryAfter,
+              }),
+            });
+            console.log(await resp.json());
+        - lang: Python
+          label: "Python — approveAgent"
+          source: |
+            import time, requests
+            from eth_account import Account
+
+            MASTER_KEY = "0xYOUR_MASTER_PRIVATE_KEY"
+            CHAIN_ID   = 421614
+            BASE_URL   = "https://api10.afx.xyz"
+
+            # ── Action ─────────────────────────────────────────────────
+            action = {
+                "type":         "approveAgent",
+                "agentAddress": "0x76b6c4dc45f39463a1c8f6500c94b247c53fe184",
+                "agentName":    "my-trading-bot",
+                "dexChain":     "Mainnet",
+            }
+
+            nonce        = int(time.time() * 1000)
+            expiry_after = int(time.time()) + 60  # 60s
+
+            # ── Sign EIP-712 (no protobuf needed) ──────────────────────
+            signed = Account.sign_typed_data(MASTER_KEY, full_message={
+                "types": {
+                    "EIP712Domain": [
+                        {"name": "name",              "type": "string"},
+                        {"name": "version",           "type": "string"},
+                        {"name": "chainId",           "type": "uint256"},
+                        {"name": "verifyingContract", "type": "address"},
+                    ],
+                    "ApproveAgent": [
+                        {"name": "dexChain",     "type": "string"},
+                        {"name": "agentAddress", "type": "address"},
+                        {"name": "agentName",    "type": "string"},
+                        {"name": "nonce",        "type": "uint64"},
+                        {"name": "expiryAfter",  "type": "uint64"},
+                    ],
+                },
+                "primaryType": "ApproveAgent",
+                "domain": {
+                    "name": "SignTransaction", "version": "1",
+                    "chainId": CHAIN_ID,
+                    "verifyingContract": "0x" + "0" * 40,
+                },
+                "message": {
+                    "dexChain":     "Mainnet",
+                    "agentAddress": "0x76b6c4dc45f39463a1c8f6500c94b247c53fe184",
+                    "agentName":    "my-trading-bot",
+                    "nonce":        nonce,
+                    "expiryAfter":  expiry_after,
+                },
+            })
+
+            # ── Send ───────────────────────────────────────────────────
+            resp = requests.post(f"{BASE_URL}/api/v1/exchange", json={
+                "action":      action,
+                "signature":   {"r": "0x" + format(signed.r, "064x"), "s": "0x" + format(signed.s, "064x"), "v": signed.v},
+                "nonce":       nonce,
+                "expiryAfter": expiry_after,
+            })
+            print(resp.json())
