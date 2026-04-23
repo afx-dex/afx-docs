@@ -9,7 +9,7 @@ AFX DEX uses [EIP-712](https://eips.ethereum.org/EIPS/eip-712) structured signat
 
 {% columns %}
 {% column %}
-### Agent Signature
+#### Agent Signature
 
 Used for most trading operations. The Agent wallet signs a hash derived from the **protobuf-serialized** action payload.
 
@@ -19,7 +19,7 @@ Used for most trading operations. The Agent wallet signs a hash derived from the
 {% endcolumn %}
 
 {% column %}
-### Master Signature
+#### Master Signature
 
 Used for privileged operations. The Master wallet signs the action fields **directly** as EIP-712 message — no protobuf involved.
 
@@ -29,23 +29,23 @@ Used for privileged operations. The Master wallet signs the action fields **dire
 {% endcolumn %}
 {% endcolumns %}
 
----
+***
 
 ## Agent Signing Process
 
 {% stepper %}
 {% step %}
-### Serialize action to Protobuf
+#### Serialize action to Protobuf
 
 Encode the action fields using the corresponding protobuf message (e.g. `MsgPlaceOrders` for placeOrder).
 
-- JSON camelCase fields map to protobuf snake\_case
-- Enum values use **integers** (e.g. `LIMIT` = `1`)
-- Zero values are omitted per proto3 rules
+* JSON camelCase fields map to protobuf snake\_case
+* Enum values use **integers** (e.g. `LIMIT` = `1`)
+* Zero values are omitted per proto3 rules
 {% endstep %}
 
 {% step %}
-### Compute connectionId
+#### Compute connectionId
 
 ```
 connectionId = keccak256(
@@ -58,7 +58,7 @@ connectionId = keccak256(
 {% endstep %}
 
 {% step %}
-### Sign EIP-712
+#### Sign EIP-712
 
 ```json
 {
@@ -88,11 +88,11 @@ connectionId = keccak256(
 }
 ```
 
-| Field | Value |
-| ----- | ----- |
-| `source` | `"a"` = Mainnet, `"b"` = Testnet |
-| `chainId` | Mainnet: `42161`, Testnet: `421614` |
-| `verifyingContract` | Always zero address |
+| Field               | Value                               |
+| ------------------- | ----------------------------------- |
+| `source`            | `"a"` = Mainnet, `"b"` = Testnet    |
+| `chainId`           | Mainnet: `42161`, Testnet: `421614` |
+| `verifyingContract` | Always zero address                 |
 {% endstep %}
 {% endstepper %}
 
@@ -124,7 +124,7 @@ const result = await client.placeOrder({ symbolCode: 1, px: "40000", qty: "0.5",
 {% endtab %}
 {% endtabs %}
 
----
+***
 
 ## Master Signing Process
 

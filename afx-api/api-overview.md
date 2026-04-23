@@ -13,6 +13,10 @@ layout:
     visible: true
   pagination:
     visible: true
+  metadata:
+    visible: true
+  tags:
+    visible: true
 ---
 
 # API
@@ -23,9 +27,9 @@ AFX DEX is a fully on-chain perpetual futures exchange. No API keys required —
 
 ## Base URLs
 
-| Environment | Exchange API | Info API | WebSocket |
-| ----------- | ------------ | -------- | --------- |
-| **Mainnet** | `https://api10.afx.xyz/api/v1/exchange` | `https://api10.afx.xyz/info/...` | `wss://ws10.afx.xyz/ws/dex` |
+| Environment | Exchange API                                    | Info API                                 | WebSocket                           |
+| ----------- | ----------------------------------------------- | ---------------------------------------- | ----------------------------------- |
+| **Mainnet** | `https://api10.afx.xyz/api/v1/exchange`         | `https://api10.afx.xyz/info/...`         | `wss://ws10.afx.xyz/ws/dex`         |
 | **Testnet** | `https://api10-testnet.afx.xyz/api/v1/exchange` | `https://api10-testnet.afx.xyz/info/...` | `wss://ws10-testnet.afx.xyz/ws/dex` |
 
 {% hint style="info" %}
@@ -34,38 +38,13 @@ Start with the **Testnet** environment. Use `faucetClaim` to get free test funds
 
 ## API Categories
 
-<table data-view="cards">
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>Description</th>
-            <th data-card-target data-type="content-ref">Target</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td><strong>Exchange API</strong></td>
-            <td>POST /api/v1/exchange — Place/cancel orders, set leverage, vault management. Requires EIP-712 signature.</td>
-            <td><a href="exchange.md">Exchange API</a></td>
-        </tr>
-        <tr>
-            <td><strong>Info API</strong></td>
-            <td>GET /info/... — Query account, orders, positions, trades, kline, funding rate. No signature required.</td>
-            <td><a href="info.md">Info API</a></td>
-        </tr>
-        <tr>
-            <td><strong>WebSocket</strong></td>
-            <td>Real-time orderbook, kline, ticker, trades, and account state updates via persistent connection.</td>
-            <td><a href="websocket.md">WebSocket</a></td>
-        </tr>
-    </tbody>
-</table>
+<table data-view="cards"><thead><tr><th>Title</th><th>Description</th><th data-card-target data-type="content-ref">Target</th></tr></thead><tbody><tr><td><strong>Exchange API</strong></td><td>POST /api/v1/exchange — Place/cancel orders, set leverage, vault management. Requires EIP-712 signature.</td><td><a href="exchange.md">exchange.md</a></td></tr><tr><td><strong>Info API</strong></td><td>GET /info/... — Query account, orders, positions, trades, kline, funding rate. No signature required.</td><td><a href="info/">info</a></td></tr><tr><td><strong>WebSocket</strong></td><td>Real-time orderbook, kline, ticker, trades, and account state updates via persistent connection.</td><td><a href="websocket/">websocket</a></td></tr></tbody></table>
 
 ## Authentication
 
 {% columns %}
 {% column %}
-### Master Wallet
+#### Master Wallet
 
 Controls funds and permissions.
 
@@ -75,7 +54,7 @@ Domain: `SignTransaction`
 {% endcolumn %}
 
 {% column %}
-### Agent Wallet
+#### Agent Wallet
 
 Authorized by Master for daily trading.
 
@@ -98,20 +77,21 @@ See [Authentication](signing.md) for the full EIP-712 signing specification.
 ```
 
 <details>
+
 <summary>Error Codes</summary>
 
-| Code | Description |
-| ---- | ----------- |
-| `0` | Success |
-| `40201` | Unsupported action type |
+| Code    | Description                   |
+| ------- | ----------------------------- |
+| `0`     | Success                       |
+| `40201` | Unsupported action type       |
 | `40204` | Signature verification failed |
-| `40207` | Invalid nonce |
-| `40208` | Request expired |
-| `40220` | Rate limit exceeded |
-| `40230` | Blockchain call failed |
-| `40231` | Transaction broadcast failed |
-| `40280` | Action disabled (emergency) |
-| `40281` | Address banned |
+| `40207` | Invalid nonce                 |
+| `40208` | Request expired               |
+| `40220` | Rate limit exceeded           |
+| `40230` | Blockchain call failed        |
+| `40231` | Transaction broadcast failed  |
+| `40280` | Action disabled (emergency)   |
+| `40281` | Address banned                |
 
 </details>
 
@@ -119,18 +99,18 @@ See [Authentication](signing.md) for the full EIP-712 signing specification.
 
 Query `GET /info/public/product-meta` for the full list.
 
-| Symbol | Code | Max Leverage | Settlement |
-| ------ | ---- | ------------ | ---------- |
-| BTCUSDC | 1 | 100x | USDC |
-| ETHUSDC | 2 | 100x | USDC |
-| SOLUSDC | 3 | 50x | USDC |
-| XRPUSDC | 4 | 50x | USDC |
+| Symbol  | Code | Max Leverage | Settlement |
+| ------- | ---- | ------------ | ---------- |
+| BTCUSDC | 1    | 100x         | USDC       |
+| ETHUSDC | 2    | 100x         | USDC       |
+| SOLUSDC | 3    | 50x          | USDC       |
+| XRPUSDC | 4    | 50x          | USDC       |
 
 ## Rate Limits
 
-| Dimension | Limit |
-| --------- | ----- |
-| Per address per action | Configurable per action type |
-| WebSocket connections per IP | 10 |
-| WebSocket subscriptions per connection | 50 |
-| WebSocket messages per second | 50 |
+| Dimension                              | Limit                        |
+| -------------------------------------- | ---------------------------- |
+| Per address per action                 | Configurable per action type |
+| WebSocket connections per IP           | 10                           |
+| WebSocket subscriptions per connection | 50                           |
+| WebSocket messages per second          | 50                           |
