@@ -11,19 +11,8 @@ All trading operations go through a single endpoint:
 POST /api/v1/exchange
 ```
 
-The `action.type` field determines which operation to execute. Every request requires an EIP-712 signature.
+The `action.type` field determines which operation to execute. Every request requires an EIP-712 signature. See [Authentication](signing.md) for signing details.
 
 {% hint style="info" %}
-Upload `openapi/exchange.yaml` to GitBook as an OpenAPI spec to render the interactive API reference below.
+The OpenAPI spec for this endpoint is available at `openapi/exchange.yaml`. Upload it to GitBook to render the interactive API reference on this page.
 {% endhint %}
-
-<!-- After uploading exchange.yaml, replace these with actual openapi blocks:
-
-{% openapi src="openapi/exchange.yaml" path="/exchange/placeOrder" method="post" %}
-{% endopenapi %}
-
-{% openapi src="openapi/exchange.yaml" path="/exchange/cancelOrder" method="post" %}
-{% endopenapi %}
-
-...etc for each endpoint
--->

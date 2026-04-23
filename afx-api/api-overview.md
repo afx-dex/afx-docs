@@ -85,7 +85,7 @@ Domain: `Exchange`
 {% endcolumn %}
 {% endcolumns %}
 
-See [Authentication](authentication.md) for the full EIP-712 signing specification.
+See [Authentication](signing.md) for the full EIP-712 signing specification.
 
 ## Common Response Format
 

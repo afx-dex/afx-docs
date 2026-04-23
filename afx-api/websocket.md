@@ -13,7 +13,5 @@ Persistent connection for real-time orderbook, kline, ticker, trades, and accoun
 | Testnet | `wss://ws10-testnet.afx.xyz/ws/dex` |
 
 {% hint style="info" %}
-Upload `openapi/websocket.yaml` to GitBook as an OpenAPI spec to render the interactive API reference below.
+The OpenAPI spec for these endpoints is available at `openapi/websocket.yaml`. Upload it to GitBook to render the interactive API reference on this page.
 {% endhint %}
-
-<!-- After uploading websocket.yaml, replace these with actual openapi blocks -->
