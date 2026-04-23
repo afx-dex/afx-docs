@@ -38,7 +38,7 @@ Start with the **Testnet** environment. Use `faucetClaim` to get free test funds
 
 ## API Categories
 
-<table data-view="cards"><thead><tr><th>Title</th><th>Description</th><th data-card-target data-type="content-ref">Target</th></tr></thead><tbody><tr><td><strong>Exchange API</strong></td><td>POST /api/v1/exchange — Place/cancel orders, set leverage, vault management. Requires EIP-712 signature.</td><td><a href="exchange.md">exchange.md</a></td></tr><tr><td><strong>Info API</strong></td><td>GET /info/... — Query account, orders, positions, trades, kline, funding rate. No signature required.</td><td><a href="info/">info</a></td></tr><tr><td><strong>WebSocket</strong></td><td>Real-time orderbook, kline, ticker, trades, and account state updates via persistent connection.</td><td><a href="websocket/">websocket</a></td></tr></tbody></table>
+<table data-view="cards"><thead><tr><th>Title</th><th>Description</th><th data-card-target data-type="content-ref">Target</th></tr></thead><tbody><tr><td><strong>Exchange API</strong></td><td>POST /api/v1/exchange — Place/cancel orders, set leverage, vault management. Requires EIP-712 signature.</td><td><a href="exchange/">exchange</a></td></tr><tr><td><strong>Info API</strong></td><td>GET /info/... — Query account, orders, positions, trades, kline, funding rate. No signature required.</td><td><a href="info/">info</a></td></tr><tr><td><strong>WebSocket</strong></td><td>Real-time orderbook, kline, ticker, trades, and account state updates via persistent connection.</td><td><a href="websocket/">websocket</a></td></tr></tbody></table>
 
 ## Authentication
 
