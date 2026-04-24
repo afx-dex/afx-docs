@@ -114,14 +114,35 @@ paths:
         {
           "channel": "orderBook",
           "data": {
+            "type": "snapshot",
+            "symbolCode": 1,
             "symbol": "BTCUSDC",
-            "bids": [["40000.5", "1.2"], ...],
-            "asks": [["40001.0", "0.8"], ...],
-            "timestamp": 1700000000000
+            "block": 16105909,
+            "sequence": 3846532,
+            "depth": 5,
+            "timestamp": 1776920283896,
+            "book": {
+              "bids": [["77907", "0.159"], ["77906.5", "0.093"]],
+              "asks": [["77908", "0.120"], ["77908.5", "0.085"]]
+            }
           }
         }
         ```
 
+        **Response fields:**
+        | Field | Type | Description |
+        |-------|------|-------------|
+        | type | string | `snapshot` (initial) or `incremental` (delta) |
+        | symbolCode | integer | Symbol code |
+        | symbol | string | Symbol name |
+        | block | integer | Block height |
+        | sequence | integer | Sequence number |
+        | depth | integer | Requested depth |
+        | timestamp | integer | Timestamp (ms) |
+        | book.bids | string[][] | Bid levels `[price, qty]` |
+        | book.asks | string[][] | Ask levels `[price, qty]` |
+
+        **Subscribe params:**
         | Param | Type | Required | Description |
         |-------|------|----------|-------------|
         | symbol | string | Yes | Symbol name |
@@ -179,6 +200,25 @@ paths:
         }
         ```
 
+        **Push data:**
+        ```json
+        {
+          "channel": "candle",
+          "data": {
+            "symbolName": "BTCUSDC",
+            "timestamp": 1776920280,
+            "intrvl": 60,
+            "open": "77900.5",
+            "high": "77950.0",
+            "low": "77880.0",
+            "close": "77920.3",
+            "volume": "12.530",
+            "turnover": "976234.5",
+            "tradeCount": 48
+          }
+        }
+        ```
+
         | Param | Type | Required | Description |
         |-------|------|----------|-------------|
         | symbol | string | Yes | Symbol name |
@@ -215,6 +255,28 @@ paths:
         {
           "method": "subscribe",
           "subscription": { "type": "trades", "symbol": "BTCUSDC" }
+        }
+        ```
+
+        **Push data:**
+        ```json
+        {
+          "channel": "trades",
+          "data": {
+            "type": "snapshot",
+            "sequence": 123456,
+            "symbol": "BTCUSDC",
+            "trades": [
+              {
+                "symbol": "BTCUSDC",
+                "ordSide": "BUY",
+                "filledPx": "77920.3",
+                "filledQty": "0.050",
+                "transactionTime": 1776920283000,
+                "txHash": "ABC123..."
+              }
+            ]
+          }
         }
         ```
 
@@ -255,6 +317,53 @@ paths:
           "subscription": { "type": "ticker", "symbol": "BTCUSDC" }
         }
         ```
+
+        **Push data:**
+        ```json
+        {
+          "channel": "ticker",
+          "data": {
+            "type": "snapshot",
+            "sequence": 123456,
+            "timestamp": 1776920283000,
+            "symbol": "BTCUSDC",
+            "ticker": {
+              "s": "BTCUSDC",
+              "p": "77920.3",
+              "op": "77900.0",
+              "mp": "77915.5",
+              "mid": "77910.0",
+              "oi": "1500.250",
+              "fr": "0.0001",
+              "lfr": "0.0001",
+              "o": "77500.0",
+              "h": "78200.0",
+              "l": "77100.0",
+              "v": "2350.500",
+              "tv": "183250000",
+              "P": "0.0054"
+            }
+          }
+        }
+        ```
+
+        **Ticker fields:**
+        | Field | Description |
+        |-------|-------------|
+        | s | Symbol |
+        | p | Last price |
+        | op | Oracle price |
+        | mp | Mark price |
+        | mid | Mid price |
+        | oi | Open interest |
+        | fr | Funding rate |
+        | lfr | Last funding rate |
+        | o | 24h open |
+        | h | 24h high |
+        | l | 24h low |
+        | v | 24h volume |
+        | tv | 24h turnover |
+        | P | 24h change % |
 
         | Param | Type | Required | Description |
         |-------|------|----------|-------------|
@@ -414,6 +523,60 @@ paths:
         {
           "method": "subscribe",
           "subscription": { "type": "aopState", "userAddress": "0xabc..." }
+        }
+        ```
+
+        **Push data:**
+        ```json
+        {
+          "channel": "aopState",
+          "data": {
+            "type": "snapshot",
+            "sequence": 123456,
+            "timestamp": 1776920283000,
+            "userAddr": "0xabc...",
+            "aop": {
+              "accounts": [{
+                "userAddr": "0xabc...",
+                "currency": 1,
+                "balance": "10000.00",
+                "availableBalance": "8500.00",
+                "equity": "10500.00",
+                "status": "NORMAL"
+              }],
+              "orders": [{
+                "userAddr": "0xabc...",
+                "symbol": "BTCUSDC",
+                "ordId": 12345,
+                "ordPx": "77000.0",
+                "ordQty": "0.5",
+                "ordStatus": "NEW",
+                "ordType": "LIMIT",
+                "ordSide": "BUY",
+                "timeInForce": "GTC",
+                "filledQty": "0",
+                "leavesQty": "0.5"
+              }],
+              "positions": [{
+                "userAddr": "0xabc...",
+                "symbolCode": 1,
+                "symbol": "BTCUSDC",
+                "leverage": "10",
+                "longSize": "0.5",
+                "longEntryValue": "38750.0",
+                "shortSize": "0",
+                "posMode": "ONE_WAY",
+                "posMarginMode": "CROSS",
+                "unrealizedPnl": "250.00",
+                "cumRealizedPnl": "100.00",
+                "curMarkPx": "77920.3"
+              }],
+              "settings": [{
+                "symbol": "BTCUSDC",
+                "leverage": ["ONE_WAY", "10"]
+              }]
+            }
+          }
         }
         ```
 

@@ -45,16 +45,28 @@ paths:
           description: OK
           content:
             application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer }
+                  message: { type: string }
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/AccountWallet" }
               examples:
                 success:
                   value:
                     code: 0
                     message: success
                     data:
-                      - currencyCode: 1
-                        balance: "10000.000000000000"
-                        availableBalance: "8500.000000000000"
-                        equity: "10500.000000000000"
+                      - userAddr: "0xabc..."
+                        currency: 1
+                        balance: "10000.000000"
+                        availableBalance: "8500.000000"
+                        availableTransferBalance: "8500.000000"
+                        equity: "10500.000000"
+                        status: "NORMAL"
+                        blockTime: 1776920000000
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -151,6 +163,15 @@ paths:
       responses:
         "200":
           description: Paginated agent list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer }
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/AccountAgent" }
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -181,6 +202,13 @@ paths:
       responses:
         "200":
           description: Active agent info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer }
+                  data: { $ref: "#/components/schemas/AccountAgent" }
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -247,6 +275,15 @@ paths:
       responses:
         "200":
           description: Paginated order states
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer }
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/OrderState" }
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -300,6 +337,15 @@ paths:
       responses:
         "200":
           description: Paginated order events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer }
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/OrderEvent" }
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -339,6 +385,15 @@ paths:
       responses:
         "200":
           description: Position list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer }
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Position" }
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -396,6 +451,15 @@ paths:
       responses:
         "200":
           description: Paginated trade records
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer }
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Trade" }
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -426,6 +490,13 @@ paths:
       responses:
         "200":
           description: Product metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer }
+                  data: { $ref: "#/components/schemas/ProductMeta" }
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -449,6 +520,13 @@ paths:
       responses:
         "200":
           description: All product metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer }
+                  data: { $ref: "#/components/schemas/ProductMeta" }
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -486,6 +564,15 @@ paths:
       responses:
         "200":
           description: Kline data array
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer }
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Kline" }
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -524,6 +611,15 @@ paths:
       responses:
         "200":
           description: Kline data array
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer }
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Kline" }
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -563,6 +659,15 @@ paths:
       responses:
         "200":
           description: Kline data array
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer }
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Kline" }
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -1168,3 +1273,197 @@ paths:
           source: |
             resp = requests.get(f"{BASE_URL}/info/explore/block/detail",
                 params={"blockHeight": 123456})
+
+components:
+  schemas:
+    AccountWallet:
+      type: object
+      properties:
+        blockHeight: { type: integer, format: int64 }
+        userAddr: { type: string }
+        currency: { type: integer, format: int64 }
+        balance: { type: string }
+        availableBalance: { type: string }
+        availableTransferBalance: { type: string }
+        equity: { type: string }
+        status: { type: string }
+        blockTime: { type: integer, format: int64 }
+
+    AccountAgent:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        masterAddress: { type: string }
+        agentAddress: { type: string }
+        agentName: { type: string }
+        status: { type: string, description: "1=ACTIVE, 2=REVOKED" }
+        permission: { type: string }
+        approvedAt: { type: integer, format: int64 }
+        approvedBlock: { type: integer, format: int64 }
+        approvalTx: { type: string }
+        revokedAt: { type: integer, format: int64 }
+        revokedBlock: { type: integer, format: int64 }
+        revokeTx: { type: string }
+
+    OrderState:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        blockHeight: { type: integer, format: int64 }
+        ordId: { type: string }
+        clOrdId: { type: string }
+        parentOrdId: { type: string }
+        userAddr: { type: string }
+        symbol: { type: integer, format: int64 }
+        side: { type: integer, description: "1=BUY, 2=SELL" }
+        type: { type: integer, description: "1=LIMIT, 2=MARKET" }
+        price: { type: string }
+        qty: { type: string }
+        filledQty: { type: string }
+        leaveQty: { type: string }
+        cumFilledValue: { type: string }
+        cumFee: { type: string }
+        triggerPx: { type: string }
+        status: { type: string, description: "NEW, PARTIALLY_FILLED, FILLED, CANCELED" }
+        timeInForce: { type: string }
+        reduceOnly: { type: integer, description: "0=NONE, 1=REDUCE_ONLY, 2=TP, 3=SL" }
+        conditionalOrderTriggerType: { type: integer }
+        blockTime: { type: integer, format: int64 }
+
+    OrderEvent:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        blockHeight: { type: integer, format: int64 }
+        userAddr: { type: string }
+        ordId: { type: string }
+        clOrdId: { type: string }
+        symbol: { type: integer, format: int64 }
+        side: { type: string }
+        execStatus: { type: string }
+        ordPx: { type: string }
+        filledPx: { type: string }
+        execQty: { type: string }
+        leavesQty: { type: string }
+        execId: { type: string }
+        realizedPnl: { type: string }
+        openFee: { type: string }
+        closeFee: { type: string }
+        blockTime: { type: integer, format: int64 }
+        txHash: { type: string }
+        ordType: { type: integer }
+        timeInForce: { type: string }
+        ordQty: { type: string }
+        triggerPx: { type: string }
+
+    Position:
+      type: object
+      properties:
+        userAddr: { type: string }
+        symbolCode: { type: integer, format: int64 }
+        leverage: { type: string }
+        longSize: { type: string }
+        shortSize: { type: string }
+        longEntryValue: { type: string }
+        shortEntryValue: { type: string }
+        positionMode: { type: string, description: "ONE_WAY, HEDGE" }
+        positionMarginMode: { type: string, description: "CROSS, ISOLATED" }
+        assignedPosBalance: { type: string }
+        unrealizedPnl: { type: string }
+        cumRealizedPnl: { type: string }
+        curMarkPx: { type: string }
+        cumTransactionFee: { type: string }
+        createTime: { type: integer, format: int64 }
+        blockTime: { type: integer, format: int64 }
+
+    Trade:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        blockHeight: { type: integer, format: int64 }
+        userAddr: { type: string }
+        symbol: { type: integer, format: int64 }
+        orderId: { type: string }
+        clientOrderId: { type: string }
+        side: { type: string }
+        execStatus: { type: string }
+        orderPx: { type: string }
+        filledPx: { type: string }
+        execQty: { type: string }
+        leavesQty: { type: string }
+        execId: { type: string }
+        realizedPnl: { type: string }
+        openFee: { type: string }
+        closeFee: { type: string }
+        blockTime: { type: integer, format: int64 }
+        txHash: { type: string }
+
+    ProductMeta:
+      type: object
+      properties:
+        md5Checksum: { type: string }
+        perpProducts:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string, description: "Display name" }
+              symbol: { type: string, description: "Symbol name e.g. BTCUSDC" }
+              code: { type: string, description: "Symbol code" }
+              currencyCode: { type: integer, format: int64 }
+              maxLeverage: { type: integer }
+              pricePrecision: { type: integer }
+              qtyPrecision: { type: integer }
+              tickSize: { type: string }
+              stepSize: { type: string }
+              maxOrderQty: { type: integer, format: int64 }
+              maxSlippagePct: { type: string }
+              maxPositionNtnl: { type: integer, format: int64 }
+              fundingInterval: { type: integer, format: int64, description: "seconds" }
+              productType: { type: string }
+              listStatus: { type: string }
+              onlyIsolated: { type: boolean }
+              baseCurrency: { type: string }
+              quoteCurrency: { type: string }
+              settleCurrency: { type: string }
+              minOrderValue: { type: string }
+              defaultMakerFeeRate: { type: string }
+              defaultTakerFeeRate: { type: string }
+        marginTables:
+          type: array
+          items:
+            type: object
+            properties:
+              tableId: { type: integer }
+              riskLimitVo:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    minimumValue: { type: string }
+                    maintainMarginRatio: { type: string }
+                    maxLeverage: { type: integer }
+        currencies:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              currency: { type: string }
+              code: { type: integer, format: int64 }
+              walletPrecision: { type: integer }
+              displayPrecision: { type: integer }
+
+    Kline:
+      type: object
+      properties:
+        symbolName: { type: string }
+        timestamp: { type: integer, format: int64, description: "K-line start time (seconds)" }
+        intrvl: { type: integer, format: int64, description: "Interval (seconds)" }
+        open: { type: string }
+        high: { type: string }
+        low: { type: string }
+        close: { type: string }
+        volume: { type: string }
+        turnover: { type: string }
+        tradeCount: { type: integer, format: int64 }
