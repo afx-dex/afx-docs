@@ -38,18 +38,15 @@ paths:
       description: |
         Send a heartbeat to keep the connection alive.
 
-        **Request:**
         ```json
         { "method": "ping" }
-        ```
-
-        **Response:**
-        ```json
-        { "channel": "pong" }
         ```
       responses:
         "200":
           description: Pong
+          content:
+            application/json:
+              example: { "channel": "pong" }
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -57,19 +54,14 @@ paths:
             const ws = new WebSocket("wss://ws10.afx.xyz/ws/dex");
 
             ws.onopen = () => {
-              console.log("Connected");
-
               // Heartbeat every 30s
               setInterval(() => ws.send(JSON.stringify({ method: "ping" })), 30000);
             };
 
             ws.onmessage = (event) => {
               const msg = JSON.parse(event.data);
-              if (msg.channel === "pong") {
-                console.log("pong received");
-              } else {
-                console.log("data:", msg);
-              }
+              if (msg.channel === "pong") return;
+              console.log("data:", msg);
             };
         - lang: Python
           label: Python
@@ -77,17 +69,14 @@ paths:
             import asyncio, json, websockets
 
             async def main():
-                uri = "wss://ws10.afx.xyz/ws/dex"
-                async with websockets.connect(uri) as ws:
-                    # Heartbeat
+                async with websockets.connect("wss://ws10.afx.xyz/ws/dex") as ws:
                     await ws.send(json.dumps({"method": "ping"}))
-                    pong = json.loads(await ws.recv())
-                    print(pong)  # {"channel": "pong"}
+                    print(json.loads(await ws.recv()))  # {"channel": "pong"}
 
             asyncio.run(main())
 
   # ═══════════════════════════════════════════════════════════════════
-  #  Public Channels
+  #  Market Data
   # ═══════════════════════════════════════════════════════════════════
   /ws/subscribe/orderBook:
     post:
@@ -97,59 +86,34 @@ paths:
       description: |
         Subscribe to order book depth updates. Sends initial snapshot then incremental deltas.
 
-        **Subscribe:**
         ```json
-        {
-          "method": "subscribe",
-          "subscription": {
-            "type": "orderBook",
-            "symbol": "BTCUSDC",
-            "depth": 50
-          }
-        }
+        { "method": "subscribe", "subscription": { "type": "orderBook", "symbol": "BTCUSDC", "depth": 50 } }
         ```
 
-        **Push data:**
-        ```json
-        {
-          "channel": "orderBook",
-          "data": {
-            "type": "snapshot",
-            "symbolCode": 1,
-            "symbol": "BTCUSDC",
-            "block": 16105909,
-            "sequence": 3846532,
-            "depth": 5,
-            "timestamp": 1776920283896,
-            "book": {
-              "bids": [["77907", "0.159"], ["77906.5", "0.093"]],
-              "asks": [["77908", "0.120"], ["77908.5", "0.085"]]
-            }
-          }
-        }
-        ```
-
-        **Response fields:**
-        | Field | Type | Description |
-        |-------|------|-------------|
-        | type | string | `snapshot` (initial) or `incremental` (delta) |
-        | symbolCode | integer | Symbol code |
-        | symbol | string | Symbol name |
-        | block | integer | Block height |
-        | sequence | integer | Sequence number |
-        | depth | integer | Requested depth |
-        | timestamp | integer | Timestamp (ms) |
-        | book.bids | string[][] | Bid levels `[price, qty]` |
-        | book.asks | string[][] | Ask levels `[price, qty]` |
-
-        **Subscribe params:**
         | Param | Type | Required | Description |
         |-------|------|----------|-------------|
         | symbol | string | Yes | Symbol name |
         | depth | integer | No | Depth level (default 5) |
       responses:
         "200":
-          description: Subscribed
+          description: Push data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderBookPush"
+              example:
+                channel: orderBook
+                data:
+                  type: snapshot
+                  symbolCode: 1
+                  symbol: BTCUSDC
+                  block: 16105909
+                  sequence: 3846532
+                  depth: 5
+                  timestamp: 1776920283896
+                  book:
+                    bids: [["77907", "0.159"], ["77906.5", "0.093"]]
+                    asks: [["77908", "0.120"], ["77908.5", "0.085"]]
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -162,8 +126,8 @@ paths:
             ws.onmessage = (event) => {
               const msg = JSON.parse(event.data);
               if (msg.channel === "orderBook") {
-                console.log("bids:", msg.data.bids);
-                console.log("asks:", msg.data.asks);
+                console.log("bids:", msg.data.book.bids);
+                console.log("asks:", msg.data.book.asks);
               }
             };
         - lang: Python
@@ -174,12 +138,6 @@ paths:
                 "subscription": {"type": "orderBook", "symbol": "BTCUSDC", "depth": 50},
             }))
 
-            async for message in ws:
-                msg = json.loads(message)
-                if msg.get("channel") == "orderBook":
-                    print("bids:", msg["data"]["bids"])
-                    print("asks:", msg["data"]["asks"])
-
   /ws/subscribe/candle:
     post:
       operationId: wsCandle
@@ -188,35 +146,8 @@ paths:
       description: |
         Subscribe to candlestick (OHLCV) data.
 
-        **Subscribe:**
         ```json
-        {
-          "method": "subscribe",
-          "subscription": {
-            "type": "candle",
-            "symbol": "BTCUSDC",
-            "interval": "60"
-          }
-        }
-        ```
-
-        **Push data:**
-        ```json
-        {
-          "channel": "candle",
-          "data": {
-            "symbolName": "BTCUSDC",
-            "timestamp": 1776920280,
-            "intrvl": 60,
-            "open": "77900.5",
-            "high": "77950.0",
-            "low": "77880.0",
-            "close": "77920.3",
-            "volume": "12.530",
-            "turnover": "976234.5",
-            "tradeCount": 48
-          }
-        }
+        { "method": "subscribe", "subscription": { "type": "candle", "symbol": "BTCUSDC", "interval": "60" } }
         ```
 
         | Param | Type | Required | Description |
@@ -225,7 +156,24 @@ paths:
         | interval | string | Yes | Interval in seconds ("60", "300", "900", "3600", "86400") |
       responses:
         "200":
-          description: Subscribed
+          description: Push data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CandlePush"
+              example:
+                channel: candle
+                data:
+                  symbolName: BTCUSDC
+                  timestamp: 1776920280
+                  intrvl: 60
+                  open: "77900.5"
+                  high: "77950.0"
+                  low: "77880.0"
+                  close: "77920.3"
+                  volume: "12.530"
+                  turnover: "976234.5"
+                  tradeCount: 48
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -250,42 +198,33 @@ paths:
       description: |
         Subscribe to recent trade updates.
 
-        **Subscribe:**
         ```json
-        {
-          "method": "subscribe",
-          "subscription": { "type": "trades", "symbol": "BTCUSDC" }
-        }
+        { "method": "subscribe", "subscription": { "type": "trades", "symbol": "BTCUSDC" } }
         ```
 
-        **Push data:**
-        ```json
-        {
-          "channel": "trades",
-          "data": {
-            "type": "snapshot",
-            "sequence": 123456,
-            "symbol": "BTCUSDC",
-            "trades": [
-              {
-                "symbol": "BTCUSDC",
-                "ordSide": "BUY",
-                "filledPx": "77920.3",
-                "filledQty": "0.050",
-                "transactionTime": 1776920283000,
-                "txHash": "ABC123..."
-              }
-            ]
-          }
-        }
-        ```
-
-        | Param | Type | Required | Description |
-        |-------|------|----------|-------------|
-        | symbol | string | Yes | Symbol name |
+        | Param | Type | Required |
+        |-------|------|----------|
+        | symbol | string | Yes |
       responses:
         "200":
-          description: Subscribed
+          description: Push data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradesPush"
+              example:
+                channel: trades
+                data:
+                  type: snapshot
+                  sequence: 123456
+                  symbol: BTCUSDC
+                  trades:
+                    - symbol: BTCUSDC
+                      ordSide: BUY
+                      filledPx: "77920.3"
+                      filledQty: "0.050"
+                      transactionTime: 1776920283000
+                      txHash: "ABC123..."
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -310,67 +249,42 @@ paths:
       description: |
         Subscribe to single symbol ticker.
 
-        **Subscribe:**
         ```json
-        {
-          "method": "subscribe",
-          "subscription": { "type": "ticker", "symbol": "BTCUSDC" }
-        }
+        { "method": "subscribe", "subscription": { "type": "ticker", "symbol": "BTCUSDC" } }
         ```
 
-        **Push data:**
-        ```json
-        {
-          "channel": "ticker",
-          "data": {
-            "type": "snapshot",
-            "sequence": 123456,
-            "timestamp": 1776920283000,
-            "symbol": "BTCUSDC",
-            "ticker": {
-              "s": "BTCUSDC",
-              "p": "77920.3",
-              "op": "77900.0",
-              "mp": "77915.5",
-              "mid": "77910.0",
-              "oi": "1500.250",
-              "fr": "0.0001",
-              "lfr": "0.0001",
-              "o": "77500.0",
-              "h": "78200.0",
-              "l": "77100.0",
-              "v": "2350.500",
-              "tv": "183250000",
-              "P": "0.0054"
-            }
-          }
-        }
-        ```
-
-        **Ticker fields:**
-        | Field | Description |
-        |-------|-------------|
-        | s | Symbol |
-        | p | Last price |
-        | op | Oracle price |
-        | mp | Mark price |
-        | mid | Mid price |
-        | oi | Open interest |
-        | fr | Funding rate |
-        | lfr | Last funding rate |
-        | o | 24h open |
-        | h | 24h high |
-        | l | 24h low |
-        | v | 24h volume |
-        | tv | 24h turnover |
-        | P | 24h change % |
-
-        | Param | Type | Required | Description |
-        |-------|------|----------|-------------|
-        | symbol | string | Yes | Symbol name |
+        | Param | Type | Required |
+        |-------|------|----------|
+        | symbol | string | Yes |
       responses:
         "200":
-          description: Subscribed
+          description: Push data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TickerPush"
+              example:
+                channel: ticker
+                data:
+                  type: snapshot
+                  sequence: 123456
+                  timestamp: 1776920283000
+                  symbol: BTCUSDC
+                  ticker:
+                    s: BTCUSDC
+                    p: "77920.3"
+                    op: "77900.0"
+                    mp: "77915.5"
+                    mid: "77910.0"
+                    oi: "1500.250"
+                    fr: "0.0001"
+                    lfr: "0.0001"
+                    o: "77500.0"
+                    h: "78200.0"
+                    l: "77100.0"
+                    v: "2350.500"
+                    tv: "183250000"
+                    P: "0.0054"
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -393,9 +307,8 @@ paths:
       summary: All Tickers
       tags: [Market Data]
       description: |
-        Subscribe to all tickers (global feed).
+        Subscribe to all tickers. Same ticker structure as single ticker, but returns an array.
 
-        **Subscribe:**
         ```json
         { "method": "subscribe", "subscription": { "type": "allTickers" } }
         ```
@@ -403,23 +316,35 @@ paths:
         No parameters required.
       responses:
         "200":
-          description: Subscribed
+          description: Push data — same as ticker but with `tickers` array
+          content:
+            application/json:
+              example:
+                channel: allTickers
+                data:
+                  type: snapshot
+                  sequence: 123456
+                  timestamp: 1776920283000
+                  tickers:
+                    - { s: BTCUSDC, p: "77920.3", mp: "77915.5", v: "2350.500" }
+                    - { s: ETHUSDC, p: "2450.8", mp: "2449.5", v: "18000.00" }
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
           source: |
             ws.send(JSON.stringify({
-              method: "subscribe",
-              subscription: { type: "allTickers" },
+              method: "subscribe", subscription: { type: "allTickers" },
             }));
         - lang: Python
           label: Python
           source: |
             await ws.send(json.dumps({
-                "method": "subscribe",
-                "subscription": {"type": "allTickers"},
+                "method": "subscribe", "subscription": {"type": "allTickers"},
             }))
 
+  # ═══════════════════════════════════════════════════════════════════
+  #  Explorer
+  # ═══════════════════════════════════════════════════════════════════
   /ws/subscribe/block:
     post:
       operationId: wsBlock
@@ -433,14 +358,21 @@ paths:
         ```
       responses:
         "200":
-          description: Subscribed
+          description: Push data
+          content:
+            application/json:
+              example:
+                channel: block
+                data:
+                  blockHeight: 16105909
+                  blockTime: 1776920283000
+                  txCount: 5
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
           source: |
             ws.send(JSON.stringify({
-              method: "subscribe",
-              subscription: { type: "block" },
+              method: "subscribe", subscription: { type: "block" },
             }));
         - lang: Python
           label: Python
@@ -462,14 +394,20 @@ paths:
         ```
       responses:
         "200":
-          description: Subscribed
+          description: Push data
+          content:
+            application/json:
+              example:
+                channel: blockHeight
+                data:
+                  blockHeight: 16105909
+                  timestamp: 1776920283000
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
           source: |
             ws.send(JSON.stringify({
-              method: "subscribe",
-              subscription: { type: "blockHeight" },
+              method: "subscribe", subscription: { type: "blockHeight" },
             }));
         - lang: Python
           label: Python
@@ -491,14 +429,23 @@ paths:
         ```
       responses:
         "200":
-          description: Subscribed
+          description: Push data
+          content:
+            application/json:
+              example:
+                channel: tx
+                data:
+                  blockHeight: 16105909
+                  txHash: "ABC123..."
+                  user: "0xabc..."
+                  actionType: "placeOrder"
+                  status: 1
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
           source: |
             ws.send(JSON.stringify({
-              method: "subscribe",
-              subscription: { type: "tx" },
+              method: "subscribe", subscription: { type: "tx" },
             }));
         - lang: Python
           label: Python
@@ -508,7 +455,7 @@ paths:
             }))
 
   # ═══════════════════════════════════════════════════════════════════
-  #  User Channels
+  #  User Data
   # ═══════════════════════════════════════════════════════════════════
   /ws/subscribe/aopState:
     post:
@@ -518,74 +465,72 @@ paths:
       description: |
         Subscribe to real-time account, order, and position state updates.
 
-        **Subscribe:**
         ```json
-        {
-          "method": "subscribe",
-          "subscription": { "type": "aopState", "userAddress": "0xabc..." }
-        }
+        { "method": "subscribe", "subscription": { "type": "aopState", "userAddress": "0xabc..." } }
         ```
 
-        **Push data:**
-        ```json
-        {
-          "channel": "aopState",
-          "data": {
-            "type": "snapshot",
-            "sequence": 123456,
-            "timestamp": 1776920283000,
-            "userAddr": "0xabc...",
-            "aop": {
-              "accounts": [{
-                "userAddr": "0xabc...",
-                "currency": 1,
-                "balance": "10000.00",
-                "availableBalance": "8500.00",
-                "equity": "10500.00",
-                "status": "NORMAL"
-              }],
-              "orders": [{
-                "userAddr": "0xabc...",
-                "symbol": "BTCUSDC",
-                "ordId": 12345,
-                "ordPx": "77000.0",
-                "ordQty": "0.5",
-                "ordStatus": "NEW",
-                "ordType": "LIMIT",
-                "ordSide": "BUY",
-                "timeInForce": "GTC",
-                "filledQty": "0",
-                "leavesQty": "0.5"
-              }],
-              "positions": [{
-                "userAddr": "0xabc...",
-                "symbolCode": 1,
-                "symbol": "BTCUSDC",
-                "leverage": "10",
-                "longSize": "0.5",
-                "longEntryValue": "38750.0",
-                "shortSize": "0",
-                "posMode": "ONE_WAY",
-                "posMarginMode": "CROSS",
-                "unrealizedPnl": "250.00",
-                "cumRealizedPnl": "100.00",
-                "curMarkPx": "77920.3"
-              }],
-              "settings": [{
-                "symbol": "BTCUSDC",
-                "leverage": ["ONE_WAY", "10"]
-              }]
-            }
-          }
-        }
-        ```
-
-        | Param | Type | Required | Description |
-        |-------|------|----------|-------------|
-        | userAddress | string | Yes | User wallet address |
+        | Param | Type | Required |
+        |-------|------|----------|
+        | userAddress | string | Yes |
       responses:
         "200":
-          description: Subscribed
+          description: Push data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AopStatePush"
+              example:
+                channel: aopState
+                data:
+                  type: snapshot
+                  sequence: 123456
+                  timestamp: 1776920283000
+                  userAddr: "0xabc..."
+                  aop:
+                    accounts:
+                      - userAddr: "0xabc..."
+                        currency: 1
+                        balance: "10000.00"
+                        availableBalance: "8500.00"
+                        availableTransferBalance: "8500.00"
+                        equity: "10500.00"
+                        status: "NORMAL"
+                        takerFeeRatio: "0.0006"
+                        makerFeeRatio: "0.0001"
+                    orders:
+                      - userAddr: "0xabc..."
+                        symbol: BTCUSDC
+                        ordId: 12345
+                        clOrdId: 0
+                        ordPx: "77000.0"
+                        ordQty: "0.5"
+                        ordStatus: NEW
+                        ordType: LIMIT
+                        ordSide: BUY
+                        timeInForce: GTC
+                        filledQty: "0"
+                        leavesQty: "0.5"
+                        cumFilledValue: "0"
+                    positions:
+                      - userAddr: "0xabc..."
+                        symbolCode: 1
+                        symbol: BTCUSDC
+                        leverage: "10"
+                        longSize: "0.5"
+                        longEntryValue: "38750.0"
+                        shortSize: "0"
+                        shortEntryValue: "0"
+                        posMode: ONE_WAY
+                        posMarginMode: CROSS
+                        assignedPosBalance: "0"
+                        unrealizedPnl: "250.00"
+                        cumRealizedPnl: "100.00"
+                        curMarkPx: "77920.3"
+                        cumTransactionFee: "5.00"
+                        marginTableId: 1
+                    settings:
+                      - symbol: BTCUSDC
+                        leverage: ["ONE_WAY", "10"]
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -598,7 +543,7 @@ paths:
             ws.onmessage = (event) => {
               const msg = JSON.parse(event.data);
               if (msg.channel === "aopState") {
-                const { accounts, orders, positions } = msg.data;
+                const { accounts, orders, positions } = msg.data.aop;
                 console.log("accounts:", accounts);
                 console.log("orders:", orders);
                 console.log("positions:", positions);
@@ -612,26 +557,16 @@ paths:
                 "subscription": {"type": "aopState", "userAddress": "0xabc..."},
             }))
 
-            async for message in ws:
-                msg = json.loads(message)
-                if msg.get("channel") == "aopState":
-                    print("accounts:", msg["data"].get("accounts"))
-                    print("orders:", msg["data"].get("orders"))
-                    print("positions:", msg["data"].get("positions"))
-
   /ws/subscribe/orderHist:
     post:
       operationId: wsOrderHist
       summary: Order History
       tags: [User Data]
       description: |
-        Subscribe to order history updates.
+        Subscribe to order execution history updates.
 
         ```json
-        {
-          "method": "subscribe",
-          "subscription": { "type": "orderHist", "userAddress": "0xabc..." }
-        }
+        { "method": "subscribe", "subscription": { "type": "orderHist", "userAddress": "0xabc..." } }
         ```
 
         | Param | Type | Required |
@@ -639,7 +574,32 @@ paths:
         | userAddress | string | Yes |
       responses:
         "200":
-          description: Subscribed
+          description: Push data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderHistPush"
+              example:
+                channel: orderHist
+                data:
+                  type: incremental
+                  orderHists:
+                    - userAddr: "0xabc..."
+                      symbol: BTCUSDC
+                      ordId: 12345
+                      execId: 67890
+                      clOrdId: 0
+                      transactionTime: 1776920283000
+                      ordType: LIMIT
+                      ordSide: BUY
+                      execStatus: FILLED
+                      ordPx: "77000.0"
+                      execPx: "77000.0"
+                      triggerPx: "0"
+                      execQty: "0.5"
+                      ordQty: "0.5"
+                      reduceOnly: "NONE"
+                      slippagePct: "0"
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -665,14 +625,41 @@ paths:
         Subscribe to user trade fill events.
 
         ```json
-        {
-          "method": "subscribe",
-          "subscription": { "type": "userFilled", "userAddress": "0xabc..." }
-        }
+        { "method": "subscribe", "subscription": { "type": "userFilled", "userAddress": "0xabc..." } }
         ```
+
+        | Param | Type | Required |
+        |-------|------|----------|
+        | userAddress | string | Yes |
       responses:
         "200":
-          description: Subscribed
+          description: Push data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserFilledPush"
+              example:
+                channel: userFilled
+                data:
+                  type: incremental
+                  userFills:
+                    - userAddr: "0xabc..."
+                      symbol: BTCUSDC
+                      ordId: 12345
+                      execId: 67890
+                      ordSide: BUY
+                      execStatus: FILLED
+                      ordPx: "77000.0"
+                      filledPx: "77000.0"
+                      execQty: "0.5"
+                      ordQty: "0.5"
+                      ordType: LIMIT
+                      openFee: "2.31"
+                      closeFee: "0"
+                      posLongTerm: 1
+                      posShortTerm: 0
+                      txHash: "ABC123..."
+                      transactionTime: 1776920283000
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -695,17 +682,43 @@ paths:
       summary: Closed Position
       tags: [User Data]
       description: |
-        Subscribe to closed position events.
+        Subscribe to closed position events (aggregated P&L per position cycle).
 
         ```json
-        {
-          "method": "subscribe",
-          "subscription": { "type": "closedPosition", "userAddress": "0xabc..." }
-        }
+        { "method": "subscribe", "subscription": { "type": "closedPosition", "userAddress": "0xabc..." } }
         ```
+
+        | Param | Type | Required |
+        |-------|------|----------|
+        | userAddress | string | Yes |
       responses:
         "200":
-          description: Subscribed
+          description: Push data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClosedPositionPush"
+              example:
+                channel: closedPosition
+                data:
+                  type: incremental
+                  closedPositions:
+                    - userAddr: "0xabc..."
+                      symbolCode: 1
+                      symbol: BTCUSDC
+                      side: LONG
+                      term: 1
+                      size: "0.5"
+                      ordPx: "76000.0"
+                      closePx: "77920.0"
+                      closedPnl: "960.00"
+                      tradingFees: "9.36"
+                      fundingFees: "-2.50"
+                      realisedPnl: "948.14"
+                      roi: "12.50"
+                      leverage: "10"
+                      openTime: 1776800000000
+                      closedTime: 1776920283000
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -728,17 +741,34 @@ paths:
       summary: User Funding
       tags: [User Data]
       description: |
-        Subscribe to user funding settlement events.
+        Subscribe to user funding fee settlement events.
 
         ```json
-        {
-          "method": "subscribe",
-          "subscription": { "type": "userFunding", "userAddress": "0xabc..." }
-        }
+        { "method": "subscribe", "subscription": { "type": "userFunding", "userAddress": "0xabc..." } }
         ```
+
+        | Param | Type | Required |
+        |-------|------|----------|
+        | userAddress | string | Yes |
       responses:
         "200":
-          description: Subscribed
+          description: Push data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserFundingPush"
+              example:
+                channel: userFunding
+                data:
+                  type: incremental
+                  funding:
+                    - userAddr: "0xabc..."
+                      symbol: BTCUSDC
+                      posSize: "0.5"
+                      posSide: LONG
+                      fundingRate: "0.0001"
+                      fundingFee: "-3.896"
+                      transactionTime: 1776920283000
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -761,17 +791,41 @@ paths:
       summary: User Events
       tags: [User Data]
       description: |
-        Subscribe to general user events (deposits, withdrawals, etc.).
+        Subscribe to general user events (order acks, agent approvals, vault deposits/withdrawals).
 
         ```json
-        {
-          "method": "subscribe",
-          "subscription": { "type": "userEvent", "userAddress": "0xabc..." }
-        }
+        { "method": "subscribe", "subscription": { "type": "userEvent", "userAddress": "0xabc..." } }
         ```
+
+        | Param | Type | Required |
+        |-------|------|----------|
+        | userAddress | string | Yes |
+
+        Event types: `perpOrder`, `approveAgent`, `actionAck`, `vaultDeposit`, `vaultWithdraw`
       responses:
         "200":
-          description: Subscribed
+          description: Push data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserEventPush"
+              example:
+                channel: userEvent
+                data:
+                  userAddr: "0xabc..."
+                  sequence: 123456
+                  timestamp: 1776920283000
+                  events:
+                    - eventType: perpOrder
+                      event:
+                        - ordId: 12345
+                          clOrdId: 0
+                          symbol: BTCUSDC
+                          ordSide: BUY
+                          execStatus: NEW
+                          ordPx: "77000.0"
+                          execQty: "0"
+                          leavesQty: "0.5"
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -799,25 +853,18 @@ paths:
       description: |
         Unsubscribe from a channel. Send the same `subscription` object used to subscribe.
 
-        **Request:**
         ```json
-        {
-          "method": "unsubscribe",
-          "subscription": { "type": "orderBook", "symbol": "BTCUSDC", "depth": 50 }
-        }
-        ```
-
-        **Response:**
-        ```json
-        {
-          "method": "unsubscribe",
-          "success": true,
-          "subject": "orderBook.BTCUSDC.50"
-        }
+        { "method": "unsubscribe", "subscription": { "type": "orderBook", "symbol": "BTCUSDC", "depth": 50 } }
         ```
       responses:
         "200":
-          description: Unsubscribed
+          description: Ack
+          content:
+            application/json:
+              example:
+                method: unsubscribe
+                success: true
+                subject: "orderBook.BTCUSDC.50"
       x-codeSamples:
         - lang: JavaScript
           label: JavaScript
@@ -833,3 +880,309 @@ paths:
                 "method": "unsubscribe",
                 "subscription": {"type": "orderBook", "symbol": "BTCUSDC", "depth": 50},
             }))
+
+# ═══════════════════════════════════════════════════════════════════
+#  Components
+# ═══════════════════════════════════════════════════════════════════
+components:
+  schemas:
+    OrderBookPush:
+      type: object
+      properties:
+        channel: { type: string, example: orderBook }
+        data:
+          type: object
+          properties:
+            type: { type: string, description: "`snapshot` or `incremental`" }
+            symbolCode: { type: integer, description: "Symbol code" }
+            symbol: { type: string, description: "Symbol name" }
+            block: { type: integer, description: "Block height" }
+            sequence: { type: integer, description: "Sequence number" }
+            depth: { type: integer, description: "Requested depth" }
+            timestamp: { type: integer, description: "Timestamp (ms)" }
+            book:
+              type: object
+              properties:
+                bids: { type: array, description: "Bid levels `[price, qty]`", items: { type: array, items: { type: string } } }
+                asks: { type: array, description: "Ask levels `[price, qty]`", items: { type: array, items: { type: string } } }
+
+    CandlePush:
+      type: object
+      properties:
+        channel: { type: string, example: candle }
+        data:
+          type: object
+          properties:
+            symbolName: { type: string, description: "Symbol name" }
+            timestamp: { type: integer, description: "Candle start time (seconds)" }
+            intrvl: { type: integer, description: "Interval (seconds)" }
+            open: { type: string, description: "Open price" }
+            high: { type: string, description: "High price" }
+            low: { type: string, description: "Low price" }
+            close: { type: string, description: "Close price" }
+            volume: { type: string, description: "Trading volume" }
+            turnover: { type: string, description: "Trading turnover (value)" }
+            tradeCount: { type: integer, description: "Number of trades" }
+
+    TradesPush:
+      type: object
+      properties:
+        channel: { type: string, example: trades }
+        data:
+          type: object
+          properties:
+            type: { type: string, description: "`snapshot` or `incremental`" }
+            sequence: { type: integer, description: "Sequence number" }
+            symbol: { type: string, description: "Symbol name" }
+            trades:
+              type: array
+              items:
+                type: object
+                properties:
+                  symbol: { type: string }
+                  ordSide: { type: string, description: "BUY or SELL" }
+                  filledPx: { type: string, description: "Trade price" }
+                  filledQty: { type: string, description: "Trade quantity" }
+                  transactionTime: { type: integer, description: "Timestamp (ms)" }
+                  txHash: { type: string, description: "On-chain tx hash" }
+
+    TickerPush:
+      type: object
+      properties:
+        channel: { type: string, example: ticker }
+        data:
+          type: object
+          properties:
+            type: { type: string, description: "`snapshot` or `incremental`" }
+            sequence: { type: integer, description: "Sequence number" }
+            timestamp: { type: integer, description: "Timestamp (ms)" }
+            symbol: { type: string, description: "Symbol name" }
+            ticker:
+              type: object
+              properties:
+                s: { type: string, description: "Symbol" }
+                p: { type: string, description: "Last price" }
+                op: { type: string, description: "Oracle price" }
+                mp: { type: string, description: "Mark price" }
+                mid: { type: string, description: "Mid price" }
+                oi: { type: string, description: "Open interest" }
+                fr: { type: string, description: "Funding rate" }
+                lfr: { type: string, description: "Last funding rate" }
+                o: { type: string, description: "24h open" }
+                h: { type: string, description: "24h high" }
+                l: { type: string, description: "24h low" }
+                v: { type: string, description: "24h volume" }
+                tv: { type: string, description: "24h turnover" }
+                P: { type: string, description: "24h change %" }
+
+    AopStatePush:
+      type: object
+      properties:
+        channel: { type: string, example: aopState }
+        data:
+          type: object
+          properties:
+            type: { type: string, description: "`snapshot` or `incremental`" }
+            sequence: { type: integer, description: "Sequence number" }
+            timestamp: { type: integer, description: "Timestamp (ms)" }
+            userAddr: { type: string, description: "User wallet address" }
+            aop:
+              type: object
+              properties:
+                accounts:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      userAddr: { type: string, description: "User wallet address" }
+                      currency: { type: integer, description: "Currency code (1=USDC)" }
+                      balance: { type: string, description: "Total balance" }
+                      availableBalance: { type: string, description: "Available for trading" }
+                      availableTransferBalance: { type: string, description: "Available for withdrawal/transfer" }
+                      equity: { type: string, description: "Account equity (balance + unrealized P&L)" }
+                      status: { type: string, description: "NORMAL or LIQUIDATING" }
+                      takerFeeRatio: { type: string, description: "Taker fee rate" }
+                      makerFeeRatio: { type: string, description: "Maker fee rate" }
+                orders:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      userAddr: { type: string, description: "User wallet address" }
+                      symbol: { type: string, description: "Symbol name" }
+                      ordId: { type: integer, description: "System order ID" }
+                      clOrdId: { type: integer, description: "Client order ID" }
+                      parentOrdId: { type: integer, description: "Parent order ID (TP/SL)" }
+                      ordPx: { type: string, description: "Order price" }
+                      ordQty: { type: string, description: "Order quantity" }
+                      triggerPx: { type: string, description: "Trigger price (conditional orders)" }
+                      ordStatus: { type: string, description: "NEW, PARTIALLY_FILLED, FILLED, CANCELED" }
+                      ordType: { type: string, description: "LIMIT, MARKET" }
+                      ordSide: { type: string, description: "BUY, SELL" }
+                      timeInForce: { type: string, description: "GTC, IOC, FOK, POST_ONLY" }
+                      reduceOnly: { type: string, description: "NONE, REDUCE_ONLY, TP_FROM_POSITION, SL_FROM_POSITION" }
+                      filledQty: { type: string, description: "Cumulative filled quantity" }
+                      leavesQty: { type: string, description: "Remaining quantity" }
+                      cumFilledValue: { type: string, description: "Cumulative filled value" }
+                positions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      userAddr: { type: string, description: "User wallet address" }
+                      symbolCode: { type: integer, description: "Symbol code" }
+                      symbol: { type: string, description: "Symbol name" }
+                      leverage: { type: string, description: "Current leverage" }
+                      longSize: { type: string, description: "Long position size" }
+                      longEntryValue: { type: string, description: "Long position entry notional" }
+                      shortSize: { type: string, description: "Short position size" }
+                      shortEntryValue: { type: string, description: "Short position entry notional" }
+                      posMode: { type: string, description: "ONE_WAY or HEDGE" }
+                      posMarginMode: { type: string, description: "CROSS or ISOLATED" }
+                      assignedPosBalance: { type: string, description: "Assigned margin (isolated mode)" }
+                      unrealizedPnl: { type: string, description: "Unrealized P&L" }
+                      cumRealizedPnl: { type: string, description: "Cumulative realized P&L" }
+                      curMarkPx: { type: string, description: "Current mark price" }
+                      cumTransactionFee: { type: string, description: "Cumulative trading fees" }
+                      marginTableId: { type: integer, description: "Risk limit table ID" }
+                settings:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      symbol: { type: string }
+                      leverage: { type: array, description: "[posMode, leverage]" }
+
+    OrderHistPush:
+      type: object
+      properties:
+        channel: { type: string, example: orderHist }
+        data:
+          type: object
+          properties:
+            type: { type: string, description: "`snapshot` or `incremental`" }
+            orderHists:
+              type: array
+              items:
+                type: object
+                properties:
+                  userAddr: { type: string, description: "User wallet address" }
+                  symbol: { type: string, description: "Symbol name" }
+                  ordId: { type: integer, description: "System order ID" }
+                  execId: { type: integer, description: "Execution ID" }
+                  clOrdId: { type: integer, description: "Client order ID" }
+                  transactionTime: { type: integer, description: "Timestamp (ms)" }
+                  ordType: { type: string, description: "LIMIT or MARKET" }
+                  ordSide: { type: string, description: "BUY or SELL" }
+                  execStatus: { type: string, description: "NEW, FILLED, CANCELED, PARTIALLY_FILLED" }
+                  ordPx: { type: string, description: "Order price" }
+                  execPx: { type: string, description: "Execution price" }
+                  triggerPx: { type: string, description: "Trigger price (conditional orders)" }
+                  execQty: { type: string, description: "Execution quantity" }
+                  ordQty: { type: string, description: "Original order quantity" }
+                  reduceOnly: { type: string, description: "NONE, REDUCE_ONLY, TP_FROM_POSITION, SL_FROM_POSITION" }
+                  slippagePct: { type: string, description: "Slippage percentage" }
+
+    UserFilledPush:
+      type: object
+      properties:
+        channel: { type: string, example: userFilled }
+        data:
+          type: object
+          properties:
+            type: { type: string, description: "`snapshot` or `incremental`" }
+            userFills:
+              type: array
+              items:
+                type: object
+                properties:
+                  userAddr: { type: string, description: "User wallet address" }
+                  symbol: { type: string, description: "Symbol name" }
+                  ordId: { type: integer, description: "System order ID" }
+                  execId: { type: integer, description: "Execution ID" }
+                  ordSide: { type: string, description: "BUY or SELL" }
+                  execStatus: { type: string, description: "FILLED, PARTIALLY_FILLED" }
+                  ordPx: { type: string, description: "Order price" }
+                  filledPx: { type: string, description: "Actual fill price" }
+                  execQty: { type: string, description: "Fill quantity" }
+                  ordQty: { type: string, description: "Original order quantity" }
+                  ordType: { type: string, description: "LIMIT or MARKET" }
+                  openFee: { type: string, description: "Fee for opening position" }
+                  closeFee: { type: string, description: "Fee for closing position" }
+                  posLongTerm: { type: integer, description: "Long position cycle identifier" }
+                  posShortTerm: { type: integer, description: "Short position cycle identifier" }
+                  txHash: { type: string, description: "On-chain transaction hash" }
+                  transactionTime: { type: integer, description: "Timestamp (ms)" }
+
+    ClosedPositionPush:
+      type: object
+      properties:
+        channel: { type: string, example: closedPosition }
+        data:
+          type: object
+          properties:
+            type: { type: string, description: "`snapshot` or `incremental`" }
+            closedPositions:
+              type: array
+              items:
+                type: object
+                properties:
+                  userAddr: { type: string, description: "User wallet address" }
+                  symbolCode: { type: integer, description: "Symbol code" }
+                  symbol: { type: string, description: "Symbol name" }
+                  side: { type: string, description: "LONG or SHORT" }
+                  term: { type: integer, description: "Position cycle (increments each open from zero)" }
+                  size: { type: string, description: "Total traded quantity" }
+                  ordPx: { type: string, description: "Weighted avg opening price" }
+                  closePx: { type: string, description: "Weighted avg closing price" }
+                  closedPnl: { type: string, description: "Net P&L" }
+                  tradingFees: { type: string, description: "Total trading fees" }
+                  fundingFees: { type: string, description: "Cumulative funding fees" }
+                  realisedPnl: { type: string, description: "Realized P&L (after fees)" }
+                  roi: { type: string, description: "ROI percentage (e.g. '15.25' = 15.25%)" }
+                  leverage: { type: string, description: "Max leverage during position" }
+                  openTime: { type: integer, description: "Open time (ms)" }
+                  closedTime: { type: integer, description: "Close time (ms)" }
+
+    UserFundingPush:
+      type: object
+      properties:
+        channel: { type: string, example: userFunding }
+        data:
+          type: object
+          properties:
+            type: { type: string, description: "`snapshot` or `incremental`" }
+            funding:
+              type: array
+              items:
+                type: object
+                properties:
+                  userAddr: { type: string, description: "User wallet address" }
+                  symbol: { type: string, description: "Symbol name" }
+                  posSize: { type: string, description: "Position size at settlement" }
+                  posSide: { type: string, description: "LONG or SHORT" }
+                  fundingRate: { type: string, description: "Applied funding rate" }
+                  fundingFee: { type: string, description: "Funding fee amount (negative = paid, positive = received)" }
+                  transactionTime: { type: integer, description: "Settlement timestamp (ms)" }
+
+    UserEventPush:
+      type: object
+      properties:
+        channel: { type: string, example: userEvent }
+        data:
+          type: object
+          properties:
+            userAddr: { type: string, description: "User wallet address" }
+            sequence: { type: integer, description: "Sequence number" }
+            timestamp: { type: integer, description: "Timestamp (ms)" }
+            events:
+              type: array
+              items:
+                type: object
+                properties:
+                  eventType:
+                    type: string
+                    description: "`perpOrder`, `approveAgent`, `actionAck`, `vaultDeposit`, `vaultWithdraw`"
+                  event:
+                    type: array
+                    description: "Event data (structure varies by eventType)"
