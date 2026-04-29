@@ -186,21 +186,24 @@ class DexClient:
             {"dexChain": "Testnet"},
         )
 
-    def approve_agent(self, agent_name="default", expiry_seconds=300):
+    def approve_agent(self, agent_name="app.afx.xyz", expiry_seconds=300, validity_seconds=0):
         """Authorize the agent wallet."""
         nonce = int(time.time() * 1000)
         expiry_after = int(time.time()) + expiry_seconds
         return self._master_sign_and_send(
             {"type": "approveAgent", "agentAddress": self.agent_addr,
-             "agentName": agent_name, "dexChain": self.dex_chain},
+             "agentName": agent_name, "validitySeconds": validity_seconds,
+             "dexChain": self.dex_chain},
             "ApproveAgent",
             [{"name": "dexChain", "type": "string"},
              {"name": "agentAddress", "type": "address"},
              {"name": "agentName", "type": "string"},
+             {"name": "validitySeconds", "type": "uint64"},
              {"name": "nonce", "type": "uint64"},
              {"name": "expiryAfter", "type": "uint64"}],
             {"dexChain": self.dex_chain, "agentAddress": self.agent_addr,
-             "agentName": agent_name, "nonce": nonce, "expiryAfter": expiry_after},
+             "agentName": agent_name, "validitySeconds": validity_seconds,
+             "nonce": nonce, "expiryAfter": expiry_after},
             expiry_after,
         )
 

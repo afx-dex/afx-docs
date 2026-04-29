@@ -117,19 +117,19 @@ console.log(result);  // { code: 0, message: "success", ... }
 {% step %}
 **Authorize the agent wallet**
 
-The Master wallet grants the Agent wallet permission to trade. This only needs to be done once.
+The Master wallet grants the Agent wallet permission to trade until the authorization expires.
 
 {% tabs %}
 {% tab title="Python" %}
 ```python
-result = client.approve_agent(agent_name="my-bot")
+result = client.approve_agent(agent_name="my-bot", validity_seconds=604800)
 print(result)
 ```
 {% endtab %}
 
 {% tab title="JavaScript" %}
 ```javascript
-const result = await client.approveAgent({ agentName: "my-bot" });
+const result = await client.approveAgent({ agentName: "my-bot", validitySeconds: 604800 });
 console.log(result);
 ```
 {% endtab %}
