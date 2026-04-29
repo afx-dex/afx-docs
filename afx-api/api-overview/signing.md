@@ -149,11 +149,14 @@ Each action has its own EIP-712 type definition. Common domain:
     { "name": "dexChain",     "type": "string"  },
     { "name": "agentAddress", "type": "address" },
     { "name": "agentName",    "type": "string"  },
+    { "name": "validitySeconds", "type": "uint64" },
     { "name": "nonce",        "type": "uint64"  },
     { "name": "expiryAfter",  "type": "uint64"  }
   ]
 }
 ```
+
+`validitySeconds` is the agent authorization duration in seconds. `0` means the authorization is valid for 7 days; maximum 365 days.
 
 ### withdraw
 

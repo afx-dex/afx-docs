@@ -348,6 +348,7 @@ paths:
             { "name": "dexChain",     "type": "string"  },
             { "name": "agentAddress", "type": "address" },
             { "name": "agentName",    "type": "string"  },
+            { "name": "validitySeconds", "type": "uint64" },
             { "name": "nonce",        "type": "uint64"  },
             { "name": "expiryAfter",  "type": "uint64"  }
           ]
@@ -358,7 +359,8 @@ paths:
         |-------|-------------|
         | `dexChain` | `"Mainnet"` or `"Testnet"` |
         | `agentAddress` | Agent wallet address (`0x` hex) |
-        | `agentName` | Agent name (free text) |
+        | `agentName` | Agent name (free text). SDK default: `app.afx.xyz` |
+        | `validitySeconds` | Agent authorization duration in seconds. `0` means the authorization is valid for 7 days; maximum 365 days. |
 
         ---
 
@@ -450,6 +452,7 @@ paths:
                     type: approveAgent
                     agentAddress: "0x76b6c4dc45f39463a1c8f6500c94b247c53fe184"
                     agentName: "my-trading-bot"
+                    validitySeconds: 604800
                     dexChain: "Mainnet"
                   signature:
                     r: "0x..."
@@ -489,6 +492,7 @@ paths:
               type:         "approveAgent",
               agentAddress: "0x76b6c4dc45f39463a1c8f6500c94b247c53fe184",
               agentName:    "my-trading-bot",
+              validitySeconds: 604800,
               dexChain:     "Mainnet",
             };
 
@@ -507,6 +511,7 @@ paths:
                   { name: "dexChain",     type: "string"  },
                   { name: "agentAddress", type: "address" },
                   { name: "agentName",    type: "string"  },
+                  { name: "validitySeconds", type: "uint64" },
                   { name: "nonce",        type: "uint64"  },
                   { name: "expiryAfter",  type: "uint64"  },
                 ],
@@ -515,6 +520,7 @@ paths:
                 dexChain:     "Mainnet",
                 agentAddress: "0x76b6c4dc45f39463a1c8f6500c94b247c53fe184",
                 agentName:    "my-trading-bot",
+                validitySeconds: 604800,
                 nonce:        nonce,
                 expiryAfter:  expiryAfter,
               },
@@ -548,6 +554,7 @@ paths:
                 "type":         "approveAgent",
                 "agentAddress": "0x76b6c4dc45f39463a1c8f6500c94b247c53fe184",
                 "agentName":    "my-trading-bot",
+                "validitySeconds": 604800,
                 "dexChain":     "Mainnet",
             }
 
@@ -567,6 +574,7 @@ paths:
                         {"name": "dexChain",     "type": "string"},
                         {"name": "agentAddress", "type": "address"},
                         {"name": "agentName",    "type": "string"},
+                        {"name": "validitySeconds", "type": "uint64"},
                         {"name": "nonce",        "type": "uint64"},
                         {"name": "expiryAfter",  "type": "uint64"},
                     ],
@@ -581,6 +589,7 @@ paths:
                     "dexChain":     "Mainnet",
                     "agentAddress": "0x76b6c4dc45f39463a1c8f6500c94b247c53fe184",
                     "agentName":    "my-trading-bot",
+                    "validitySeconds": 604800,
                     "nonce":        nonce,
                     "expiryAfter":  expiry_after,
                 },

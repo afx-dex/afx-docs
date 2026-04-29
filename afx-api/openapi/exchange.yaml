@@ -443,11 +443,13 @@ paths:
             { "name": "dexChain",     "type": "string"  },
             { "name": "agentAddress", "type": "address" },
             { "name": "agentName",    "type": "string"  },
+            { "name": "validitySeconds", "type": "uint64" },
             { "name": "nonce",        "type": "uint64"  },
             { "name": "expiryAfter",  "type": "uint64"  }
           ]
         }
         ```
+        `validitySeconds` is the agent authorization duration. `0` means the authorization is valid for 7 days; maximum 365 days.
         Domain name: `"SignTransaction"`
       requestBody:
         required: true
@@ -462,6 +464,7 @@ paths:
                     type: approveAgent
                     agentAddress: "0x76b6c4dc45f39463a1c8f6500c94b247c53fe184"
                     agentName: "my-trading-bot"
+                    validitySeconds: 604800
                     dexChain: "Mainnet"
                   signature: { r: "0x...", s: "0x...", v: 27 }
                   nonce: 1763023626904
@@ -473,11 +476,11 @@ paths:
         - lang: JavaScript
           label: JavaScript
           source: |
-            await client.approveAgent({ agentName: "my-trading-bot" });
+            await client.approveAgent({ agentName: "my-trading-bot", validitySeconds: 604800 });
         - lang: Python
           label: Python
           source: |
-            client.approve_agent(agent_name="my-trading-bot")
+            client.approve_agent(agent_name="my-trading-bot", validity_seconds=604800)
 
   /exchange/withdraw:
     post:
@@ -1200,11 +1203,15 @@ components:
       properties:
         action:
           type: object
-          required: [type, agentAddress, agentName, dexChain]
+          required: [type, agentAddress, agentName, validitySeconds, dexChain]
           properties:
             type: { type: string, enum: [approveAgent] }
             agentAddress: { type: string, description: "Agent wallet address (0x hex)" }
-            agentName: { type: string }
+            agentName: { type: string, default: "app.afx.xyz", description: "Agent name. SDK default: app.afx.xyz" }
+            validitySeconds:
+              type: integer
+              format: int64
+              description: "Agent authorization duration in seconds. 0 means the authorization is valid for 7 days; maximum 365 days."
             dexChain: { type: string, enum: [Mainnet, Testnet] }
             referralCode: { type: string, description: "Referral code (only effective on first approve)" }
         signature: { $ref: "#/components/schemas/Signature" }

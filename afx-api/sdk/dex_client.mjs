@@ -163,18 +163,18 @@ export class DexClient {
     );
   }
 
-  async approveAgent({ agentName = "default", expirySeconds = 300 } = {}) {
+  async approveAgent({ agentName = "app.afx.xyz", validitySeconds = 0, expirySeconds = 300 } = {}) {
     const nonce = Date.now();
     const expiryAfter = Math.floor(Date.now() / 1000) + expirySeconds;
     return this._masterSignAndSend(
       { type: "approveAgent", agentAddress: this.agent.address,
-        agentName, dexChain: this.dexChain },
+        agentName, validitySeconds, dexChain: this.dexChain },
       "ApproveAgent",
       [{ name: "dexChain", type: "string" }, { name: "agentAddress", type: "address" },
-       { name: "agentName", type: "string" }, { name: "nonce", type: "uint64" },
-       { name: "expiryAfter", type: "uint64" }],
+       { name: "agentName", type: "string" }, { name: "validitySeconds", type: "uint64" },
+       { name: "nonce", type: "uint64" }, { name: "expiryAfter", type: "uint64" }],
       { dexChain: this.dexChain, agentAddress: this.agent.address,
-        agentName, nonce, expiryAfter },
+        agentName, validitySeconds, nonce, expiryAfter },
       { expiryAfter },
     );
   }
