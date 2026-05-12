@@ -19,7 +19,7 @@ Two Ethereum wallets are required:
 
 Controls funds and permissions.
 
-Used to sign `approveAgent`, `withdraw`, and `usdSend`.
+Used to sign `approveAgent` and `withdraw`.
 {% endcolumn %}
 
 {% column %}

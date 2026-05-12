@@ -191,18 +191,6 @@ export class DexClient {
     );
   }
 
-  async usdSend({ to, amount }) {
-    const nonce = Date.now();
-    return this._masterSignAndSend(
-      { type: "usdSend", to, amount },
-      "UsdTransfer",
-      [{ name: "dexChain", type: "string" }, { name: "to", type: "address" },
-       { name: "amount", type: "string" }, { name: "nonce", type: "uint64" },
-       { name: "expiryAfter", type: "uint64" }],
-      { dexChain: this.dexChain, to, amount, nonce, expiryAfter: 0 },
-    );
-  }
-
   // ═══════════════════════════════════════════════════════════════
   //  Public API — Agent signed
   // ═══════════════════════════════════════════════════════════════

@@ -15,7 +15,7 @@ info:
     | Type | Domain Name | Signer | Used By |
     |------|-------------|--------|---------|
     | **Agent** | `Exchange` | Agent Wallet | placeOrder, cancelOrder, setLeverage, vault operations, etc. |
-    | **Master** | `SignTransaction` | Master Wallet | approveAgent, withdraw, usdSend, faucetClaim |
+    | **Master** | `SignTransaction` | Master Wallet | approveAgent, withdraw, faucetClaim |
 
 servers:
   - url: https://api10.afx.xyz
@@ -318,7 +318,7 @@ paths:
       operationId: masterSignature
       summary: Master Signature
       description: |
-        Used for privileged operations: `approveAgent`, `withdraw`, `usdSend`, `faucetClaim`.
+        Used for privileged operations: `approveAgent`, `withdraw`, `faucetClaim`.
 
         The Master wallet signs the action fields **directly** as an EIP-712 message — no protobuf involved.
 
@@ -386,25 +386,6 @@ paths:
         | `dexChain` | Must match current environment |
         | `destination` | Recipient address (`0x` hex) |
         | `amount` | Withdrawal amount (>= 1) |
-
-        ---
-
-        ## usdSend
-
-        Transfer USD between DEX accounts.
-
-        **EIP-712 type:**
-        ```json
-        {
-          "UsdTransfer": [
-            { "name": "dexChain",    "type": "string"  },
-            { "name": "to",          "type": "address" },
-            { "name": "amount",      "type": "string"  },
-            { "name": "nonce",       "type": "uint64"  },
-            { "name": "expiryAfter", "type": "uint64"  }
-          ]
-        }
-        ```
 
         ---
 

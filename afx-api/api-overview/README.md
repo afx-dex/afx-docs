@@ -48,7 +48,7 @@ Start with the **Testnet** environment. Use `faucetClaim` to get free test funds
 
 Controls funds and permissions.
 
-Signs: `approveAgent`, `withdraw`, `usdSend`
+Signs: `approveAgent`, `withdraw`
 
 Domain: `SignTransaction`
 {% endcolumn %}

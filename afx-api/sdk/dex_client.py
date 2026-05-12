@@ -222,21 +222,6 @@ class DexClient:
              "amount": amount, "nonce": nonce, "expiryAfter": 0},
         )
 
-    def usd_send(self, to, amount):
-        """Transfer USD between accounts."""
-        nonce = int(time.time() * 1000)
-        return self._master_sign_and_send(
-            {"type": "usdSend", "to": to, "amount": amount},
-            "UsdTransfer",
-            [{"name": "dexChain", "type": "string"},
-             {"name": "to", "type": "address"},
-             {"name": "amount", "type": "string"},
-             {"name": "nonce", "type": "uint64"},
-             {"name": "expiryAfter", "type": "uint64"}],
-            {"dexChain": self.dex_chain, "to": to,
-             "amount": amount, "nonce": nonce, "expiryAfter": 0},
-        )
-
     # ═════════════════════════════════════════════════════════════
     #  Public API — Agent signed
     # ═════════════════════════════════════════════════════════════

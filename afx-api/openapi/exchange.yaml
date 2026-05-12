@@ -533,57 +533,6 @@ paths:
           source: |
             client.withdraw(destination="0xabc...", amount="100")
 
-  /exchange/usdSend:
-    post:
-      operationId: usdSend
-      summary: USD Transfer
-      tags: [Authorization]
-      description: |
-        Transfer USD between DEX accounts.
-
-        **Signature:** Master · **No protobuf**
-
-        **EIP-712 type:**
-        ```json
-        {
-          "UsdTransfer": [
-            { "name": "dexChain",    "type": "string"  },
-            { "name": "to",          "type": "address" },
-            { "name": "amount",      "type": "string"  },
-            { "name": "nonce",       "type": "uint64"  },
-            { "name": "expiryAfter", "type": "uint64"  }
-          ]
-        }
-        ```
-        Domain name: `"SignTransaction"`
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UsdSendRequest"
-            examples:
-              default:
-                value:
-                  action:
-                    type: usdSend
-                    to: "0xabc123..."
-                    amount: "50"
-                  signature: { r: "0x...", s: "0x...", v: 27 }
-                  nonce: 1763023626904
-      responses:
-        "200":
-          $ref: "#/components/responses/ExchangeOk"
-      x-codeSamples:
-        - lang: JavaScript
-          label: JavaScript
-          source: |
-            await client.usdSend({ to: "0xabc...", amount: "50" });
-        - lang: Python
-          label: Python
-          source: |
-            client.usd_send(to="0xabc...", amount="50")
-
   # ═══════════════════════════════════════════════════════════════════
   #  Referral
   # ═══════════════════════════════════════════════════════════════════
@@ -1228,21 +1177,6 @@ components:
           properties:
             type: { type: string, enum: [withdraw] }
             destination: { type: string, description: "Recipient address (0x hex)" }
-            amount: { type: string, description: ">= 1" }
-        signature: { $ref: "#/components/schemas/Signature" }
-        nonce: { type: integer, format: int64 }
-        expiryAfter: { type: integer, format: int64, nullable: true }
-
-    UsdSendRequest:
-      type: object
-      required: [action, signature, nonce]
-      properties:
-        action:
-          type: object
-          required: [type, to, amount]
-          properties:
-            type: { type: string, enum: [usdSend] }
-            to: { type: string, description: "Recipient address (0x hex)" }
             amount: { type: string, description: ">= 1" }
         signature: { $ref: "#/components/schemas/Signature" }
         nonce: { type: integer, format: int64 }

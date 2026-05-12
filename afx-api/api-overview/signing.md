@@ -25,7 +25,7 @@ Used for privileged operations. The Master wallet signs the action fields **dire
 
 **Domain:** `SignTransaction`
 
-**Operations:** `approveAgent`, `withdraw`, `usdSend`, `faucetClaim`.
+**Operations:** `approveAgent`, `withdraw`, `faucetClaim`.
 {% endcolumn %}
 {% endcolumns %}
 
@@ -165,20 +165,6 @@ Each action has its own EIP-712 type definition. Common domain:
   "Withdraw": [
     { "name": "dexChain",    "type": "string"  },
     { "name": "destination", "type": "address" },
-    { "name": "amount",      "type": "string"  },
-    { "name": "nonce",       "type": "uint64"  },
-    { "name": "expiryAfter", "type": "uint64"  }
-  ]
-}
-```
-
-### usdSend
-
-```json
-{
-  "UsdTransfer": [
-    { "name": "dexChain",    "type": "string"  },
-    { "name": "to",          "type": "address" },
     { "name": "amount",      "type": "string"  },
     { "name": "nonce",       "type": "uint64"  },
     { "name": "expiryAfter", "type": "uint64"  }
