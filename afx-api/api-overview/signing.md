@@ -51,10 +51,14 @@ Encode the action fields using the corresponding protobuf message (e.g. `MsgPlac
 connectionId = keccak256(
     proto_bytes
     + bytes(vaultAddress)              // strip 0x, decode hex. empty if null
-    + little_endian_uint64(nonce)       // 8 bytes
-    + little_endian_uint64(expiryAfter) // 8 bytes, null → 0
+    + little_endian_uint64(nonce)       // 8 bytes, millisecond timestamp
+    + little_endian_uint64(expiryAfter) // 8 bytes, Unix timestamp seconds; null → 0
 )
 ```
+
+`nonce` is a `uint64` request nonce. Use the current Unix timestamp in milliseconds (for example `Date.now()` or `int(time.time() * 1000)`) and do not reuse the same nonce for another signed request.
+
+`expiryAfter` is a `uint64` Unix timestamp in seconds. The request expires after this timestamp. Use `null` in the request body, and `0` inside the signature payload, when the request should not expire.
 {% endstep %}
 
 {% step %}
@@ -79,7 +83,7 @@ connectionId = keccak256(
     "name":              "Exchange",
     "version":           "1",
     "chainId":           421614,
-    "verifyingContract": "0x0000000000000000000000000000000000000000"
+    "verifyingContract": "0x0100000000000000000000000000000000000001"
   },
   "message": {
     "source":       "b",
@@ -92,7 +96,7 @@ connectionId = keccak256(
 | ------------------- | ----------------------------------- |
 | `source`            | `"a"` = Mainnet, `"b"` = Testnet    |
 | `chainId`           | Mainnet: `42161`, Testnet: `421614` |
-| `verifyingContract` | Always zero address                 |
+| `verifyingContract` | `0x0100000000000000000000000000000000000001` |
 {% endstep %}
 {% endstepper %}
 
@@ -137,7 +141,7 @@ Each action has its own EIP-712 type definition. Common domain:
   "name":              "SignTransaction",
   "version":           "1",
   "chainId":           421614,
-  "verifyingContract": "0x0000000000000000000000000000000000000000"
+  "verifyingContract": "0x0100000000000000000000000000000000000001"
 }
 ```
 
@@ -172,6 +176,8 @@ Each action has its own EIP-712 type definition. Common domain:
 }
 ```
 
+For withdrawals, use a longer `expiryAfter` window, such as current Unix time in seconds + 3600. This gives the withdrawal enough time to pass signature verification and broadcast.
+
 ### faucetClaim (Testnet only)
 
 ```json
@@ -185,7 +191,7 @@ Each action has its own EIP-712 type definition. Common domain:
 Message: `{ "dexChain": "Testnet" }`, chainId fixed `421614`.
 
 {% hint style="warning" %}
-`nonce` and `expiryAfter` come from the outer request fields, not the action body. When `expiryAfter` is `null`, use `0` in the signature.
+`nonce` and `expiryAfter` come from the outer request fields, not the action body. `nonce` should be the current millisecond timestamp and must not be reused. `expiryAfter` is a Unix timestamp in seconds; when it is `null`, use `0` in the signature.
 {% endhint %}
 
 {% hint style="info" %}

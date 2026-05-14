@@ -46,7 +46,7 @@ const ENVS = {
   },
 };
 
-const ZERO_ADDR = "0x" + "0".repeat(40);
+const DOMAIN_VERIFYING_CONTRACT = "0x0100000000000000000000000000000000000001";
 
 const ORD_TYPE = { LIMIT: 1, MARKET: 2 };
 const ORD_SIDE = { BUY: 1, SELL: 2, BUY_CLOSE_HEDGE: 3, SELL_CLOSE_HEDGE: 4 };
@@ -120,7 +120,7 @@ export class DexClient {
     const connectionId = ethers.keccak256(Buffer.concat(parts));
 
     const sig = await this.agent.signTypedData(
-      { name: "Exchange", version: "1", chainId: this.chainId, verifyingContract: ZERO_ADDR },
+      { name: "Exchange", version: "1", chainId: this.chainId, verifyingContract: DOMAIN_VERIFYING_CONTRACT },
       { Agent: [{ name: "source", type: "string" }, { name: "connectionId", type: "bytes32" }] },
       { source: this.source, connectionId },
     );
@@ -138,7 +138,7 @@ export class DexClient {
   async _masterSignAndSend(action, primaryType, types, message, { expiryAfter = 0 } = {}) {
     const nonce = Date.now();
     const sig = await this.master.signTypedData(
-      { name: "SignTransaction", version: "1", chainId: this.chainId, verifyingContract: ZERO_ADDR },
+      { name: "SignTransaction", version: "1", chainId: this.chainId, verifyingContract: DOMAIN_VERIFYING_CONTRACT },
       { [primaryType]: types },
       message,
     );
@@ -179,27 +179,17 @@ export class DexClient {
     );
   }
 
-  async withdraw({ destination, amount }) {
+  async withdraw({ destination, amount, expirySeconds = 3600 }) {
     const nonce = Date.now();
+    const expiryAfter = Math.floor(Date.now() / 1000) + expirySeconds;
     return this._masterSignAndSend(
       { type: "withdraw", destination, amount },
       "Withdraw",
       [{ name: "dexChain", type: "string" }, { name: "destination", type: "address" },
        { name: "amount", type: "string" }, { name: "nonce", type: "uint64" },
        { name: "expiryAfter", type: "uint64" }],
-      { dexChain: this.dexChain, destination, amount, nonce, expiryAfter: 0 },
-    );
-  }
-
-  async usdSend({ to, amount }) {
-    const nonce = Date.now();
-    return this._masterSignAndSend(
-      { type: "usdSend", to, amount },
-      "UsdTransfer",
-      [{ name: "dexChain", type: "string" }, { name: "to", type: "address" },
-       { name: "amount", type: "string" }, { name: "nonce", type: "uint64" },
-       { name: "expiryAfter", type: "uint64" }],
-      { dexChain: this.dexChain, to, amount, nonce, expiryAfter: 0 },
+      { dexChain: this.dexChain, destination, amount, nonce, expiryAfter },
+      { expiryAfter },
     );
   }
 

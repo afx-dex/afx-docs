@@ -6,6 +6,10 @@ info:
     All trading operations are submitted through `POST /api/v1/exchange`, routed by `action.type`.
     Every request must include an EIP-712 signature. See the **Signature** page for details.
 
+    Common signed request fields:
+    - `nonce`: `uint64` Unix timestamp in milliseconds. Use the current millisecond timestamp and do not reuse the same nonce for another signed request.
+    - `expiryAfter`: optional `uint64` Unix timestamp in seconds. The request expires after this timestamp; `null` means no expiry and must be signed as `0`.
+
 servers:
   - url: https://api10.afx.xyz
     description: Mainnet
@@ -505,6 +509,8 @@ paths:
         }
         ```
         Domain name: `"SignTransaction"`. `dexChain` is determined by the server environment.
+
+        For withdrawals, use a longer `expiryAfter` window, such as current Unix time in seconds + 3600.
       requestBody:
         required: true
         content:
@@ -520,6 +526,7 @@ paths:
                     amount: "100"
                   signature: { r: "0x...", s: "0x...", v: 27 }
                   nonce: 1763023626904
+                  expiryAfter: 1763027226
       responses:
         "200":
           $ref: "#/components/responses/ExchangeOk"
@@ -527,11 +534,11 @@ paths:
         - lang: JavaScript
           label: JavaScript
           source: |
-            await client.withdraw({ destination: "0xabc...", amount: "100" });
+            await client.withdraw({ destination: "0xabc...", amount: "100", expirySeconds: 3600 });
         - lang: Python
           label: Python
           source: |
-            client.withdraw(destination="0xabc...", amount="100")
+            client.withdraw(destination="0xabc...", amount="100", expiry_seconds=3600)
 
   # ═══════════════════════════════════════════════════════════════════
   #  Referral
@@ -1059,8 +1066,8 @@ components:
                   tpslTriggerType: { type: string, enum: [LAST_PRICE, MARK_PRICE, INDEX_PRICE] }
                   slippagePct: { type: string }
         signature: { $ref: "#/components/schemas/Signature" }
-        nonce: { type: integer, format: int64 }
-        expiryAfter: { type: integer, format: int64, nullable: true }
+        nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }
+        expiryAfter: { type: integer, format: int64, nullable: true, description: "Unix timestamp in seconds after which the request expires. null = no expiry; use 0 in the signature payload when this field is null." }
         vaultAddress: { type: string, nullable: true }
 
     CancelOrderRequest:
@@ -1083,7 +1090,7 @@ components:
                   clOrdId: { type: string, description: "Client order ID (clOrdId or ordId required)" }
                   ordId: { type: string, description: "System order ID (clOrdId or ordId required)" }
         signature: { $ref: "#/components/schemas/Signature" }
-        nonce: { type: integer, format: int64 }
+        nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }
         vaultAddress: { type: string, nullable: true }
 
     CancelAllRequest:
@@ -1098,7 +1105,7 @@ components:
             symbolCode: { type: integer, format: int64 }
             conditionalOrder: { type: boolean, default: false }
         signature: { $ref: "#/components/schemas/Signature" }
-        nonce: { type: integer, format: int64 }
+        nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }
         vaultAddress: { type: string, nullable: true }
 
     SetLeverageRequest:
@@ -1113,7 +1120,7 @@ components:
             symbolCode: { type: integer, format: int64 }
             leverage: { type: string, description: ">= 1, max 2 decimal places" }
         signature: { $ref: "#/components/schemas/Signature" }
-        nonce: { type: integer, format: int64 }
+        nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }
         vaultAddress: { type: string, nullable: true }
 
     SetMarginModeRequest:
@@ -1128,7 +1135,7 @@ components:
             symbolCode: { type: integer, format: int64 }
             marginMode: { type: string, enum: [CROSS, ISOLATED] }
         signature: { $ref: "#/components/schemas/Signature" }
-        nonce: { type: integer, format: int64 }
+        nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }
         vaultAddress: { type: string, nullable: true }
 
     AssignPosMarginRequest:
@@ -1143,7 +1150,7 @@ components:
             symbolCode: { type: integer, format: int64 }
             assignedPosMargin: { type: string, description: "Amount to assign (non-zero)" }
         signature: { $ref: "#/components/schemas/Signature" }
-        nonce: { type: integer, format: int64 }
+        nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }
         vaultAddress: { type: string, nullable: true }
 
     ApproveAgentRequest:
@@ -1164,8 +1171,8 @@ components:
             dexChain: { type: string, enum: [Mainnet, Testnet] }
             referralCode: { type: string, description: "Referral code (only effective on first approve)" }
         signature: { $ref: "#/components/schemas/Signature" }
-        nonce: { type: integer, format: int64 }
-        expiryAfter: { type: integer, format: int64, nullable: true }
+        nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }
+        expiryAfter: { type: integer, format: int64, nullable: true, description: "Unix timestamp in seconds after which the request expires. null = no expiry; use 0 in the signature payload when this field is null." }
 
     WithdrawRequest:
       type: object
@@ -1179,8 +1186,8 @@ components:
             destination: { type: string, description: "Recipient address (0x hex)" }
             amount: { type: string, description: ">= 1" }
         signature: { $ref: "#/components/schemas/Signature" }
-        nonce: { type: integer, format: int64 }
-        expiryAfter: { type: integer, format: int64, nullable: true }
+        nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }
+        expiryAfter: { type: integer, format: int64, nullable: true, description: "Unix timestamp in seconds after which the request expires. For withdrawals, use a longer window such as current time + 3600 seconds. null = no expiry; use 0 in the signature payload when this field is null." }
 
     BindReferralRequest:
       type: object
@@ -1193,7 +1200,7 @@ components:
             type: { type: string, enum: [bindReferral] }
             referralCode: { type: string }
         signature: { $ref: "#/components/schemas/Signature" }
-        nonce: { type: integer, format: int64 }
+        nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }
 
     VaultCreateRequest:
       type: object
@@ -1209,4 +1216,4 @@ components:
             amount: { type: string, description: "Initial deposit amount" }
             currencyCode: { type: integer, format: int64 }
         signature: { $ref: "#/components/schemas/Signature" }
-        nonce: { type: integer, format: int64 }
+        nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }

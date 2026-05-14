@@ -59,7 +59,7 @@ EIP712_DOMAIN_TYPE = [
     {"name": "verifyingContract", "type": "address"},
 ]
 
-ZERO_ADDR = "0x" + "0" * 40
+DOMAIN_VERIFYING_CONTRACT = "0x0100000000000000000000000000000000000001"
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -147,7 +147,7 @@ class DexClient:
             [{"name": "source", "type": "string"},
              {"name": "connectionId", "type": "bytes32"}],
             {"name": "Exchange", "version": "1",
-             "chainId": self.chain_id, "verifyingContract": ZERO_ADDR},
+             "chainId": self.chain_id, "verifyingContract": DOMAIN_VERIFYING_CONTRACT},
             {"source": self.source,
              "connectionId": "0x" + connection_id.hex()},
         )
@@ -165,7 +165,7 @@ class DexClient:
         sig = self._sign_eip712(
             self.master_key, primary_type, type_fields,
             {"name": "SignTransaction", "version": "1",
-             "chainId": self.chain_id, "verifyingContract": ZERO_ADDR},
+             "chainId": self.chain_id, "verifyingContract": DOMAIN_VERIFYING_CONTRACT},
             message,
         )
         return self._post({
@@ -207,9 +207,10 @@ class DexClient:
             expiry_after,
         )
 
-    def withdraw(self, destination, amount):
+    def withdraw(self, destination, amount, expiry_seconds=3600):
         """Withdraw funds."""
         nonce = int(time.time() * 1000)
+        expiry_after = int(time.time()) + expiry_seconds
         return self._master_sign_and_send(
             {"type": "withdraw", "destination": destination, "amount": amount},
             "Withdraw",
@@ -219,7 +220,8 @@ class DexClient:
              {"name": "nonce", "type": "uint64"},
              {"name": "expiryAfter", "type": "uint64"}],
             {"dexChain": self.dex_chain, "destination": destination,
-             "amount": amount, "nonce": nonce, "expiryAfter": 0},
+             "amount": amount, "nonce": nonce, "expiryAfter": expiry_after},
+            expiry_after,
         )
 
     # ═════════════════════════════════════════════════════════════
