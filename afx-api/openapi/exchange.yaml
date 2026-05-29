@@ -8,7 +8,7 @@ info:
 
     Common signed request fields:
     - `nonce`: `uint64` Unix timestamp in milliseconds. Use the current millisecond timestamp and do not reuse the same nonce for another signed request.
-    - `expiryAfter`: optional `uint64` Unix timestamp in seconds. The request expires after this timestamp; `null` means no expiry and must be signed as `0`.
+    - `expiryAfter`: optional `uint64` Unix timestamp in milliseconds. The request expires after this timestamp; `null` means no expiry and must be signed as `0`.
 
 servers:
   - url: https://api10.afx.xyz
@@ -29,6 +29,10 @@ paths:
         Submit one or more orders. Supports limit, market, and conditional (TP/SL) orders.
 
         **Signature:** Agent · **Protobuf:** `MsgPlaceOrders`
+
+        **Outer request fields:**
+        - `nonce`: `uint64` Unix timestamp in milliseconds. Use the current millisecond timestamp and do not reuse the same nonce for another signed request.
+        - `expiryAfter`: optional `uint64` Unix timestamp in milliseconds. The request expires after this timestamp; `null` means no expiry and must be signed as `0`.
 
         ```protobuf
         message MsgPlaceOrder {
@@ -184,6 +188,9 @@ paths:
 
         **Signature:** Agent · **Protobuf:** `MsgCancelOrders`
 
+        **Outer request fields:**
+        - `nonce`: `uint64` Unix timestamp in milliseconds. Use the current millisecond timestamp and do not reuse the same nonce for another signed request.
+
         ```protobuf
         message MsgCancelOrder {
           int64 symbol_code = 1;
@@ -251,6 +258,9 @@ paths:
         Cancel all orders for a symbol.
 
         **Signature:** Agent · **Protobuf:** `MsgCancelAll`
+
+        **Outer request fields:**
+        - `nonce`: `uint64` Unix timestamp in milliseconds. Use the current millisecond timestamp and do not reuse the same nonce for another signed request.
 
         ```protobuf
         message MsgCancelAll {
@@ -472,7 +482,7 @@ paths:
                     dexChain: "Mainnet"
                   signature: { r: "0x...", s: "0x...", v: 27 }
                   nonce: 1763023626904
-                  expiryAfter: 1763023686
+                  expiryAfter: 1763023686904
       responses:
         "200":
           $ref: "#/components/responses/ExchangeOk"
@@ -510,7 +520,7 @@ paths:
         ```
         Domain name: `"SignTransaction"`. `dexChain` is determined by the server environment.
 
-        For withdrawals, use a longer `expiryAfter` window, such as current Unix time in seconds + 3600.
+        For withdrawals, use a longer `expiryAfter` window, such as current Unix time in milliseconds + 3,600,000.
       requestBody:
         required: true
         content:
@@ -526,7 +536,7 @@ paths:
                     amount: "100"
                   signature: { r: "0x...", s: "0x...", v: 27 }
                   nonce: 1763023626904
-                  expiryAfter: 1763027226
+                  expiryAfter: 1763027226904
       responses:
         "200":
           $ref: "#/components/responses/ExchangeOk"
@@ -1067,7 +1077,7 @@ components:
                   slippagePct: { type: string }
         signature: { $ref: "#/components/schemas/Signature" }
         nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }
-        expiryAfter: { type: integer, format: int64, nullable: true, description: "Unix timestamp in seconds after which the request expires. null = no expiry; use 0 in the signature payload when this field is null." }
+        expiryAfter: { type: integer, format: int64, nullable: true, description: "Unix timestamp in milliseconds after which the request expires. null = no expiry; use 0 in the signature payload when this field is null." }
         vaultAddress: { type: string, nullable: true }
 
     CancelOrderRequest:
@@ -1172,7 +1182,7 @@ components:
             referralCode: { type: string, description: "Referral code (only effective on first approve)" }
         signature: { $ref: "#/components/schemas/Signature" }
         nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }
-        expiryAfter: { type: integer, format: int64, nullable: true, description: "Unix timestamp in seconds after which the request expires. null = no expiry; use 0 in the signature payload when this field is null." }
+        expiryAfter: { type: integer, format: int64, nullable: true, description: "Unix timestamp in milliseconds after which the request expires. null = no expiry; use 0 in the signature payload when this field is null." }
 
     WithdrawRequest:
       type: object
@@ -1187,7 +1197,7 @@ components:
             amount: { type: string, description: ">= 1" }
         signature: { $ref: "#/components/schemas/Signature" }
         nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }
-        expiryAfter: { type: integer, format: int64, nullable: true, description: "Unix timestamp in seconds after which the request expires. For withdrawals, use a longer window such as current time + 3600 seconds. null = no expiry; use 0 in the signature payload when this field is null." }
+        expiryAfter: { type: integer, format: int64, nullable: true, description: "Unix timestamp in milliseconds after which the request expires. For withdrawals, use a longer window such as current time + 3,600,000 milliseconds. null = no expiry; use 0 in the signature payload when this field is null." }
 
     BindReferralRequest:
       type: object

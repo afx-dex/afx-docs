@@ -52,13 +52,13 @@ connectionId = keccak256(
     proto_bytes
     + bytes(vaultAddress)              // strip 0x, decode hex. empty if null
     + little_endian_uint64(nonce)       // 8 bytes, millisecond timestamp
-    + little_endian_uint64(expiryAfter) // 8 bytes, Unix timestamp seconds; null → 0
+    + little_endian_uint64(expiryAfter) // 8 bytes, Unix timestamp milliseconds; null → 0
 )
 ```
 
 `nonce` is a `uint64` request nonce. Use the current Unix timestamp in milliseconds (for example `Date.now()` or `int(time.time() * 1000)`) and do not reuse the same nonce for another signed request.
 
-`expiryAfter` is a `uint64` Unix timestamp in seconds. The request expires after this timestamp. Use `null` in the request body, and `0` inside the signature payload, when the request should not expire.
+`expiryAfter` is a `uint64` Unix timestamp in milliseconds. The request expires after this timestamp. Use `null` in the request body, and `0` inside the signature payload, when the request should not expire.
 {% endstep %}
 
 {% step %}
@@ -176,7 +176,7 @@ Each action has its own EIP-712 type definition. Common domain:
 }
 ```
 
-For withdrawals, use a longer `expiryAfter` window, such as current Unix time in seconds + 3600. This gives the withdrawal enough time to pass signature verification and broadcast.
+For withdrawals, use a longer `expiryAfter` window, such as current Unix time in milliseconds + 3,600,000. This gives the withdrawal enough time to pass signature verification and broadcast.
 
 ### faucetClaim (Testnet only)
 
@@ -191,7 +191,7 @@ For withdrawals, use a longer `expiryAfter` window, such as current Unix time in
 Message: `{ "dexChain": "Testnet" }`, chainId fixed `421614`.
 
 {% hint style="warning" %}
-`nonce` and `expiryAfter` come from the outer request fields, not the action body. `nonce` should be the current millisecond timestamp and must not be reused. `expiryAfter` is a Unix timestamp in seconds; when it is `null`, use `0` in the signature.
+`nonce` and `expiryAfter` come from the outer request fields, not the action body. `nonce` should be the current millisecond timestamp and must not be reused. `expiryAfter` is a Unix timestamp in milliseconds; when it is `null`, use `0` in the signature.
 {% endhint %}
 
 {% hint style="info" %}

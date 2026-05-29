@@ -52,13 +52,13 @@ paths:
             proto_bytes
             + bytes(vaultAddress)              // strip 0x, decode hex. empty if null
             + little_endian_uint64(nonce)       // 8 bytes, millisecond timestamp
-            + little_endian_uint64(expiryAfter) // 8 bytes, Unix timestamp seconds; null → 0
+            + little_endian_uint64(expiryAfter) // 8 bytes, Unix timestamp milliseconds; null → 0
         )
         ```
 
         `nonce` is a `uint64` request nonce. Use the current Unix timestamp in milliseconds (for example `Date.now()` or `int(time.time() * 1000)`) and do not reuse the same nonce for another signed request.
 
-        `expiryAfter` is a `uint64` Unix timestamp in seconds. The request expires after this timestamp. Use `null` in the request body, and `0` inside the signature payload, when the request should not expire.
+        `expiryAfter` is a `uint64` Unix timestamp in milliseconds. The request expires after this timestamp. Use `null` in the request body, and `0` inside the signature payload, when the request should not expire.
 
         ### Step 3 — Sign EIP-712
 
@@ -118,7 +118,7 @@ paths:
                 expiryAfter:
                   type: integer
                   nullable: true
-                  description: "Unix timestamp in seconds after which the request expires. `null` = no expiry; use `0` in the signature payload when this field is `null`."
+                  description: "Unix timestamp in milliseconds after which the request expires. `null` = no expiry; use `0` in the signature payload when this field is `null`."
                 vaultAddress:
                   type: string
                   nullable: true
@@ -337,7 +337,7 @@ paths:
         }
         ```
 
-        `nonce` and `expiryAfter` come from the outer request fields, not the action body. `nonce` should be the current millisecond timestamp and must not be reused. `expiryAfter` is a Unix timestamp in seconds; when it is `null`, use `0` in the signature.
+        `nonce` and `expiryAfter` come from the outer request fields, not the action body. `nonce` should be the current millisecond timestamp and must not be reused. `expiryAfter` is a Unix timestamp in milliseconds; when it is `null`, use `0` in the signature.
 
         ---
 
@@ -390,7 +390,7 @@ paths:
         | `dexChain` | Must match current environment |
         | `destination` | Recipient address (`0x` hex) |
         | `amount` | Withdrawal amount (>= 1) |
-        | `expiryAfter` | Unix timestamp in seconds. For withdrawals, use a longer expiry window such as current time + 3600 seconds. |
+        | `expiryAfter` | Unix timestamp in milliseconds. For withdrawals, use a longer expiry window such as current time + 3,600,000 milliseconds. |
 
         ---
 
@@ -431,7 +431,7 @@ paths:
                 expiryAfter:
                   type: integer
                   nullable: true
-                  description: "Unix timestamp in seconds after which the request expires. `null` = no expiry; use `0` in the signature payload when this field is `null`."
+                  description: "Unix timestamp in milliseconds after which the request expires. `null` = no expiry; use `0` in the signature payload when this field is `null`."
             examples:
               approveAgent:
                 summary: approveAgent
@@ -447,7 +447,7 @@ paths:
                     s: "0x..."
                     v: 27
                   nonce: 1763023626904
-                  expiryAfter: 1763023686
+                  expiryAfter: 1763023686904
               withdraw:
                 summary: withdraw
                 value:
@@ -460,7 +460,7 @@ paths:
                     s: "0x..."
                     v: 27
                   nonce: 1763023626904
-                  expiryAfter: 1763027226
+                  expiryAfter: 1763027226904
       responses:
         "200":
           description: See specific action endpoint for response details
@@ -486,7 +486,7 @@ paths:
             };
 
             const nonce       = Date.now();
-            const expiryAfter = Math.floor(Date.now() / 1000) + 60; // 60s
+            const expiryAfter = Date.now() + 60 * 1000; // 60s
 
             // ── Sign EIP-712 (no protobuf needed) ──────────────────────
             const rawSig = await master.signTypedData(
@@ -548,7 +548,7 @@ paths:
             }
 
             nonce        = int(time.time() * 1000)
-            expiry_after = int(time.time()) + 60  # 60s
+            expiry_after = int(time.time() * 1000) + 60 * 1000  # 60s
 
             # ── Sign EIP-712 (no protobuf needed) ──────────────────────
             signed = Account.sign_typed_data(MASTER_KEY, full_message={

@@ -165,7 +165,7 @@ export class DexClient {
 
   async approveAgent({ agentName = "app.afx.xyz", validitySeconds = 0, expirySeconds = 300 } = {}) {
     const nonce = Date.now();
-    const expiryAfter = Math.floor(Date.now() / 1000) + expirySeconds;
+    const expiryAfter = Date.now() + expirySeconds * 1000;
     return this._masterSignAndSend(
       { type: "approveAgent", agentAddress: this.agent.address,
         agentName, validitySeconds, dexChain: this.dexChain },
@@ -181,7 +181,7 @@ export class DexClient {
 
   async withdraw({ destination, amount, expirySeconds = 3600 }) {
     const nonce = Date.now();
-    const expiryAfter = Math.floor(Date.now() / 1000) + expirySeconds;
+    const expiryAfter = Date.now() + expirySeconds * 1000;
     return this._masterSignAndSend(
       { type: "withdraw", destination, amount },
       "Withdraw",

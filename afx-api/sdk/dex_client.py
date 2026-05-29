@@ -189,7 +189,7 @@ class DexClient:
     def approve_agent(self, agent_name="app.afx.xyz", expiry_seconds=300, validity_seconds=0):
         """Authorize the agent wallet."""
         nonce = int(time.time() * 1000)
-        expiry_after = int(time.time()) + expiry_seconds
+        expiry_after = int(time.time() * 1000) + expiry_seconds * 1000
         return self._master_sign_and_send(
             {"type": "approveAgent", "agentAddress": self.agent_addr,
              "agentName": agent_name, "validitySeconds": validity_seconds,
@@ -210,7 +210,7 @@ class DexClient:
     def withdraw(self, destination, amount, expiry_seconds=3600):
         """Withdraw funds."""
         nonce = int(time.time() * 1000)
-        expiry_after = int(time.time()) + expiry_seconds
+        expiry_after = int(time.time() * 1000) + expiry_seconds * 1000
         return self._master_sign_and_send(
             {"type": "withdraw", "destination": destination, "amount": amount},
             "Withdraw",
