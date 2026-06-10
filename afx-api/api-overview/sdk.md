@@ -46,6 +46,8 @@ order = client.exchange.place_order(
 
 Trading actions are under `client.exchange`, read-only queries are under `client.info`, and WebSocket helpers are under `client.websocket`.
 
+For order requests, pass active order types such as `"LIMIT"` or `"MARKET"`. The proto default `"NONE"` and display-only `OrdType` values such as `"MARKET_LIQ_SELLOFF"`, `"LIMIT_LIQ_SELLOFF"`, `"ADL"`, and `"LIQUIDATION"` may appear in query or stream data, but they must not be used in order requests.
+
 ## Examples
 
 Every public SDK feature has an example under the SDK repository's `examples/` directory:

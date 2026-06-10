@@ -62,6 +62,8 @@ paths:
         | OrdTIF | GTC=1, IOC=2, FOK=3, POST_ONLY=4 |
         | ReduceOnlyOption | REDUCE_ONLY=1, TP_FROM_POSITION=2, SL_FROM_POSITION=3 |
         | ConditionalOrdTriggerType | LAST_PRICE=1, MARK_PRICE=2, INDEX_PRICE=3 |
+
+        `NONE` is the proto default value. `MARKET_LIQ_SELLOFF`, `LIMIT_LIQ_SELLOFF`, `ADL`, and `LIQUIDATION` are display-only `OrdType` values used by query or stream data. Do not send those values in order requests.
       requestBody:
         required: true
         content:
@@ -1299,7 +1301,7 @@ components:
                   symbolCode: { type: integer, format: int64, example: 1 }
                   ordPx: { type: string, description: "Limit `> 0`, Market `\"0\"`" }
                   ordQty: { type: string }
-                  ordType: { type: string, enum: [LIMIT, MARKET] }
+                  ordType: { type: string, enum: [LIMIT, MARKET], description: "NONE and display-only values MARKET_LIQ_SELLOFF, LIMIT_LIQ_SELLOFF, ADL, and LIQUIDATION must not be sent in requests." }
                   ordSide: { type: string, enum: [BUY, SELL, BUY_CLOSE_HEDGE, SELL_CLOSE_HEDGE] }
                   timeInForce: { type: string, enum: [GTC, IOC, FOK, POST_ONLY] }
                   clOrdId: { type: integer, format: int64 }
@@ -1325,7 +1327,7 @@ components:
             symbolCode: { type: integer, format: int64, example: 1 }
             ordPx: { type: string, description: "Limit `> 0`, Market `\"0\"`" }
             ordQty: { type: string }
-            ordType: { type: string, enum: [LIMIT, MARKET] }
+            ordType: { type: string, enum: [LIMIT, MARKET], description: "NONE and display-only values MARKET_LIQ_SELLOFF, LIMIT_LIQ_SELLOFF, ADL, and LIQUIDATION must not be sent in requests." }
             ordSide: { type: string, enum: [BUY, SELL, BUY_CLOSE_HEDGE, SELL_CLOSE_HEDGE] }
             timeInForce: { type: string, enum: [GTC, IOC, FOK, POST_ONLY] }
             clOrdId: { type: integer, format: int64, description: "Client order ID. clOrdId or ordId is required." }
@@ -1360,7 +1362,7 @@ components:
                   symbolCode: { type: integer, format: int64, example: 1 }
                   ordPx: { type: string, description: "Limit `> 0`, Market `\"0\"`" }
                   ordQty: { type: string }
-                  ordType: { type: string, enum: [LIMIT, MARKET] }
+                  ordType: { type: string, enum: [LIMIT, MARKET], description: "NONE and display-only values MARKET_LIQ_SELLOFF, LIMIT_LIQ_SELLOFF, ADL, and LIQUIDATION must not be sent in requests." }
                   ordSide: { type: string, enum: [BUY, SELL, BUY_CLOSE_HEDGE, SELL_CLOSE_HEDGE] }
                   timeInForce: { type: string, enum: [GTC, IOC, FOK, POST_ONLY] }
                   clOrdId: { type: integer, format: int64 }
