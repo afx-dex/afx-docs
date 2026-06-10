@@ -40,4 +40,4 @@
               spec: websocket
         ```
     * [Signing](afx-api/api-overview/signing.md)
-    * [SDK & Protobuf](afx-api/api-overview/sdk.md)
+    * [Python SDK](afx-api/api-overview/sdk.md)

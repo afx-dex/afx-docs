@@ -171,7 +171,7 @@ paths:
             };
 
             // ── 2. Serialize to Protobuf ───────────────────────────────
-            const root = await protobuf.load("dex.proto");
+            const root = await protobuf.load("afx-python-sdk/afx/protos/dex.proto");
             const MsgPlaceOrders = root.lookupType("MsgPlaceOrders");
             const protoBytes = MsgPlaceOrders.encode(
               MsgPlaceOrders.create({
@@ -235,87 +235,21 @@ paths:
             });
             console.log(await resp.json());
         - lang: Python
-          label: Python (eth-account)
+          label: Python (afx-python-sdk)
           source: |
-            import time, struct, requests
-            from eth_account import Account
-            from eth_hash.auto import keccak
-            from dex_proto import dex_pb2
+            from afx import AfxClient
 
-            # pip install eth-account eth-hash[pycryptodome] requests protobuf
+            client = AfxClient.from_env(testnet=True)
 
-            AGENT_KEY = "0xYOUR_AGENT_PRIVATE_KEY"
-            CHAIN_ID  = 421614
-            SOURCE    = "a"  # "a" Mainnet, "b" Testnet
-            BASE_URL  = "https://api10.afx.xyz"
-
-            # ── 1. Build action (placeOrder as example) ────────────────
-            action = {
-                "type": "placeOrder",
-                "orders": [{
-                    "symbolCode": 1, "ordPx": "40000.5", "ordQty": "0.5",
-                    "ordType": "LIMIT", "ordSide": "BUY", "timeInForce": "GTC",
-                }],
-            }
-
-            # ── 2. Serialize to Protobuf ───────────────────────────────
-            msg = dex_pb2.MsgPlaceOrders()
-            o = msg.orders.add()
-            o.symbol_code, o.ord_px, o.ord_qty = 1, "40000.5", "0.5"
-            o.ord_type, o.ord_side, o.time_in_force = 1, 1, 1
-            proto_bytes = msg.SerializeToString()
-
-            # ── 3. Compute connectionId ────────────────────────────────
-            nonce         = int(time.time() * 1000)
-            expiry_after  = 0
-            vault_address = None
-
-            parts = bytearray(proto_bytes)
-
-            # If vault_address is set, insert raw bytes
-            if vault_address:
-                parts += bytes.fromhex(vault_address[2:])
-
-            parts += struct.pack("<Q", nonce)
-            parts += struct.pack("<Q", expiry_after)
-
-            connection_id = keccak(bytes(parts))
-
-            # ── 4. Sign EIP-712 ────────────────────────────────────────
-            signed = Account.sign_typed_data(AGENT_KEY, full_message={
-                "types": {
-                    "EIP712Domain": [
-                        {"name": "name",              "type": "string"},
-                        {"name": "version",           "type": "string"},
-                        {"name": "chainId",           "type": "uint256"},
-                        {"name": "verifyingContract", "type": "address"},
-                    ],
-                    "Agent": [
-                        {"name": "source",       "type": "string"},
-                        {"name": "connectionId", "type": "bytes32"},
-                    ],
-                },
-                "primaryType": "Agent",
-                "domain": {
-                    "name": "Exchange", "version": "1",
-                    "chainId": CHAIN_ID,
-                    "verifyingContract": "0x0100000000000000000000000000000000000001",
-                },
-                "message": {
-                    "source": SOURCE,
-                    "connectionId": "0x" + connection_id.hex(),
-                },
-            })
-
-            # ── 5. Send ────────────────────────────────────────────────
-            resp = requests.post(f"{BASE_URL}/api/v1/exchange", json={
-                "action":       action,
-                "signature":    {"r": "0x" + format(signed.r, "064x"), "s": "0x" + format(signed.s, "064x"), "v": signed.v},
-                "nonce":        nonce,
-                "expiryAfter":  None,
-                "vaultAddress": None,
-            })
-            print(resp.json())
+            result = client.exchange.place_order(
+                symbol_code=1,
+                px="40000.5",
+                qty="0.5",
+                side="BUY",
+                ord_type="LIMIT",
+                tif="GTC",
+            )
+            print(result)
 
   /signing/master:
     post:
@@ -529,66 +463,13 @@ paths:
             });
             console.log(await resp.json());
         - lang: Python
-          label: "Python — approveAgent"
+          label: "Python — approveAgent (afx-python-sdk)"
           source: |
-            import time, requests
-            from eth_account import Account
+            from afx import AfxClient
 
-            MASTER_KEY = "0xYOUR_MASTER_PRIVATE_KEY"
-            CHAIN_ID   = 421614
-            BASE_URL   = "https://api10.afx.xyz"
-
-            # ── Action ─────────────────────────────────────────────────
-            action = {
-                "type":         "approveAgent",
-                "agentAddress": "0x76b6c4dc45f39463a1c8f6500c94b247c53fe184",
-                "agentName":    "my-trading-bot",
-                "validitySeconds": 604800,
-                "dexChain":     "Mainnet",
-            }
-
-            nonce        = int(time.time() * 1000)
-            expiry_after = int(time.time() * 1000) + 60 * 1000  # 60s
-
-            # ── Sign EIP-712 (no protobuf needed) ──────────────────────
-            signed = Account.sign_typed_data(MASTER_KEY, full_message={
-                "types": {
-                    "EIP712Domain": [
-                        {"name": "name",              "type": "string"},
-                        {"name": "version",           "type": "string"},
-                        {"name": "chainId",           "type": "uint256"},
-                        {"name": "verifyingContract", "type": "address"},
-                    ],
-                    "ApproveAgent": [
-                        {"name": "dexChain",     "type": "string"},
-                        {"name": "agentAddress", "type": "address"},
-                        {"name": "agentName",    "type": "string"},
-                        {"name": "validitySeconds", "type": "uint64"},
-                        {"name": "nonce",        "type": "uint64"},
-                        {"name": "expiryAfter",  "type": "uint64"},
-                    ],
-                },
-                "primaryType": "ApproveAgent",
-                "domain": {
-                    "name": "SignTransaction", "version": "1",
-                    "chainId": CHAIN_ID,
-                    "verifyingContract": "0x0100000000000000000000000000000000000001",
-                },
-                "message": {
-                    "dexChain":     "Mainnet",
-                    "agentAddress": "0x76b6c4dc45f39463a1c8f6500c94b247c53fe184",
-                    "agentName":    "my-trading-bot",
-                    "validitySeconds": 604800,
-                    "nonce":        nonce,
-                    "expiryAfter":  expiry_after,
-                },
-            })
-
-            # ── Send ───────────────────────────────────────────────────
-            resp = requests.post(f"{BASE_URL}/api/v1/exchange", json={
-                "action":      action,
-                "signature":   {"r": "0x" + format(signed.r, "064x"), "s": "0x" + format(signed.s, "064x"), "v": signed.v},
-                "nonce":       nonce,
-                "expiryAfter": expiry_after,
-            })
-            print(resp.json())
+            client = AfxClient.from_env(testnet=True)
+            result = client.exchange.approve_agent(
+                agent_name="my-trading-bot",
+                validity_seconds=604800,
+            )
+            print(result)

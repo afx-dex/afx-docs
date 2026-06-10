@@ -1,126 +1,103 @@
 ---
-description: Download SDK client libraries and protobuf definitions.
+description: Install the official AFX Python SDK and run examples.
 icon: download
 ---
 
-# SDK & Protobuf
+# Python SDK
 
-## Protobuf Definition
+The official Python SDK is maintained in [`afx-dex/afx-python-sdk`](https://github.com/afx-dex/afx-python-sdk).
 
-{% file src="../../.gitbook/assets/dex.proto" %}
-All message and enum definitions for Agent-signed actions.
-{% endfile %}
+Use this project instead of downloading standalone SDK files from the docs. The SDK includes the generated protobuf module under `afx.protos`, so users do not need to download `dex.proto`, generate `dex_pb2.py`, or keep a local `dex_client.py`.
 
-{% hint style="warning" %}
-The Python SDK depends on the compiled protobuf module `dex_pb2.py`. You must compile it before using the SDK.
-{% endhint %}
-
-### Compile
-
-{% tabs %}
-{% tab title="Python" %}
-```bash
-# Install protobuf compiler and Python package
-pip install protobuf grpcio-tools
-
-# Compile dex.proto → dex_pb2.py (place in same directory as dex_client.py)
-python -m grpc_tools.protoc --python_out=. --proto_path=. dex.proto
-```
-{% endtab %}
-
-{% tab title="JavaScript" %}
-```bash
-# protobufjs loads .proto files at runtime — no compilation needed
-# Just keep dex.proto in the same directory as dex_client.mjs
-```
-{% endtab %}
-{% endtabs %}
-
-***
-
-## Python SDK
-
-{% file src="../../.gitbook/assets/dex_client.py" %}
-Python client with EIP-712 signing, protobuf serialization, and HTTP/WebSocket support.
-{% endfile %}
-
-**Dependencies:**
+## Install
 
 ```bash
-pip install eth-account requests websockets protobuf
+git clone https://github.com/afx-dex/afx-python-sdk.git
+cd afx-python-sdk
+python3 -m pip install -e .
 ```
 
-**File structure:**
+## Configure Wallets
 
-```
-your-project/
-├── dex.proto          # download from above
-├── dex_pb2.py         # compiled from dex.proto
-└── dex_client.py      # download from above
-```
-
-***
-
-## JavaScript SDK
-
-{% file src="../../.gitbook/assets/dex_client.mjs" %}
-ES module client for Node.js. Uses protobufjs + ethers.js.
-{% endfile %}
-
-**Dependencies:**
+Private keys are loaded only from environment variables:
 
 ```bash
-npm install ethers protobufjs ws
+export AFX_MASTER_PRIVATE_KEY="0xYOUR_MASTER_PRIVATE_KEY"
+export AFX_AGENT_PRIVATE_KEY="0xYOUR_AGENT_PRIVATE_KEY"
 ```
 
-**File structure:**
+## Client Layout
 
+```python
+from afx import AfxClient
+
+client = AfxClient.from_env(testnet=True)
+
+products = client.info.get_products()
+order = client.exchange.place_order(
+    symbol_code=1,
+    px="50000",
+    qty="0.001",
+    side="BUY",
+    ord_type="LIMIT",
+    tif="GTC",
+)
 ```
-your-project/
-├── dex.proto          # download from above
-└── dex_client.mjs     # download from above
-```
 
-***
+Trading actions are under `client.exchange`, read-only queries are under `client.info`, and WebSocket helpers are under `client.websocket`.
 
-## Quick Verify
+## Examples
 
-{% stepper %}
-{% step %}
-#### Setup
+Every public SDK feature has an example under the SDK repository's `examples/` directory:
 
 ```bash
-# Download all files into one directory, then:
-pip install eth-account requests websockets protobuf
-python -m grpc_tools.protoc --python_out=. --proto_path=. dex.proto
+python3 examples/info/get_products.py
+python3 examples/exchange/place_order.py
+python3 examples/websocket/subscribe_ticker.py
 ```
-{% endstep %}
 
-{% step %}
-#### Run
+### Example Index
+
+**Info queries**
+
+* [get_products.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/info/get_products.py)
+* [get_wallet.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/info/get_wallet.py)
+* [get_orders.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/info/get_orders.py)
+* [get_positions.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/info/get_positions.py)
+* [get_kline.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/info/get_kline.py)
+* [get_agents.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/info/get_agents.py)
+* [get_active_agent.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/info/get_active_agent.py)
+* [get_funding_rate_current.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/info/get_funding_rate_current.py)
+
+**Exchange actions**
+
+* [faucet_claim.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/faucet_claim.py)
+* [approve_agent.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/approve_agent.py)
+* [revoke_agent.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/revoke_agent.py)
+* [place_order.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/place_order.py)
+* [place_tp_sl_orders.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/place_tp_sl_orders.py)
+* [cancel_order.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/cancel_order.py)
+* [cancel_all.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/cancel_all.py)
+* [set_leverage.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/set_leverage.py)
+* [set_margin_mode.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/set_margin_mode.py)
+* [assign_pos_margin.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/assign_pos_margin.py)
+* [withdraw.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/withdraw.py)
+* [vault_deposit.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/vault_deposit.py)
+* [vault_withdraw.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/vault_withdraw.py)
+* [bind_referral.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/bind_referral.py)
+
+**WebSocket and advanced usage**
+
+* [subscribe.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/websocket/subscribe.py)
+* [subscribe_order_book.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/websocket/subscribe_order_book.py)
+* [subscribe_ticker.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/websocket/subscribe_ticker.py)
+* [subscribe_account_state.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/websocket/subscribe_account_state.py)
+* [multiple_wallets.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/advanced/multiple_wallets.py)
+
+## Verify
 
 ```bash
-python dex_client.py
+python3 -m unittest discover -s tests -v
 ```
 
-This generates random wallets, claims testnet funds, approves an agent, places an order, and subscribes to WebSocket — all in one run.
-{% endstep %}
-
-{% step %}
-#### Expected output
-
-```
-Master: 0x...
-Agent:  0x...
-
-1. faucetClaim: {"code": 0, "message": "success", ...}
-2. approveAgent: {"code": 0, "message": "success", ...}
-3. placeOrder: {"code": 0, "message": "success", ...}
-
-4. WebSocket orderBook:
-   received: {"channel": "orderBook", ...}
-
-All tests done.
-```
-{% endstep %}
-{% endstepper %}
+The SDK tests cover signing helpers, protobuf serialization, client behavior, and example imports.

@@ -123,14 +123,6 @@ paths:
         - lang: JavaScript
           label: JavaScript
           source: |
-            import { DexClient } from "./dex_client.mjs";
-
-            const client = await DexClient.create({
-              masterKey: "0xYOUR_MASTER_KEY",
-              agentKey:  "0xYOUR_AGENT_KEY",
-              testnet:   true,
-            });
-
             // Limit buy
             const result = await client.placeOrder({
               symbolCode: 1, px: "40000.5", qty: "0.5",
@@ -156,23 +148,19 @@ paths:
         - lang: Python
           label: Python
           source: |
-            from dex_client import DexClient
+            from afx import AfxClient
 
-            client = DexClient(
-                master_key="0xYOUR_MASTER_KEY",
-                agent_key="0xYOUR_AGENT_KEY",
-                testnet=True,
-            )
+            client = AfxClient.from_env(testnet=True)
 
             # Limit buy
-            result = client.place_order(
+            result = client.exchange.place_order(
                 symbol_code=1, px="40000.5", qty="0.5",
                 side="BUY", ord_type="LIMIT", tif="GTC",
             )
             print(result)
 
             # Market buy
-            result2 = client.place_order(
+            result2 = client.exchange.place_order(
                 symbol_code=1, px="0", qty="0.1",
                 side="BUY", ord_type="MARKET", tif="IOC",
                 slippage_pct="1",
@@ -244,10 +232,10 @@ paths:
           label: Python
           source: |
             # Cancel by system order ID
-            client.cancel_order(symbol_code=1, ord_id="12345")
+            client.exchange.cancel_order(symbol_code=1, ord_id="12345")
 
             # Cancel by client order ID
-            client.cancel_order(symbol_code=1, cl_ord_id="99001")
+            client.exchange.cancel_order(symbol_code=1, cl_ord_id="99001")
 
   /exchange/cancelAll:
     post:
@@ -297,10 +285,10 @@ paths:
         - lang: Python
           label: Python
           source: |
-            client.cancel_all(symbol_code=1)
+            client.exchange.cancel_all(symbol_code=1)
 
             # Cancel conditional orders only
-            client.cancel_all(symbol_code=1, conditional=True)
+            client.exchange.cancel_all(symbol_code=1, conditional=True)
 
   # ═══════════════════════════════════════════════════════════════════
   #  Account Settings
@@ -347,7 +335,7 @@ paths:
         - lang: Python
           label: Python
           source: |
-            client.set_leverage(symbol_code=1, leverage="10")
+            client.exchange.set_leverage(symbol_code=1, leverage="10")
 
   /exchange/setMarginMode:
     post:
@@ -391,7 +379,7 @@ paths:
         - lang: Python
           label: Python
           source: |
-            client.set_margin_mode(symbol_code=1, mode="CROSS")
+            client.exchange.set_margin_mode(symbol_code=1, mode="CROSS")
 
   /exchange/assignPosMargin:
     post:
@@ -435,7 +423,7 @@ paths:
         - lang: Python
           label: Python
           source: |
-            client.assign_pos_margin(symbol_code=1, amount="100")
+            client.exchange.assign_pos_margin(symbol_code=1, amount="100")
 
   # ═══════════════════════════════════════════════════════════════════
   #  Master Signature Operations
@@ -494,7 +482,7 @@ paths:
         - lang: Python
           label: Python
           source: |
-            client.approve_agent(agent_name="my-trading-bot", validity_seconds=604800)
+            client.exchange.approve_agent(agent_name="my-trading-bot", validity_seconds=604800)
 
   /exchange/withdraw:
     post:
@@ -548,7 +536,7 @@ paths:
         - lang: Python
           label: Python
           source: |
-            client.withdraw(destination="0xabc...", amount="100", expiry_seconds=3600)
+            client.exchange.withdraw(destination="0xabc...", amount="100", expiry_seconds=3600)
 
   # ═══════════════════════════════════════════════════════════════════
   #  Referral
@@ -594,7 +582,7 @@ paths:
         - lang: Python
           label: Python
           source: |
-            client.bind_referral(code="ABC123")
+            client.exchange.bind_referral(code="ABC123")
 
   # ═══════════════════════════════════════════════════════════════════
   #  Vault Operations
@@ -675,11 +663,8 @@ paths:
         - lang: Python
           label: Python
           source: |
-            result = client.vault_create(
-                name="My Vault", description="Automated trading vault",
-                amount="1000", currency_code=1,
-            )
-            print(result["data"]["vault"])  # new vault address
+            # Not currently exposed by afx-python-sdk's high-level client.
+            # Track SDK support at https://github.com/afx-dex/afx-python-sdk.
 
   /exchange/vaultCreateSubVault:
     post:
@@ -718,8 +703,8 @@ paths:
         - lang: Python
           label: Python
           source: |
-            # Parent vault address is required
-            # (not yet in SDK — use raw agent_sign_and_send)
+            # Not currently exposed by afx-python-sdk's high-level client.
+            # Track SDK support at https://github.com/afx-dex/afx-python-sdk.
 
   /exchange/vaultDeposit:
     post:
@@ -762,7 +747,7 @@ paths:
         - lang: Python
           label: Python
           source: |
-            client.vault_deposit(vault_address="0x4b90BBE5...", amount="100")
+            client.exchange.vault_deposit(vault_address="0x4b90BBE5...", amount="100")
 
   /exchange/vaultWithdraw:
     post:
@@ -805,7 +790,7 @@ paths:
         - lang: Python
           label: Python
           source: |
-            client.vault_withdraw(vault_address="0x4b90BBE5...", amount="50")
+            client.exchange.vault_withdraw(vault_address="0x4b90BBE5...", amount="50")
 
   /exchange/vaultPreWithdraw:
     post:
@@ -848,8 +833,8 @@ paths:
         - lang: Python
           label: Python
           source: |
-            # vaultPreWithdraw uses same pattern as vaultWithdraw
-            client.vault_withdraw(vault_address="0x4b90BBE5...", amount="50")
+            # Not currently exposed by afx-python-sdk's high-level client.
+            # Track SDK support at https://github.com/afx-dex/afx-python-sdk.
 
   /exchange/vaultRebalance:
     post:
@@ -900,8 +885,8 @@ paths:
         - lang: Python
           label: Python
           source: |
-            # vaultRebalance — use raw API or extend SDK
-            # client._agent_sign_and_send(action, proto, vault_address=...)
+            # Not currently exposed by afx-python-sdk's high-level client.
+            # Track SDK support at https://github.com/afx-dex/afx-python-sdk.
 
   /exchange/vaultUpdateOwner:
     post:
@@ -944,7 +929,8 @@ paths:
         - lang: Python
           label: Python
           source: |
-            # vaultUpdateOwner — use raw API or extend SDK
+            # Not currently exposed by afx-python-sdk's high-level client.
+            # Track SDK support at https://github.com/afx-dex/afx-python-sdk.
 
   /exchange/vaultClose:
     post:
@@ -982,7 +968,8 @@ paths:
         - lang: Python
           label: Python
           source: |
-            client.vault_close(vault_address="0x4b90BBE5...")
+            # Not currently exposed by afx-python-sdk's high-level client.
+            # Track SDK support at https://github.com/afx-dex/afx-python-sdk.
 
   # ═══════════════════════════════════════════════════════════════════
   #  Errors

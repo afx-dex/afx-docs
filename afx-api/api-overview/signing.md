@@ -100,33 +100,21 @@ connectionId = keccak256(
 {% endstep %}
 {% endstepper %}
 
-{% tabs %}
-{% tab title="Python" %}
+For Python applications, use the official [`afx-python-sdk`](https://github.com/afx-dex/afx-python-sdk). The SDK handles protobuf serialization, `connectionId` calculation, and EIP-712 signing internally.
+
 ```python
-from dex_client import DexClient
+from afx import AfxClient
 
-client = DexClient(
-    master_key="0x...", agent_key="0x...", testnet=True,
+client = AfxClient.from_env(testnet=True)
+
+# Agent-signed operations just work -- SDK handles signing internally.
+result = client.exchange.place_order(
+    symbol_code=1,
+    px="40000",
+    qty="0.5",
+    side="BUY",
 )
-
-# Agent-signed operations just work — SDK handles signing internally
-result = client.place_order(symbol_code=1, px="40000", qty="0.5", side="BUY")
 ```
-{% endtab %}
-
-{% tab title="JavaScript" %}
-```javascript
-import { DexClient } from "./dex_client.mjs";
-
-const client = await DexClient.create({
-  masterKey: "0x...", agentKey: "0x...", testnet: true,
-});
-
-// Agent-signed operations just work — SDK handles signing internally
-const result = await client.placeOrder({ symbolCode: 1, px: "40000", qty: "0.5", side: "BUY" });
-```
-{% endtab %}
-{% endtabs %}
 
 ***
 

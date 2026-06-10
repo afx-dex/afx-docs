@@ -6,7 +6,7 @@ icon: rocket
 # Quick Start
 
 {% hint style="info" %}
-This guide uses the **Testnet** environment. All operations are free — use `faucetClaim` to get test funds.
+This guide uses the **Testnet** environment. All operations are free -- use `faucet_claim` to get test funds.
 {% endhint %}
 
 ## Prerequisites
@@ -31,33 +31,32 @@ Used to sign `placeOrder`, `cancelOrder`, `setLeverage`, etc.
 {% endcolumn %}
 {% endcolumns %}
 
-You can generate both from any Ethereum-compatible library (ethers.js, eth-account, MetaMask, etc.).
-
-## Install SDK
-
-{% tabs %}
-{% tab title="Python" %}
-```bash
-pip install eth-account requests websockets protobuf grpcio-tools
-```
-
-Download [`dex.proto`](../sdk/dex.proto) and [`dex_client.py`](../sdk/dex_client.py), then compile the protobuf:
+Store private keys in environment variables. The Python SDK loads keys from the environment and does not accept private keys in public client constructors.
 
 ```bash
-python -m grpc_tools.protoc --python_out=. --proto_path=. dex.proto
+export AFX_MASTER_PRIVATE_KEY="0xYOUR_MASTER_PRIVATE_KEY"
+export AFX_AGENT_PRIVATE_KEY="0xYOUR_AGENT_PRIVATE_KEY"
 ```
 
-This generates `dex_pb2.py` which the SDK depends on.
-{% endtab %}
+## Install Python SDK
 
-{% tab title="JavaScript" %}
+The official Python SDK is maintained in [`afx-dex/afx-python-sdk`](https://github.com/afx-dex/afx-python-sdk). Do not download `dex_client.py`, `dex.proto`, or `dex_pb2.py` from these docs.
+
 ```bash
-npm install ethers protobufjs ws
+git clone https://github.com/afx-dex/afx-python-sdk.git
+cd afx-python-sdk
+python3 -m pip install -e .
 ```
 
-Download [`dex.proto`](../sdk/dex.proto) and [`dex_client.mjs`](../sdk/dex_client.mjs) to the same directory. No compilation needed — protobufjs loads `.proto` files at runtime.
-{% endtab %}
-{% endtabs %}
+The SDK vendors the generated protobuf module under `afx.protos`, so no manual protobuf compilation is required.
+
+Runnable examples for this flow:
+
+* [faucet_claim.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/faucet_claim.py)
+* [approve_agent.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/approve_agent.py)
+* [get_products.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/info/get_products.py)
+* [place_order.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/place_order.py)
+* [subscribe_order_book.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/websocket/subscribe_order_book.py)
 
 ## First Trade
 
@@ -65,31 +64,11 @@ Download [`dex.proto`](../sdk/dex.proto) and [`dex_client.mjs`](../sdk/dex_clien
 {% step %}
 **Initialize the client**
 
-{% tabs %}
-{% tab title="Python" %}
 ```python
-from dex_client import DexClient
+from afx import AfxClient
 
-client = DexClient(
-    master_key="0xYOUR_MASTER_PRIVATE_KEY",
-    agent_key="0xYOUR_AGENT_PRIVATE_KEY",
-    testnet=True,
-)
+client = AfxClient.from_env(testnet=True)
 ```
-{% endtab %}
-
-{% tab title="JavaScript" %}
-```javascript
-import { DexClient } from "./dex_client.mjs";
-
-const client = await DexClient.create({
-  masterKey: "0xYOUR_MASTER_PRIVATE_KEY",
-  agentKey:  "0xYOUR_AGENT_PRIVATE_KEY",
-  testnet:   true,
-});
-```
-{% endtab %}
-{% endtabs %}
 {% endstep %}
 
 {% step %}
@@ -97,21 +76,10 @@ const client = await DexClient.create({
 
 Get 500 USDC from the testnet faucet. Signed by the **Master** wallet.
 
-{% tabs %}
-{% tab title="Python" %}
 ```python
-result = client.faucet_claim()
+result = client.exchange.faucet_claim()
 print(result)  # {"code": 0, "message": "success", ...}
 ```
-{% endtab %}
-
-{% tab title="JavaScript" %}
-```javascript
-const result = await client.faucetClaim();
-console.log(result);  // { code: 0, message: "success", ... }
-```
-{% endtab %}
-{% endtabs %}
 {% endstep %}
 
 {% step %}
@@ -119,44 +87,23 @@ console.log(result);  // { code: 0, message: "success", ... }
 
 The Master wallet grants the Agent wallet permission to trade until the authorization expires.
 
-{% tabs %}
-{% tab title="Python" %}
 ```python
-result = client.approve_agent(agent_name="my-bot", validity_seconds=604800)
+result = client.exchange.approve_agent(
+    agent_name="my-bot",
+    validity_seconds=604800,
+)
 print(result)
 ```
-{% endtab %}
-
-{% tab title="JavaScript" %}
-```javascript
-const result = await client.approveAgent({ agentName: "my-bot", validitySeconds: 604800 });
-console.log(result);
-```
-{% endtab %}
-{% endtabs %}
 {% endstep %}
 
 {% step %}
 **Query available symbols**
 
-{% tabs %}
-{% tab title="Python" %}
 ```python
-products = client.get_products()
+products = client.info.get_products()
 for p in products["data"]["perpProducts"][:3]:
     print(f"{p['symbol']} (code: {p['code']}, leverage: {p['maxLeverage']}x)")
 ```
-{% endtab %}
-
-{% tab title="JavaScript" %}
-```javascript
-const products = await client.getProducts();
-products.data.perpProducts.slice(0, 3).forEach(p =>
-  console.log(`${p.symbol} (code: ${p.code}, leverage: ${p.maxLeverage}x)`)
-);
-```
-{% endtab %}
-{% endtabs %}
 
 | Symbol  | Code | Max Leverage |
 | ------- | ---- | ------------ |
@@ -170,10 +117,8 @@ products.data.perpProducts.slice(0, 3).forEach(p =>
 
 Signed by the **Agent** wallet. This places a buy order far below market price so it won't fill immediately.
 
-{% tabs %}
-{% tab title="Python" %}
 ```python
-result = client.place_order(
+result = client.exchange.place_order(
     symbol_code=1,       # BTCUSDC
     px="50000.0",        # limit price
     qty="0.001",         # quantity in BTC
@@ -183,22 +128,6 @@ result = client.place_order(
 )
 print(f"txHash: {result['data']['txHash']}")
 ```
-{% endtab %}
-
-{% tab title="JavaScript" %}
-```javascript
-const result = await client.placeOrder({
-  symbolCode: 1,       // BTCUSDC
-  px: "50000.0",       // limit price
-  qty: "0.001",        // quantity in BTC
-  side: "BUY",
-  ordType: "LIMIT",
-  tif: "GTC",          // Good Till Cancelled
-});
-console.log(`txHash: ${result.data.txHash}`);
-```
-{% endtab %}
-{% endtabs %}
 
 {% hint style="success" %}
 You've placed your first order! The transaction is submitted to the blockchain and confirmed within seconds.
@@ -210,39 +139,21 @@ You've placed your first order! The transaction is submitted to the blockchain a
 
 Connect to real-time orderbook updates via WebSocket.
 
-{% tabs %}
-{% tab title="Python" %}
 ```python
 import asyncio
 
-def on_orderbook(msg):
-    book = msg["data"]["book"]
+async def main():
+    message = await client.websocket.subscribe_order_book(
+        symbol="BTCUSDC",
+        depth=5,
+        timeout=10,
+    )
+    book = message["data"]["book"]
     print(f"Best bid: {book['bids'][0]}, Best ask: {book['asks'][0]}")
-    return False  # return False to stop after first message
 
-asyncio.run(client.subscribe(
-    {"type": "orderBook", "symbol": "BTCUSDC", "depth": 5},
-    on_orderbook,
-    timeout=10,
-))
+asyncio.run(main())
 ```
-{% endtab %}
-
-{% tab title="JavaScript" %}
-```javascript
-await client.subscribe(
-  { type: "orderBook", symbol: "BTCUSDC", depth: 5 },
-  (msg) => {
-    const book = msg.data.book;
-    console.log(`Best bid: ${book.bids[0]}, Best ask: ${book.asks[0]}`);
-    return false;
-  },
-  { timeout: 10000 },
-);
-```
-{% endtab %}
-{% endtabs %}
 
 ## What's Next
 
-<table data-view="cards"><thead><tr><th>Title</th><th>Description</th><th data-card-target data-type="content-ref">Target</th></tr></thead><tbody><tr><td><strong>Authentication</strong></td><td>How EIP-712 signing works — Agent vs Master wallet.</td><td><a href="signing.md">signing.md</a></td></tr><tr><td><strong>Exchange API</strong></td><td>All trading operations — orders, leverage, vaults.</td><td><a href="exchange/">exchange</a></td></tr><tr><td><strong>Info API</strong></td><td>Query account, orders, positions, market data.</td><td><a href="info/">info</a></td></tr><tr><td><strong>WebSocket</strong></td><td>Real-time orderbook, kline, ticker, and account events.</td><td><a href="websocket/">websocket</a></td></tr></tbody></table>
+<table data-view="cards"><thead><tr><th>Title</th><th>Description</th><th data-card-target data-type="content-ref">Target</th></tr></thead><tbody><tr><td><strong>Python SDK</strong></td><td>Install the SDK and run the official examples.</td><td><a href="sdk.md">sdk.md</a></td></tr><tr><td><strong>Authentication</strong></td><td>How EIP-712 signing works -- Agent vs Master wallet.</td><td><a href="signing.md">signing.md</a></td></tr><tr><td><strong>Exchange API</strong></td><td>All trading operations -- orders, leverage, vaults.</td><td><a href="exchange/">exchange</a></td></tr><tr><td><strong>Info API</strong></td><td>Query account, orders, positions, market data.</td><td><a href="info/">info</a></td></tr><tr><td><strong>WebSocket</strong></td><td>Real-time orderbook, kline, ticker, and account events.</td><td><a href="websocket/">websocket</a></td></tr></tbody></table>
