@@ -27,7 +27,7 @@ Used to sign `approveAgent` and `withdraw`.
 
 Handles day-to-day trading.
 
-Used to sign `placeOrder`, `cancelOrder`, `setLeverage`, etc.
+Used to sign `placeOrder`, `replaceOrder`, `placeBracketOrder`, `cancelOrder`, `setLeverage`, etc.
 {% endcolumn %}
 {% endcolumns %}
 
@@ -56,6 +56,8 @@ Runnable examples for this flow:
 * [approve_agent.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/approve_agent.py)
 * [get_products.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/info/get_products.py)
 * [place_order.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/place_order.py)
+* [replace_order.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/replace_order.py)
+* [place_bracket_order.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/place_bracket_order.py)
 * [subscribe_order_book.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/websocket/subscribe_order_book.py)
 
 ## First Trade

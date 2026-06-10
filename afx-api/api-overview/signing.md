@@ -15,7 +15,7 @@ Used for most trading operations. The Agent wallet signs a hash derived from the
 
 **Domain:** `Exchange`
 
-**Operations:** `placeOrder`, `cancelOrder`, `cancelAll`, `setLeverage`, `setMarginMode`, `assignPosMargin`, `bindReferral`, all vault operations.
+**Operations:** `placeOrder`, `replaceOrder`, `placeBracketOrder`, `cancelOrder`, `cancelAll`, `setLeverage`, `setMarginMode`, `assignPosMargin`, `bindReferral`, all vault operations.
 {% endcolumn %}
 
 {% column %}

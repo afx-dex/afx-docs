@@ -166,6 +166,252 @@ paths:
                 slippage_pct="1",
             )
 
+  /exchange/replaceOrder:
+    post:
+      operationId: replaceOrder
+      summary: Replace Order
+      tags: [Orders]
+      description: |
+        Replace an existing order by `ordId` or `clOrdId`.
+
+        **Signature:** Agent · **Protobuf:** `MsgReplaceOrder`
+
+        ```protobuf
+        message MsgReplaceOrder {
+          int64  cl_ord_id           = 1;
+          int64  symbol_code         = 2;
+          string ord_px              = 3;
+          string ord_qty             = 4;
+          string trigger_px          = 5;
+          OrdType                   ord_type           = 6;
+          OrdSide                   ord_side           = 7;
+          OrdTIF                    time_in_force      = 8;
+          ReduceOnlyOption          reduce_only_option = 9;
+          int64  parent_ord_id      = 10;
+          ConditionalOrdTriggerType tpsl_trigger_type  = 11;
+          string slippage_pct       = 12;
+          int64  ord_id             = 13;
+        }
+        ```
+
+        At least one of `ordId` or `clOrdId` must identify the existing order.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReplaceOrderRequest"
+            examples:
+              byClOrdId:
+                summary: Replace by client order ID
+                value:
+                  action:
+                    type: replaceOrder
+                    symbolCode: 1
+                    ordPx: "50100"
+                    ordQty: "0.001"
+                    ordType: LIMIT
+                    ordSide: BUY
+                    timeInForce: GTC
+                    clOrdId: 99001
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            await client.replaceOrder({
+              symbolCode: 1,
+              px: "50100",
+              qty: "0.001",
+              side: "BUY",
+              ordType: "LIMIT",
+              tif: "GTC",
+              clOrdId: 99001,
+            });
+        - lang: Python
+          label: Python (afx-python-sdk)
+          source: |
+            import time
+
+            from afx import AfxClient
+
+            client = AfxClient.from_env(testnet=True)
+            cl_ord_id = int(time.time() * 1000)
+
+            client.exchange.place_order(
+                symbol_code=1,
+                px="50000",
+                qty="0.001",
+                side="BUY",
+                ord_type="LIMIT",
+                tif="GTC",
+                cl_ord_id=cl_ord_id,
+            )
+
+            result = client.exchange.replace_order(
+                symbol_code=1,
+                px="50100",
+                qty="0.001",
+                side="BUY",
+                ord_type="LIMIT",
+                tif="GTC",
+                cl_ord_id=cl_ord_id,
+            )
+            print(result)
+
+            # Full example:
+            # https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/replace_order.py
+
+  /exchange/placeBracketOrder:
+    post:
+      operationId: placeBracketOrder
+      summary: Place Bracket Order
+      tags: [Orders]
+      description: |
+        Place a main order with one or two attached TP/SL child orders.
+
+        **Signature:** Agent · **Protobuf:** `MsgPlaceBracketOrder`
+
+        ```protobuf
+        message MsgPlaceBracketOrder {
+          MsgPlaceOrder main_order        = 1;
+          MsgPlaceOrder take_profit_order = 2;
+          MsgPlaceOrder stop_loss_order   = 3;
+        }
+        ```
+
+        The request must contain 2 or 3 orders. The first order is the main order. Child orders must use `reduceOnly` as `TP_FROM_POSITION` or `SL_FROM_POSITION`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaceBracketOrderRequest"
+            examples:
+              withTakeProfitAndStopLoss:
+                summary: Main limit order with TP and SL
+                value:
+                  action:
+                    type: placeBracketOrder
+                    orders:
+                      - symbolCode: 1
+                        ordPx: "50000"
+                        ordQty: "0.001"
+                        ordType: LIMIT
+                        ordSide: BUY
+                        timeInForce: GTC
+                        clOrdId: 99001
+                      - symbolCode: 1
+                        ordPx: "55000"
+                        ordQty: "0.001"
+                        triggerPx: "55000"
+                        ordType: LIMIT
+                        ordSide: SELL
+                        timeInForce: GTC
+                        reduceOnly: TP_FROM_POSITION
+                        tpslTriggerType: LAST_PRICE
+                        clOrdId: 99002
+                      - symbolCode: 1
+                        ordPx: "0"
+                        ordQty: "0.001"
+                        triggerPx: "45000"
+                        ordType: MARKET
+                        ordSide: SELL
+                        timeInForce: IOC
+                        reduceOnly: SL_FROM_POSITION
+                        tpslTriggerType: LAST_PRICE
+                        slippagePct: "0.01"
+                        clOrdId: 99003
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: JavaScript
+          label: JavaScript
+          source: |
+            await client.placeBracketOrder({
+              orders: [
+                {
+                  symbolCode: 1, px: "50000", qty: "0.001",
+                  side: "BUY", ordType: "LIMIT", tif: "GTC",
+                  clOrdId: 99001,
+                },
+                {
+                  symbolCode: 1, px: "55000", qty: "0.001",
+                  triggerPx: "55000", side: "SELL",
+                  ordType: "LIMIT", tif: "GTC",
+                  reduceOnly: "TP_FROM_POSITION",
+                  tpslTriggerType: "LAST_PRICE",
+                  clOrdId: 99002,
+                },
+                {
+                  symbolCode: 1, px: "0", qty: "0.001",
+                  triggerPx: "45000", side: "SELL",
+                  ordType: "MARKET", tif: "IOC",
+                  reduceOnly: "SL_FROM_POSITION",
+                  tpslTriggerType: "LAST_PRICE",
+                  slippagePct: "0.01",
+                  clOrdId: 99003,
+                },
+              ],
+            });
+        - lang: Python
+          label: Python (afx-python-sdk)
+          source: |
+            import time
+
+            from afx import AfxClient
+
+            client = AfxClient.from_env(testnet=True)
+            base_cl_ord_id = int(time.time() * 1000)
+
+            result = client.exchange.place_bracket_order(
+                main_order={
+                    "symbol_code": 1,
+                    "px": "50000",
+                    "qty": "0.001",
+                    "side": "BUY",
+                    "ord_type": "LIMIT",
+                    "tif": "GTC",
+                    "cl_ord_id": base_cl_ord_id,
+                },
+                take_profit_order={
+                    "symbol_code": 1,
+                    "px": "55000",
+                    "qty": "0.001",
+                    "trigger_px": "55000",
+                    "side": "SELL",
+                    "ord_type": "LIMIT",
+                    "tif": "GTC",
+                    "reduce_only_option": "TP_FROM_POSITION",
+                    "trigger_type": "LAST_PRICE",
+                    "cl_ord_id": base_cl_ord_id + 1,
+                },
+                stop_loss_order={
+                    "symbol_code": 1,
+                    "px": "0",
+                    "qty": "0.001",
+                    "trigger_px": "45000",
+                    "side": "SELL",
+                    "ord_type": "MARKET",
+                    "tif": "IOC",
+                    "reduce_only_option": "SL_FROM_POSITION",
+                    "trigger_type": "LAST_PRICE",
+                    "slippage_pct": "0.01",
+                    "cl_ord_id": base_cl_ord_id + 2,
+                },
+            )
+            print(result)
+
+            # Full example:
+            # https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/place_bracket_order.py
+
   /exchange/cancelOrder:
     post:
       operationId: cancelOrder
@@ -1059,6 +1305,67 @@ components:
                   clOrdId: { type: integer, format: int64 }
                   parentOrdId: { type: integer, format: int64 }
                   reduce_only_option: { type: string, enum: [REDUCE_ONLY, TP_FROM_POSITION, SL_FROM_POSITION] }
+                  triggerPx: { type: string }
+                  tpslTriggerType: { type: string, enum: [LAST_PRICE, MARK_PRICE, INDEX_PRICE] }
+                  slippagePct: { type: string }
+        signature: { $ref: "#/components/schemas/Signature" }
+        nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }
+        expiryAfter: { type: integer, format: int64, nullable: true, description: "Unix timestamp in milliseconds after which the request expires. null = no expiry; use 0 in the signature payload when this field is null." }
+        vaultAddress: { type: string, nullable: true }
+
+    ReplaceOrderRequest:
+      type: object
+      required: [action, signature, nonce]
+      properties:
+        action:
+          type: object
+          required: [type, symbolCode, ordPx, ordQty, ordType, ordSide, timeInForce]
+          properties:
+            type: { type: string, enum: [replaceOrder] }
+            symbolCode: { type: integer, format: int64, example: 1 }
+            ordPx: { type: string, description: "Limit `> 0`, Market `\"0\"`" }
+            ordQty: { type: string }
+            ordType: { type: string, enum: [LIMIT, MARKET] }
+            ordSide: { type: string, enum: [BUY, SELL, BUY_CLOSE_HEDGE, SELL_CLOSE_HEDGE] }
+            timeInForce: { type: string, enum: [GTC, IOC, FOK, POST_ONLY] }
+            clOrdId: { type: integer, format: int64, description: "Client order ID. clOrdId or ordId is required." }
+            ordId: { type: integer, format: int64, description: "System order ID. clOrdId or ordId is required." }
+            parentOrdId: { type: integer, format: int64 }
+            reduceOnly: { type: string, enum: [REDUCE_ONLY, TP_FROM_POSITION, SL_FROM_POSITION] }
+            triggerPx: { type: string }
+            tpslTriggerType: { type: string, enum: [LAST_PRICE, MARK_PRICE, INDEX_PRICE] }
+            slippagePct: { type: string }
+        signature: { $ref: "#/components/schemas/Signature" }
+        nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }
+        expiryAfter: { type: integer, format: int64, nullable: true, description: "Unix timestamp in milliseconds after which the request expires. null = no expiry; use 0 in the signature payload when this field is null." }
+        vaultAddress: { type: string, nullable: true }
+
+    PlaceBracketOrderRequest:
+      type: object
+      required: [action, signature, nonce]
+      properties:
+        action:
+          type: object
+          required: [type, orders]
+          properties:
+            type: { type: string, enum: [placeBracketOrder] }
+            orders:
+              type: array
+              minItems: 2
+              maxItems: 3
+              items:
+                type: object
+                required: [symbolCode, ordPx, ordQty, ordType, ordSide, timeInForce]
+                properties:
+                  symbolCode: { type: integer, format: int64, example: 1 }
+                  ordPx: { type: string, description: "Limit `> 0`, Market `\"0\"`" }
+                  ordQty: { type: string }
+                  ordType: { type: string, enum: [LIMIT, MARKET] }
+                  ordSide: { type: string, enum: [BUY, SELL, BUY_CLOSE_HEDGE, SELL_CLOSE_HEDGE] }
+                  timeInForce: { type: string, enum: [GTC, IOC, FOK, POST_ONLY] }
+                  clOrdId: { type: integer, format: int64 }
+                  parentOrdId: { type: integer, format: int64 }
+                  reduceOnly: { type: string, enum: [REDUCE_ONLY, TP_FROM_POSITION, SL_FROM_POSITION] }
                   triggerPx: { type: string }
                   tpslTriggerType: { type: string, enum: [LAST_PRICE, MARK_PRICE, INDEX_PRICE] }
                   slippagePct: { type: string }

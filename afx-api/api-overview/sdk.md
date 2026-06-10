@@ -53,6 +53,8 @@ Every public SDK feature has an example under the SDK repository's `examples/` d
 ```bash
 python3 examples/info/get_products.py
 python3 examples/exchange/place_order.py
+python3 examples/exchange/replace_order.py
+python3 examples/exchange/place_bracket_order.py
 python3 examples/websocket/subscribe_ticker.py
 ```
 
@@ -76,6 +78,8 @@ python3 examples/websocket/subscribe_ticker.py
 * [revoke_agent.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/revoke_agent.py)
 * [place_order.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/place_order.py)
 * [place_tp_sl_orders.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/place_tp_sl_orders.py)
+* [replace_order.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/replace_order.py)
+* [place_bracket_order.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/place_bracket_order.py)
 * [cancel_order.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/cancel_order.py)
 * [cancel_all.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/cancel_all.py)
 * [set_leverage.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/set_leverage.py)

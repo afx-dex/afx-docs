@@ -58,7 +58,7 @@ Domain: `SignTransaction`
 
 Authorized by Master for daily trading.
 
-Signs: `placeOrder`, `cancelOrder`, `setLeverage`, and all other trading operations.
+Signs: `placeOrder`, `replaceOrder`, `placeBracketOrder`, `cancelOrder`, `setLeverage`, and all other trading operations.
 
 Domain: `Exchange`
 {% endcolumn %}
