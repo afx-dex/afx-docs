@@ -66,6 +66,18 @@ Domain: `Exchange`
 
 See [Authentication](signing.md) for the full EIP-712 signing specification.
 
+### Permission Boundary
+
+| Operation family | Signature | Notes |
+| ---------------- | --------- | ----- |
+| Trading actions such as `placeOrder`, `replaceOrder`, `cancelOrder`, `setLeverage`, and `setMarginMode` | Agent wallet | Intended for day-to-day trading automation. These actions can change market risk but cannot withdraw funds to an external address. |
+| `approveAgent` and `withdraw` | Master wallet | Privileged operations. Keep the Master wallet separate from automated trading infrastructure. |
+| Vault operations | Agent wallet | Vault actions can affect vault balances and management state. Review the exact vault operation before granting an Agent wallet automated access. |
+
+{% hint style="warning" %}
+Only the Master wallet can authorize or revoke an Agent wallet. Do not give the Master private key to trading bots or AI agents.
+{% endhint %}
+
 ## Common Response Format
 
 ```json
@@ -90,6 +102,7 @@ See [Authentication](signing.md) for the full EIP-712 signing specification.
 | `40220` | Rate limit exceeded           |
 | `40230` | Blockchain call failed        |
 | `40231` | Transaction broadcast failed  |
+| `40006` | Location is not supported     |
 | `40280` | Action disabled (emergency)   |
 | `40281` | Address banned                |
 
@@ -97,14 +110,19 @@ See [Authentication](signing.md) for the full EIP-712 signing specification.
 
 ## Available Symbols
 
-Query `GET /info/public/product-meta` for the full list.
+Query `GET /info/public/product-meta` for the canonical product list. Do not hardcode symbol codes or max leverage from examples, because listed markets and risk parameters can change.
 
-| Symbol  | Code | Max Leverage | Settlement |
-| ------- | ---- | ------------ | ---------- |
-| BTCUSDC | 1    | 100x         | USDC       |
-| ETHUSDC | 2    | 100x         | USDC       |
-| SOLUSDC | 3    | 50x          | USDC       |
-| XRPUSDC | 4    | 50x          | USDC       |
+Important fields returned by `product-meta`:
+
+| Field | Description |
+| ----- | ----------- |
+| `code` | Numeric product code used by Exchange API requests. |
+| `symbol` | Product symbol, such as `BTCUSDC`. |
+| `maxLeverage` | Current maximum leverage for the product. |
+| `pricePrecision`, `qtyPrecision` | Display and input precision. |
+| `tickSize`, `stepSize` | Minimum price and quantity increments. |
+| `minOrderValue` | Minimum order notional. |
+| `maxSlippagePct` | Maximum allowed market-order slippage ratio. |
 
 ## Rate Limits
 

@@ -313,6 +313,7 @@ paths:
             { "name": "dexChain",    "type": "string"  },
             { "name": "destination", "type": "address" },
             { "name": "amount",      "type": "string"  },
+            { "name": "withdrawSequence", "type": "uint64" },
             { "name": "nonce",       "type": "uint64"  },
             { "name": "expiryAfter", "type": "uint64"  }
           ]
@@ -324,6 +325,7 @@ paths:
         | `dexChain` | Must match current environment |
         | `destination` | Recipient address (`0x` hex) |
         | `amount` | Withdrawal amount (>= 1) |
+        | `withdrawSequence` | Withdraw sequence included in the action body and signed message. SDK default: request `nonce`. |
         | `expiryAfter` | Unix timestamp in milliseconds. For withdrawals, use a longer expiry window such as current time + 3,600,000 milliseconds. |
 
         ---
@@ -389,6 +391,7 @@ paths:
                     type: withdraw
                     destination: "0xabc123..."
                     amount: "100"
+                    withdrawSequence: 1763023626904
                   signature:
                     r: "0x..."
                     s: "0x..."
