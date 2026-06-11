@@ -158,11 +158,14 @@ Each action has its own EIP-712 type definition. Common domain:
     { "name": "dexChain",    "type": "string"  },
     { "name": "destination", "type": "address" },
     { "name": "amount",      "type": "string"  },
+    { "name": "withdrawSequence", "type": "uint64" },
     { "name": "nonce",       "type": "uint64"  },
     { "name": "expiryAfter", "type": "uint64"  }
   ]
 }
 ```
+
+`withdrawSequence` is included in both the withdraw action body and the signed EIP-712 message. If omitted in the Python SDK, it defaults to the request `nonce`.
 
 For withdrawals, use a longer `expiryAfter` window, such as current Unix time in milliseconds + 3,600,000. This gives the withdrawal enough time to pass signature verification and broadcast.
 

@@ -7,6 +7,8 @@ icon: bolt
 
 Persistent connection for real-time orderbook, kline, ticker, trades, and account state updates.
 
+WebSocket operations are JSON messages sent over an open WebSocket connection. They are not HTTP `POST` requests.
+
 | Environment | URL |
 | ----------- | --- |
 | Mainnet | `wss://ws.afx.xyz/ws/dex` |

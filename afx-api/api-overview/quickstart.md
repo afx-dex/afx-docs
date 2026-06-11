@@ -111,11 +111,7 @@ for p in products["data"]["perpProducts"][:3]:
     print(f"{p['symbol']} (code: {p['code']}, leverage: {p['maxLeverage']}x)")
 ```
 
-| Symbol  | Code | Max Leverage |
-| ------- | ---- | ------------ |
-| BTCUSDC | 1    | 100x         |
-| ETHUSDC | 2    | 100x         |
-| SOLUSDC | 3    | 50x          |
+Use the returned `code` value when placing orders. Do not hardcode product codes or leverage values from examples, because markets and risk parameters can change.
 {% endstep %}
 
 {% step %}

@@ -6,6 +6,8 @@ info:
     All trading operations are submitted through `POST /api/v1/exchange`, routed by `action.type`.
     Every request must include an EIP-712 signature. See the **Signature** page for details.
 
+    JavaScript snippets in this Exchange API reference are illustrative pseudocode for action shape and flow. The official high-level SDK examples are currently provided by the Python SDK.
+
     Common signed request fields:
     - `nonce`: `uint64` Unix timestamp in milliseconds. Use the current millisecond timestamp and do not reuse the same nonce for another signed request.
     - `expiryAfter`: optional `uint64` Unix timestamp in milliseconds. The request expires after this timestamp; `null` means no expiry and must be signed as `0`.
@@ -64,6 +66,18 @@ paths:
         | ConditionalOrdTriggerType | LAST_PRICE=1, MARK_PRICE=2, INDEX_PRICE=3 |
 
         `NONE` is the proto default value. `MARKET_LIQ_SELLOFF`, `LIMIT_LIQ_SELLOFF`, `ADL`, and `LIQUIDATION` are display-only `OrdType` values used by query or stream data. Do not send those values in order requests.
+
+        `slippagePct` is a decimal ratio string for market orders. For example, `"0.001"` means 0.1%, `"0.01"` means 1%, and `"0.05"` means 5%. Check each product's `maxSlippagePct` from `GET /info/public/product-meta`.
+
+        Field names differ by layer:
+
+        | Concept | Python SDK | Protobuf | REST action |
+        |---------|------------|----------|-------------|
+        | Symbol code | `symbol_code` | `symbol_code` | `symbolCode` |
+        | Order price | `px` | `ord_px` | `ordPx` |
+        | Order quantity | `qty` | `ord_qty` | `ordQty` |
+        | Reduce-only option | `reduce_only_option` | `reduce_only_option` | `reduceOnlyOption` |
+        | Trigger type | `trigger_type` | `tpsl_trigger_type` | `tpslTriggerType` |
       requestBody:
         required: true
         content:
@@ -97,7 +111,7 @@ paths:
                         ordType: MARKET
                         ordSide: BUY
                         timeInForce: IOC
-                        slippagePct: "1"
+                        slippagePct: "0.01"
                   signature: { r: "0x...", s: "0x...", v: 27 }
                   nonce: 1763023626904
               stopLoss:
@@ -112,10 +126,10 @@ paths:
                         ordType: MARKET
                         ordSide: SELL
                         timeInForce: IOC
-                        reduce_only_option: SL_FROM_POSITION
+                        reduceOnlyOption: SL_FROM_POSITION
                         triggerPx: "38000"
                         tpslTriggerType: LAST_PRICE
-                        slippagePct: "1"
+                        slippagePct: "0.01"
                   signature: { r: "0x...", s: "0x...", v: 27 }
                   nonce: 1763023626904
       responses:
@@ -123,7 +137,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             // Limit buy
             const result = await client.placeOrder({
@@ -136,16 +150,16 @@ paths:
             const result2 = await client.placeOrder({
               symbolCode: 1, px: "0", qty: "0.1",
               side: "BUY", ordType: "MARKET", tif: "IOC",
-              slippagePct: "1",
+              slippagePct: "0.01",
             });
 
             // Stop loss
             const result3 = await client.placeOrder({
               symbolCode: 1, px: "0", qty: "0",
               side: "SELL", ordType: "MARKET", tif: "IOC",
-              reduce_only_option: "SL_FROM_POSITION",
+              reduceOnlyOption: "SL_FROM_POSITION",
               triggerPx: "38000", tpslTriggerType: "LAST_PRICE",
-              slippagePct: "1",
+              slippagePct: "0.01",
             });
         - lang: Python
           label: Python
@@ -165,7 +179,7 @@ paths:
             result2 = client.exchange.place_order(
                 symbol_code=1, px="0", qty="0.1",
                 side="BUY", ord_type="MARKET", tif="IOC",
-                slippage_pct="1",
+                slippage_pct="0.01",
             )
 
   /exchange/replaceOrder:
@@ -223,7 +237,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.replaceOrder({
               symbolCode: 1,
@@ -335,7 +349,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.placeBracketOrder({
               orders: [
@@ -469,7 +483,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             // Cancel by system order ID
             await client.cancelOrder({ symbolCode: 1, ordId: "12345" });
@@ -524,7 +538,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.cancelAll({ symbolCode: 1 });
 
@@ -577,7 +591,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.setLeverage({ symbolCode: 1, leverage: "10" });
         - lang: Python
@@ -621,7 +635,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.setMarginMode({ symbolCode: 1, mode: "CROSS" });
         - lang: Python
@@ -665,7 +679,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.assignPosMargin({ symbolCode: 1, amount: "100" });
         - lang: Python
@@ -685,6 +699,8 @@ paths:
         Authorize an Agent wallet to trade on behalf of the Master wallet.
 
         **Signature:** Master · **No protobuf** — fields are signed directly via EIP-712.
+
+        To revoke the current Agent wallet, submit the same `approveAgent` action with `agentAddress` set to `0x0000000000000000000000000000000000000000` and `validitySeconds` set to `0`. The Python SDK exposes this as `client.exchange.revoke_agent(...)`.
 
         **EIP-712 type:**
         ```json
@@ -724,13 +740,16 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.approveAgent({ agentName: "my-trading-bot", validitySeconds: 604800 });
         - lang: Python
           label: Python
           source: |
             client.exchange.approve_agent(agent_name="my-trading-bot", validity_seconds=604800)
+
+            # Revoke the active agent wallet.
+            client.exchange.revoke_agent(agent_name="my-trading-bot")
 
   /exchange/withdraw:
     post:
@@ -749,12 +768,13 @@ paths:
             { "name": "dexChain",    "type": "string"  },
             { "name": "destination", "type": "address" },
             { "name": "amount",      "type": "string"  },
+            { "name": "withdrawSequence", "type": "uint64" },
             { "name": "nonce",       "type": "uint64"  },
             { "name": "expiryAfter", "type": "uint64"  }
           ]
         }
         ```
-        Domain name: `"SignTransaction"`. `dexChain` is determined by the server environment.
+        Domain name: `"SignTransaction"`. `dexChain` is determined by the server environment. `withdrawSequence` is included in both the action body and the signed EIP-712 message. If omitted in the Python SDK, it defaults to the request `nonce`.
 
         For withdrawals, use a longer `expiryAfter` window, such as current Unix time in milliseconds + 3,600,000.
         The minimum mainnet withdrawal amount is 2 USDC.
@@ -771,6 +791,7 @@ paths:
                     type: withdraw
                     destination: "0xabc123..."
                     amount: "100"
+                    withdrawSequence: 1763023626904
                   signature: { r: "0x...", s: "0x...", v: 27 }
                   nonce: 1763023626904
                   expiryAfter: 1763027226904
@@ -779,7 +800,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.withdraw({ destination: "0xabc...", amount: "100", expirySeconds: 3600 });
         - lang: Python
@@ -825,7 +846,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.bindReferral({ code: "ABC123" });
         - lang: Python
@@ -872,7 +893,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.vaultDeposit({ vaultAddress: "0x4b90BBE5...", amount: "100" });
         - lang: Python
@@ -916,7 +937,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.vaultWithdraw({ vaultAddress: "0x4b90BBE5...", share: "9.5" });
         - lang: Python
@@ -943,6 +964,7 @@ paths:
         | `40207` | Invalid nonce |
         | `40208` | Request expired |
         | `40220` | Rate limit exceeded |
+        | `40006` | Location is not supported |
       responses:
         "200":
           description: Reference only
@@ -1011,7 +1033,7 @@ components:
                   timeInForce: { type: string, enum: [GTC, IOC, FOK, POST_ONLY] }
                   clOrdId: { type: integer, format: int64 }
                   parentOrdId: { type: integer, format: int64 }
-                  reduce_only_option: { type: string, enum: [REDUCE_ONLY, TP_FROM_POSITION, SL_FROM_POSITION] }
+                  reduceOnlyOption: { type: string, enum: [REDUCE_ONLY, TP_FROM_POSITION, SL_FROM_POSITION] }
                   triggerPx: { type: string }
                   tpslTriggerType: { type: string, enum: [LAST_PRICE, MARK_PRICE, INDEX_PRICE] }
                   slippagePct: { type: string }
