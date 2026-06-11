@@ -13,6 +13,8 @@ POST /api/v1/exchange
 
 The `action.type` field determines which operation to execute. Every request requires an EIP-712 signature. See [Authentication](../signing.md) for signing details.
 
+JavaScript snippets in this section are illustrative pseudocode for action shape and flow. The official high-level SDK examples are currently provided by the Python SDK.
+
 ## Python SDK Examples
 
 The official SDK repository includes runnable examples for common Exchange actions:
