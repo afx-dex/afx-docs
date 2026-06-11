@@ -18,9 +18,9 @@ info:
     | **Master** | `SignTransaction` | Master Wallet | approveAgent, withdraw, faucetClaim |
 
 servers:
-  - url: https://api10.afx.xyz
+  - url: https://api.afx.xyz
     description: Mainnet
-  - url: https://api10-testnet.afx.xyz
+  - url: https://api-testnet.afx.xyz
     description: Testnet
 
 paths:
@@ -157,7 +157,7 @@ paths:
             const AGENT_KEY = "0xYOUR_AGENT_PRIVATE_KEY";
             const CHAIN_ID  = 421614;
             const SOURCE    = "a";  // "a" Mainnet, "b" Testnet
-            const BASE_URL  = "https://api10.afx.xyz";
+            const BASE_URL  = "https://api.afx.xyz";
 
             const agent = new ethers.Wallet(AGENT_KEY);
 
@@ -406,7 +406,7 @@ paths:
 
             const MASTER_KEY = "0xYOUR_MASTER_PRIVATE_KEY";
             const CHAIN_ID   = 421614;
-            const BASE_URL   = "https://api10.afx.xyz";
+            const BASE_URL   = "https://api.afx.xyz";
 
             const master = new ethers.Wallet(MASTER_KEY);
 

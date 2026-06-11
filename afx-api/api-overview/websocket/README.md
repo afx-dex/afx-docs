@@ -9,8 +9,8 @@ Persistent connection for real-time orderbook, kline, ticker, trades, and accoun
 
 | Environment | URL |
 | ----------- | --- |
-| Mainnet | `wss://ws10.afx.xyz/ws/dex` |
-| Testnet | `wss://ws10-testnet.afx.xyz/ws/dex` |
+| Mainnet | `wss://ws.afx.xyz/ws/dex` |
+| Testnet | `wss://ws-testnet.afx.xyz/ws/dex` |
 
 ## Python SDK Examples
 
