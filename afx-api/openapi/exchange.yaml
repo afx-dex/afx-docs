@@ -11,9 +11,9 @@ info:
     - `expiryAfter`: optional `uint64` Unix timestamp in milliseconds. The request expires after this timestamp; `null` means no expiry and must be signed as `0`.
 
 servers:
-  - url: https://api10.afx.xyz
+  - url: https://api.afx.xyz
     description: Mainnet
-  - url: https://api10-testnet.afx.xyz
+  - url: https://api-testnet.afx.xyz
     description: Testnet
 
 paths:
@@ -757,6 +757,7 @@ paths:
         Domain name: `"SignTransaction"`. `dexChain` is determined by the server environment.
 
         For withdrawals, use a longer `expiryAfter` window, such as current Unix time in milliseconds + 3,600,000.
+        The minimum mainnet withdrawal amount is 2 USDC.
       requestBody:
         required: true
         content:
@@ -1490,7 +1491,7 @@ components:
           properties:
             type: { type: string, enum: [withdraw] }
             destination: { type: string, description: "Recipient address (0x hex)" }
-            amount: { type: string, description: ">= 1" }
+            amount: { type: string, description: "Withdrawal amount. Minimum mainnet withdrawal: 2 USDC." }
         signature: { $ref: "#/components/schemas/Signature" }
         nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }
         expiryAfter: { type: integer, format: int64, nullable: true, description: "Unix timestamp in milliseconds after which the request expires. For withdrawals, use a longer window such as current time + 3,600,000 milliseconds. null = no expiry; use 0 in the signature payload when this field is null." }

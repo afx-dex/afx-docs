@@ -166,6 +166,8 @@ Each action has its own EIP-712 type definition. Common domain:
 
 For withdrawals, use a longer `expiryAfter` window, such as current Unix time in milliseconds + 3,600,000. This gives the withdrawal enough time to pass signature verification and broadcast.
 
+The minimum mainnet withdrawal amount is 2 USDC.
+
 ### faucetClaim (Testnet only)
 
 ```json

@@ -12,9 +12,9 @@ info:
     ```
 
 servers:
-  - url: https://api10.afx.xyz
+  - url: https://api.afx.xyz
     description: Mainnet
-  - url: https://api10-testnet.afx.xyz
+  - url: https://api-testnet.afx.xyz
     description: Testnet
 
 paths:

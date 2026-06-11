@@ -29,12 +29,16 @@ AFX DEX is a fully on-chain perpetual futures exchange. No API keys required —
 
 | Environment | Exchange API                                    | Info API                                 | WebSocket                           |
 | ----------- | ----------------------------------------------- | ---------------------------------------- | ----------------------------------- |
-| **Mainnet** | `https://api10.afx.xyz/api/v1/exchange`         | `https://api10.afx.xyz/info/...`         | `wss://ws10.afx.xyz/ws/dex`         |
-| **Testnet** | `https://api10-testnet.afx.xyz/api/v1/exchange` | `https://api10-testnet.afx.xyz/info/...` | `wss://ws10-testnet.afx.xyz/ws/dex` |
+| **Mainnet** | `https://api.afx.xyz/api/v1/exchange`         | `https://api.afx.xyz/info/...`         | `wss://ws.afx.xyz/ws/dex`         |
+| **Testnet** | `https://api-testnet.afx.xyz/api/v1/exchange` | `https://api-testnet.afx.xyz/info/...` | `wss://ws-testnet.afx.xyz/ws/dex` |
 
 {% hint style="info" %}
 Start with the **Testnet** environment. Use `faucetClaim` to get free test funds.
 {% endhint %}
+
+## Funding Limits
+
+On mainnet, the minimum deposit is 10 USDC and the minimum withdrawal is 2 USDC.
 
 ## API Categories
 
