@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://afx.xyz/schemas/signed-action-envelope.schema.json",
+  "title": "AFX Signed Exchange Request Envelope",
+  "type": "object",
+  "required": ["action", "signature", "nonce"],
+  "properties": {
+    "action": {
+      "$ref": "signed-actions.schema.json"
+    },
+    "signature": {
+      "type": "object",
+      "required": ["r", "s", "v"],
+      "properties": {
+        "r": { "type": "string", "pattern": "^0x[0-9a-fA-F]+$" },
+        "s": { "type": "string", "pattern": "^0x[0-9a-fA-F]+$" },
+        "v": { "type": "integer" }
+      },
+      "additionalProperties": false
+    },
+    "nonce": {
+      "type": "integer",
+      "description": "Unix timestamp in milliseconds. Must not be reused."
+    },
+    "expiryAfter": {
+      "type": ["integer", "null"],
+      "description": "Unix timestamp in milliseconds. Null means no expiry and is signed as 0."
+    },
+    "vaultAddress": {
+      "type": ["string", "null"],
+      "description": "Only used by action types that explicitly sign an outer vault address."
+    }
+  },
+  "additionalProperties": false
+}
+

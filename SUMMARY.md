@@ -41,3 +41,4 @@
         ```
     * [Signing](afx-api/api-overview/signing.md)
     * [Python SDK](afx-api/api-overview/sdk.md)
+    * [Agent Artifacts](afx-api/api-overview/agent-artifacts.md)

@@ -1,0 +1,2624 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "AFX DEX Info API",
+    "version": "1.0.0",
+    "description": "Query endpoints for account data, orders, positions, trades, market data, and more.\nAll endpoints are `GET` requests. No signature required.\n\n**Response format:**\n```json\n{ \"code\": 0, \"message\": \"success\", \"data\": { ... } }\n```\n"
+  },
+  "servers": [
+    {
+      "url": "https://api.afx.xyz",
+      "description": "Mainnet"
+    },
+    {
+      "url": "https://api-testnet.afx.xyz",
+      "description": "Testnet"
+    }
+  ],
+  "paths": {
+    "/info/account/wallet": {
+      "get": {
+        "operationId": "queryWallet",
+        "summary": "Query Wallet Balances",
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User address (0x hex)"
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "Currency code filter"
+          },
+          {
+            "name": "includeZero",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Include zero-balance currencies"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AccountWallet"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "code": 0,
+                      "message": "success",
+                      "data": [
+                        {
+                          "userAddr": "0xabc...",
+                          "currency": 1,
+                          "balance": "10000.000000",
+                          "availableBalance": "8500.000000",
+                          "availableTransferBalance": "8500.000000",
+                          "equity": "10500.000000",
+                          "status": "NORMAL",
+                          "blockTime": 1776920000000
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/account/wallet?userAddr=0xabc...`\n);\nconsole.log(await resp.json());\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/account/wallet\",\n    params={\"userAddr\": \"0xabc...\"})\nprint(resp.json())\n"
+          }
+        ]
+      }
+    },
+    "/info/account/ledger": {
+      "get": {
+        "operationId": "queryLedger",
+        "summary": "Query Account Ledger",
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "bizType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Business type filter"
+          },
+          {
+            "name": "txHash",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "Start timestamp (ms)"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "End timestamp (ms)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated ledger entries"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/account/ledger?userAddr=0xabc...&page=1&pageSize=20`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/account/ledger\",\n    params={\"userAddr\": \"0xabc...\", \"page\": 1, \"pageSize\": 20})\n"
+          }
+        ]
+      }
+    },
+    "/info/account/agent": {
+      "get": {
+        "operationId": "queryAgent",
+        "summary": "Query Account Agents",
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "agentAddress",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "masterAddress",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated agent list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AccountAgent"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/account/agent?userAddr=0xabc...`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/account/agent\",\n    params={\"userAddr\": \"0xabc...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/account/agent/active": {
+      "get": {
+        "operationId": "queryActiveAgent",
+        "summary": "Query Active Agent",
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "agentName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Active agent info",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AccountAgent"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/account/agent/active?userAddr=0xabc...&agentName=my-bot`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/account/agent/active\",\n    params={\"userAddr\": \"0xabc...\", \"agentName\": \"my-bot\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/order/states": {
+      "get": {
+        "operationId": "queryOrderStates",
+        "summary": "Query Order States",
+        "tags": [
+          "Orders"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "Symbol code filter"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Order status filter"
+          },
+          {
+            "name": "side",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Side filter (1=BUY, 2=SELL)"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Type filter (1=LIMIT, 2=MARKET)"
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientOrderId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "parentOrderId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated order states",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OrderState"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/order/states?userAddr=0xabc...&symbol=1`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/order/states\",\n    params={\"userAddr\": \"0xabc...\", \"symbol\": 1})\n"
+          }
+        ]
+      }
+    },
+    "/info/order/events": {
+      "get": {
+        "operationId": "queryOrderEvents",
+        "summary": "Query Order Events",
+        "tags": [
+          "Orders"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientOrderId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "execStatus",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "side",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated order events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OrderEvent"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/order/events?userAddr=0xabc...&orderId=12345`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/order/events\",\n    params={\"userAddr\": \"0xabc...\", \"orderId\": \"12345\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/position/list": {
+      "get": {
+        "operationId": "queryPositions",
+        "summary": "Query Positions",
+        "tags": [
+          "Positions"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "posMode",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Position mode (1=ONE_WAY, 2=HEDGE)"
+          },
+          {
+            "name": "includeZero",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Position list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Position"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/position/list?userAddr=0xabc...`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/position/list\",\n    params={\"userAddr\": \"0xabc...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/trade/page": {
+      "get": {
+        "operationId": "queryTrades",
+        "summary": "Query Trades",
+        "tags": [
+          "Trades"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "execId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "side",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Maker/Taker role filter"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated trade records",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Trade"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/trade/page?userAddr=0xabc...&symbol=1`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/trade/page\",\n    params={\"userAddr\": \"0xabc...\", \"symbol\": 1})\n"
+          }
+        ]
+      }
+    },
+    "/info/single": {
+      "get": {
+        "operationId": "getProductSingle",
+        "summary": "Query Single Product",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "Symbol code"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ProductMeta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(`${BASE_URL}/info/single?symbol=1`);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/single\", params={\"symbol\": 1})\n"
+          }
+        ]
+      }
+    },
+    "/info/public/product-meta": {
+      "get": {
+        "operationId": "getAllProducts",
+        "summary": "Query All Products",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "name": "listStatus",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Filter by listing status"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All product metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ProductMeta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(`${BASE_URL}/info/public/product-meta`);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/public/product-meta\")\n"
+          }
+        ]
+      }
+    },
+    "/info/kline/last": {
+      "get": {
+        "operationId": "getKlineLast",
+        "summary": "Query Latest Klines",
+        "tags": [
+          "Kline"
+        ],
+        "description": "Get latest N kline candles, sorted by timestamp descending.",
+        "parameters": [
+          {
+            "name": "symbol_name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Symbol name (e.g. `BTCUSDC`)"
+          },
+          {
+            "name": "interval",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "Interval in seconds (60, 300, 900, 3600, 86400, ...)"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 100
+            },
+            "description": "Number of candles to return"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kline data array",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Kline"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/kline/last?symbol_name=BTCUSDC&interval=60&limit=100`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/kline/last\",\n    params={\"symbol_name\": \"BTCUSDC\", \"interval\": 60, \"limit\": 100})\n"
+          }
+        ]
+      }
+    },
+    "/info/kline/before": {
+      "get": {
+        "operationId": "getKlineBefore",
+        "summary": "Query Klines Before Timestamp",
+        "tags": [
+          "Kline"
+        ],
+        "description": "Get N klines before a given timestamp. Defaults to current time.",
+        "parameters": [
+          {
+            "name": "symbol_name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "interval",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "timestamp",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "Upper bound timestamp (ms). Defaults to now."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kline data array",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Kline"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/kline/before?symbol_name=BTCUSDC&interval=60&limit=200`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/kline/before\",\n    params={\"symbol_name\": \"BTCUSDC\", \"interval\": 60, \"limit\": 200})\n"
+          }
+        ]
+      }
+    },
+    "/info/kline/list": {
+      "get": {
+        "operationId": "getKlineList",
+        "summary": "Query Klines in Time Range",
+        "tags": [
+          "Kline"
+        ],
+        "description": "Get all klines in a time range, sorted ascending.",
+        "parameters": [
+          {
+            "name": "symbol_name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "interval",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kline data array",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Kline"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/kline/list?symbol_name=BTCUSDC&interval=3600&startTime=1700000000000&endTime=1700100000000`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/kline/list\", params={\n    \"symbol_name\": \"BTCUSDC\", \"interval\": 3600,\n    \"startTime\": 1700000000000, \"endTime\": 1700100000000,\n})\n"
+          }
+        ]
+      }
+    },
+    "/info/fundingRate/current": {
+      "get": {
+        "operationId": "getFundingRateCurrent",
+        "summary": "Query Current Funding Rates",
+        "tags": [
+          "Funding Rate"
+        ],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "Symbol code. Omit for all symbols."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current funding rate(s)"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(`${BASE_URL}/info/fundingRate/current?symbol=1`);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/fundingRate/current\",\n    params={\"symbol\": 1})\n"
+          }
+        ]
+      }
+    },
+    "/info/fundingRate/history": {
+      "get": {
+        "operationId": "getFundingRateHistory",
+        "summary": "Query Funding Rate History",
+        "tags": [
+          "Funding Rate"
+        ],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated funding rate history"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/fundingRate/history?symbol=1&page=1&pageSize=20`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/fundingRate/history\",\n    params={\"symbol\": 1, \"page\": 1, \"pageSize\": 20})\n"
+          }
+        ]
+      }
+    },
+    "/info/funding/history": {
+      "get": {
+        "operationId": "queryUserFundingHistory",
+        "summary": "Query User Funding History",
+        "tags": [
+          "Funding Rate"
+        ],
+        "description": "Query a user's funding fee settlement history.",
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated user funding history"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/funding/history?userAddr=0xabc...&symbol=1`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/funding/history\",\n    params={\"userAddr\": \"0xabc...\", \"symbol\": 1})\n"
+          }
+        ]
+      }
+    },
+    "/info/vault/detail": {
+      "get": {
+        "operationId": "getVaultDetail",
+        "summary": "Query Vault Detail",
+        "tags": [
+          "Vault"
+        ],
+        "description": "Returns vault info (TVL, APR, PnL). If `userAddress` is provided, also returns user position data.\nWhen querying a parent vault, TVL/PnL/APR aggregate all sub-vaults.\n",
+        "parameters": [
+          {
+            "name": "vaultAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userAddress",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include user position data"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vault detail",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "success": {
+                    "value": {
+                      "code": 0,
+                      "message": "success",
+                      "data": {
+                        "vaultAddress": "0x4b90BBE5...",
+                        "ownerAddress": "0xfc846581...",
+                        "vaultName": "test",
+                        "tvl": "100.000000",
+                        "price": "1.000000",
+                        "apr": null,
+                        "status": 1,
+                        "yourDeposits": "100.000000",
+                        "userCurrentValue": "100.000000"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/vault/detail?vaultAddress=0x4b90...&userAddress=0xfc84...`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/vault/detail\", params={\n    \"vaultAddress\": \"0x4b90...\", \"userAddress\": \"0xfc84...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/vault/user-list": {
+      "get": {
+        "operationId": "getUserVaultList",
+        "summary": "Query User's Vault List",
+        "tags": [
+          "Vault"
+        ],
+        "description": "Returns all vaults where user holds shares > 0.",
+        "parameters": [
+          {
+            "name": "userAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of vaults with user holdings"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/vault/user-list?userAddress=0xabc...`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/vault/user-list\",\n    params={\"userAddress\": \"0xabc...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/vault/user": {
+      "get": {
+        "operationId": "getUserVaultInfo",
+        "summary": "Query User Vault Position",
+        "tags": [
+          "Vault"
+        ],
+        "description": "Returns user's full position info in a specific vault.",
+        "parameters": [
+          {
+            "name": "vaultAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User vault position detail"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/vault/user?vaultAddress=0x4b90...&userAddress=0xfc84...`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/vault/user\",\n    params={\"vaultAddress\": \"0x4b90...\", \"userAddress\": \"0xfc84...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/vault/list": {
+      "get": {
+        "operationId": "getVaultList",
+        "summary": "Query All Vaults",
+        "tags": [
+          "Vault"
+        ],
+        "description": "Returns all parent vaults (Active and Closed). Sub-vaults not listed.\nTVL and APR aggregate sub-vault data.\n",
+        "parameters": [
+          {
+            "name": "userAddress",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include `yourDeposit` field when provided"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vault list with total locked value"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(`${BASE_URL}/info/vault/list`);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/vault/list\")\n"
+          }
+        ]
+      }
+    },
+    "/info/vault/history": {
+      "get": {
+        "operationId": "getVaultHistory",
+        "summary": "Query Vault History",
+        "tags": [
+          "Vault"
+        ],
+        "description": "Returns vault TVL or PnL time-series data.\n\n| interval | Range | Granularity |\n|----------|-------|-------------|\n| 24h | Last 24 hours | 1 hour |\n| 7d | Last 7 days | 12 hours |\n| 30d | Last 30 days | 1 day |\n| all-time | All history | 1 month |\n",
+        "parameters": [
+          {
+            "name": "vaultAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "tvl",
+              "enum": [
+                "tvl",
+                "pnl"
+              ]
+            }
+          },
+          {
+            "name": "interval",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "24h",
+              "enum": [
+                "24h",
+                "7d",
+                "30d",
+                "all-time"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Time-series data"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/vault/history?vaultAddress=0x4b90...&type=tvl&interval=7d`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/vault/history\", params={\n    \"vaultAddress\": \"0x4b90...\", \"type\": \"tvl\", \"interval\": \"7d\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/vault/events": {
+      "get": {
+        "operationId": "getVaultEvents",
+        "summary": "Query Vault Deposit/Withdraw Events",
+        "tags": [
+          "Vault"
+        ],
+        "parameters": [
+          {
+            "name": "vaultAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated deposit/withdraw events"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/vault/events?vaultAddress=0x4b90...&page=1`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/vault/events\",\n    params={\"vaultAddress\": \"0x4b90...\", \"page\": 1})\n"
+          }
+        ]
+      }
+    },
+    "/info/vault/depositors": {
+      "get": {
+        "operationId": "getVaultDepositors",
+        "summary": "Query Vault Depositors",
+        "tags": [
+          "Vault"
+        ],
+        "description": "Returns all depositors with shares > 0.",
+        "parameters": [
+          {
+            "name": "vaultAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Depositor list"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/vault/depositors?vaultAddress=0x4b90...`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/vault/depositors\",\n    params={\"vaultAddress\": \"0x4b90...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/referral/code": {
+      "get": {
+        "operationId": "getReferralCode",
+        "summary": "Query Referral Code",
+        "tags": [
+          "Referral"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Referral code info"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(`${BASE_URL}/info/referral/code?userAddr=0xabc...`);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/referral/code\",\n    params={\"userAddr\": \"0xabc...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/referral/summary": {
+      "get": {
+        "operationId": "getReferralSummary",
+        "summary": "Query Referral Summary",
+        "tags": [
+          "Referral"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "all"
+            }
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Referral summary statistics"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/referral/summary?userAddr=0xabc...&period=all`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/referral/summary\",\n    params={\"userAddr\": \"0xabc...\", \"period\": \"all\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/referral/referrals": {
+      "get": {
+        "operationId": "getReferrals",
+        "summary": "Query Referral List",
+        "tags": [
+          "Referral"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "dateJoined"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "desc"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated referral list"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/referral/referrals?userAddr=0xabc...&page=1&size=10`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/referral/referrals\",\n    params={\"userAddr\": \"0xabc...\", \"page\": 1, \"size\": 10})\n"
+          }
+        ]
+      }
+    },
+    "/info/referral/payouts": {
+      "get": {
+        "operationId": "getPayouts",
+        "summary": "Query Referral Payouts",
+        "tags": [
+          "Referral"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated payout list"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/referral/payouts?userAddr=0xabc...`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/referral/payouts\",\n    params={\"userAddr\": \"0xabc...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/referral/tiers": {
+      "get": {
+        "operationId": "getTierConfigs",
+        "summary": "Query Referral Tiers",
+        "tags": [
+          "Referral"
+        ],
+        "description": "Returns referral tier configuration (no parameters).",
+        "responses": {
+          "200": {
+            "description": "Tier config list"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(`${BASE_URL}/info/referral/tiers`);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/referral/tiers\")\n"
+          }
+        ]
+      }
+    },
+    "/info/explore/transaction/page": {
+      "get": {
+        "operationId": "queryTransactions",
+        "summary": "Query Transactions",
+        "tags": [
+          "Explorer"
+        ],
+        "parameters": [
+          {
+            "name": "user",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User address"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated transaction list"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/explore/transaction/page?user=0xabc...`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/explore/transaction/page\",\n    params={\"user\": \"0xabc...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/explore/transaction/detail": {
+      "get": {
+        "operationId": "queryTransactionDetail",
+        "summary": "Query Transaction Detail",
+        "tags": [
+          "Explorer"
+        ],
+        "parameters": [
+          {
+            "name": "txHash",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction detail with parsed action"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/explore/transaction/detail?txHash=0xdef...`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/explore/transaction/detail\",\n    params={\"txHash\": \"0xdef...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/explore/block/detail": {
+      "get": {
+        "operationId": "queryBlockDetail",
+        "summary": "Query Block Detail",
+        "tags": [
+          "Explorer"
+        ],
+        "parameters": [
+          {
+            "name": "blockHeight",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Block detail with paginated transactions"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/explore/block/detail?blockHeight=123456`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/explore/block/detail\",\n    params={\"blockHeight\": 123456})\n"
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccountWallet": {
+        "type": "object",
+        "properties": {
+          "blockHeight": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "userAddr": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "balance": {
+            "type": "string"
+          },
+          "availableBalance": {
+            "type": "string"
+          },
+          "availableTransferBalance": {
+            "type": "string"
+          },
+          "equity": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "blockTime": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "AccountAgent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "masterAddress": {
+            "type": "string"
+          },
+          "agentAddress": {
+            "type": "string"
+          },
+          "agentName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "1=ACTIVE, 2=REVOKED"
+          },
+          "permission": {
+            "type": "string"
+          },
+          "approvedAt": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "approvedBlock": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "approvalTx": {
+            "type": "string"
+          },
+          "revokedAt": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "revokedBlock": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "revokeTx": {
+            "type": "string"
+          }
+        }
+      },
+      "OrderState": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "blockHeight": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "ordId": {
+            "type": "string"
+          },
+          "clOrdId": {
+            "type": "string"
+          },
+          "parentOrdId": {
+            "type": "string"
+          },
+          "userAddr": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "side": {
+            "type": "integer",
+            "description": "1=BUY, 2=SELL"
+          },
+          "type": {
+            "type": "integer",
+            "description": "1=LIMIT, 2=MARKET"
+          },
+          "price": {
+            "type": "string"
+          },
+          "qty": {
+            "type": "string"
+          },
+          "filledQty": {
+            "type": "string"
+          },
+          "leaveQty": {
+            "type": "string"
+          },
+          "cumFilledValue": {
+            "type": "string"
+          },
+          "cumFee": {
+            "type": "string"
+          },
+          "triggerPx": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "NEW, PARTIALLY_FILLED, FILLED, CANCELED"
+          },
+          "timeInForce": {
+            "type": "string"
+          },
+          "reduceOnly": {
+            "type": "integer",
+            "description": "0=NONE, 1=REDUCE_ONLY, 2=TP, 3=SL"
+          },
+          "conditionalOrderTriggerType": {
+            "type": "integer"
+          },
+          "blockTime": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "OrderEvent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "blockHeight": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "userAddr": {
+            "type": "string"
+          },
+          "ordId": {
+            "type": "string"
+          },
+          "clOrdId": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "side": {
+            "type": "string"
+          },
+          "execStatus": {
+            "type": "string"
+          },
+          "ordPx": {
+            "type": "string"
+          },
+          "filledPx": {
+            "type": "string"
+          },
+          "execQty": {
+            "type": "string"
+          },
+          "leavesQty": {
+            "type": "string"
+          },
+          "execId": {
+            "type": "string"
+          },
+          "realizedPnl": {
+            "type": "string"
+          },
+          "openFee": {
+            "type": "string"
+          },
+          "closeFee": {
+            "type": "string"
+          },
+          "blockTime": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "txHash": {
+            "type": "string"
+          },
+          "ordType": {
+            "type": "integer"
+          },
+          "timeInForce": {
+            "type": "string"
+          },
+          "ordQty": {
+            "type": "string"
+          },
+          "triggerPx": {
+            "type": "string"
+          }
+        }
+      },
+      "Position": {
+        "type": "object",
+        "properties": {
+          "userAddr": {
+            "type": "string"
+          },
+          "symbolCode": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "leverage": {
+            "type": "string"
+          },
+          "longSize": {
+            "type": "string"
+          },
+          "shortSize": {
+            "type": "string"
+          },
+          "longEntryValue": {
+            "type": "string"
+          },
+          "shortEntryValue": {
+            "type": "string"
+          },
+          "positionMode": {
+            "type": "string",
+            "description": "ONE_WAY, HEDGE"
+          },
+          "positionMarginMode": {
+            "type": "string",
+            "description": "CROSS, ISOLATED"
+          },
+          "assignedPosBalance": {
+            "type": "string"
+          },
+          "unrealizedPnl": {
+            "type": "string"
+          },
+          "cumRealizedPnl": {
+            "type": "string"
+          },
+          "curMarkPx": {
+            "type": "string"
+          },
+          "cumTransactionFee": {
+            "type": "string"
+          },
+          "createTime": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "blockTime": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "Trade": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "blockHeight": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "userAddr": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "clientOrderId": {
+            "type": "string"
+          },
+          "side": {
+            "type": "string"
+          },
+          "execStatus": {
+            "type": "string"
+          },
+          "orderPx": {
+            "type": "string"
+          },
+          "filledPx": {
+            "type": "string"
+          },
+          "execQty": {
+            "type": "string"
+          },
+          "leavesQty": {
+            "type": "string"
+          },
+          "execId": {
+            "type": "string"
+          },
+          "realizedPnl": {
+            "type": "string"
+          },
+          "openFee": {
+            "type": "string"
+          },
+          "closeFee": {
+            "type": "string"
+          },
+          "blockTime": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "txHash": {
+            "type": "string"
+          }
+        }
+      },
+      "ProductMeta": {
+        "type": "object",
+        "properties": {
+          "md5Checksum": {
+            "type": "string"
+          },
+          "perpProducts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Display name"
+                },
+                "symbol": {
+                  "type": "string",
+                  "description": "Symbol name e.g. BTCUSDC"
+                },
+                "code": {
+                  "type": "string",
+                  "description": "Symbol code"
+                },
+                "currencyCode": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "maxLeverage": {
+                  "type": "integer"
+                },
+                "pricePrecision": {
+                  "type": "integer"
+                },
+                "qtyPrecision": {
+                  "type": "integer"
+                },
+                "tickSize": {
+                  "type": "string"
+                },
+                "stepSize": {
+                  "type": "string"
+                },
+                "maxOrderQty": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "maxSlippagePct": {
+                  "type": "string"
+                },
+                "maxPositionNtnl": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "fundingInterval": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "seconds"
+                },
+                "productType": {
+                  "type": "string"
+                },
+                "listStatus": {
+                  "type": "string"
+                },
+                "onlyIsolated": {
+                  "type": "boolean"
+                },
+                "baseCurrency": {
+                  "type": "string"
+                },
+                "quoteCurrency": {
+                  "type": "string"
+                },
+                "settleCurrency": {
+                  "type": "string"
+                },
+                "minOrderValue": {
+                  "type": "string"
+                },
+                "defaultMakerFeeRate": {
+                  "type": "string"
+                },
+                "defaultTakerFeeRate": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "marginTables": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "tableId": {
+                  "type": "integer"
+                },
+                "riskLimitVo": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "minimumValue": {
+                        "type": "string"
+                      },
+                      "maintainMarginRatio": {
+                        "type": "string"
+                      },
+                      "maxLeverage": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "currencies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "currency": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "walletPrecision": {
+                  "type": "integer"
+                },
+                "displayPrecision": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Kline": {
+        "type": "object",
+        "properties": {
+          "symbolName": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "K-line start time (seconds)"
+          },
+          "intrvl": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Interval (seconds)"
+          },
+          "open": {
+            "type": "string"
+          },
+          "high": {
+            "type": "string"
+          },
+          "low": {
+            "type": "string"
+          },
+          "close": {
+            "type": "string"
+          },
+          "volume": {
+            "type": "string"
+          },
+          "turnover": {
+            "type": "string"
+          },
+          "tradeCount": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      }
+    }
+  }
+}

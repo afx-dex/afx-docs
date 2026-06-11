@@ -1,0 +1,61 @@
+# AFX DEX For AI Agents
+
+Use the official SDKs before hand-rolling signing or protobuf encoding.
+
+Python:
+
+```bash
+git clone https://github.com/afx-dex/afx-python-sdk.git
+cd afx-python-sdk
+python3 -m pip install -e .
+```
+
+Environment variables:
+
+```bash
+export AFX_MASTER_PRIVATE_KEY="0x..."
+export AFX_AGENT_PRIVATE_KEY="0x..."
+```
+
+Wallet roles:
+
+- Master wallet controls funds and signs `approveAgent`, `withdraw`, and testnet `faucetClaim`.
+- Agent wallet is authorized by the Master and signs daily trading actions.
+
+Networks:
+
+- Mainnet REST: `https://api.afx.xyz`
+- Testnet REST: `https://api-testnet.afx.xyz`
+- Mainnet WebSocket: `wss://ws.afx.xyz/ws/dex`
+- Testnet WebSocket: `wss://ws-testnet.afx.xyz/ws/dex`
+
+Important constraints:
+
+- Mainnet minimum deposit: 10 USDC.
+- Mainnet minimum withdrawal: 2 USDC.
+- `nonce` is Unix milliseconds and must not be reused.
+- `expiryAfter` is Unix milliseconds; sign `0` when no expiry is used.
+- `withdrawSequence` is Unix seconds.
+- Funding rate `symbol` is the product code, for example BTCUSDC is `1`.
+- Kline `interval` is seconds, for example `60`, not `"1m"`.
+- `vaultWithdraw` uses vault shares, not USDC amount.
+
+First trade flow:
+
+1. Install the Python SDK.
+2. Set `AFX_MASTER_PRIVATE_KEY` and `AFX_AGENT_PRIVATE_KEY`.
+3. Create `AfxClient.from_env(testnet=True)`.
+4. Run `client.exchange.faucet_claim()` on testnet.
+5. Run `client.exchange.approve_agent(agent_name="my-agent", validity_seconds=604800)`.
+6. Query `client.info.get_products()` and choose a product `code`.
+7. Place a small limit order with `client.exchange.place_order(...)`.
+8. Cancel it with `client.exchange.cancel_order(...)` or `client.exchange.cancel_all(...)`.
+
+Machine-readable files:
+
+- `/afx-api/artifacts/openapi.json`
+- `/afx-api/artifacts/asyncapi.json`
+- `/afx-api/artifacts/schemas/signed-action-envelope.schema.json`
+- `/afx-api/artifacts/schemas/signed-actions.schema.json`
+- `/afx-api/agent-guides/first-trade.md`
+
