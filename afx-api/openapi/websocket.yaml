@@ -7,8 +7,6 @@ info:
 
     **Connection URL:** `wss://ws.afx.xyz/ws/dex`
 
-    WebSocket operations are JSON messages sent over an open WebSocket connection. They are not HTTP `POST` requests, even if this reference is rendered from an OpenAPI-shaped source.
-
     **Protocol:**
     - Send `subscribe` / `unsubscribe` / `ping` messages as JSON
     - Server pushes data on `channel` field

@@ -324,8 +324,7 @@ paths:
         |-------|-------------|
         | `dexChain` | Must match current environment |
         | `destination` | Recipient address (`0x` hex) |
-        | `amount` | Withdrawal amount (>= 1) |
-        | `withdrawSequence` | Withdraw sequence included in the action body and signed message. SDK default: request `nonce`. |
+        | `amount` | Withdrawal amount. Minimum mainnet withdrawal: 2 USDC. |
         | `expiryAfter` | Unix timestamp in milliseconds. For withdrawals, use a longer expiry window such as current time + 3,600,000 milliseconds. |
 
         ---

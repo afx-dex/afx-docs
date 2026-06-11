@@ -38,6 +38,10 @@ export AFX_MASTER_PRIVATE_KEY="0xYOUR_MASTER_PRIVATE_KEY"
 export AFX_AGENT_PRIVATE_KEY="0xYOUR_AGENT_PRIVATE_KEY"
 ```
 
+{% hint style="info" %}
+On mainnet, the minimum deposit is 10 USDC and the minimum withdrawal is 2 USDC. Testnet examples use faucet funds instead of real deposits.
+{% endhint %}
+
 ## Install Python SDK
 
 The official Python SDK is maintained in [`afx-dex/afx-python-sdk`](https://github.com/afx-dex/afx-python-sdk). Do not download `dex_client.py`, `dex.proto`, or `dex_pb2.py` from these docs.
