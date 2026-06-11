@@ -6,6 +6,8 @@ info:
     All trading operations are submitted through `POST /api/v1/exchange`, routed by `action.type`.
     Every request must include an EIP-712 signature. See the **Signature** page for details.
 
+    JavaScript snippets in this Exchange API reference are illustrative pseudocode for action shape and flow. The official high-level SDK examples are currently provided by the Python SDK.
+
     Common signed request fields:
     - `nonce`: `uint64` Unix timestamp in milliseconds. Use the current millisecond timestamp and do not reuse the same nonce for another signed request.
     - `expiryAfter`: optional `uint64` Unix timestamp in milliseconds. The request expires after this timestamp; `null` means no expiry and must be signed as `0`.
@@ -123,7 +125,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             // Limit buy
             const result = await client.placeOrder({
@@ -223,7 +225,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.replaceOrder({
               symbolCode: 1,
@@ -335,7 +337,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.placeBracketOrder({
               orders: [
@@ -469,7 +471,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             // Cancel by system order ID
             await client.cancelOrder({ symbolCode: 1, ordId: "12345" });
@@ -524,7 +526,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.cancelAll({ symbolCode: 1 });
 
@@ -577,7 +579,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.setLeverage({ symbolCode: 1, leverage: "10" });
         - lang: Python
@@ -621,7 +623,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.setMarginMode({ symbolCode: 1, mode: "CROSS" });
         - lang: Python
@@ -665,7 +667,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.assignPosMargin({ symbolCode: 1, amount: "100" });
         - lang: Python
@@ -724,7 +726,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.approveAgent({ agentName: "my-trading-bot", validitySeconds: 604800 });
         - lang: Python
@@ -778,7 +780,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.withdraw({ destination: "0xabc...", amount: "100", expirySeconds: 3600 });
         - lang: Python
@@ -824,7 +826,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.bindReferral({ code: "ABC123" });
         - lang: Python
@@ -901,7 +903,7 @@ paths:
                       vault: "0x4b90BBE5Bc03Bf8981b48f7aCb2ccCa271e6CCEd"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             const result = await client.vaultCreate({
               name: "My Vault", description: "Automated trading vault",
@@ -944,7 +946,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             // Parent vault address is required
             await client.vaultCreateSubVault({ vaultAddress: "0x4b90BBE5..." });
@@ -989,7 +991,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.vaultDeposit({ vaultAddress: "0x4b90BBE5...", amount: "100" });
         - lang: Python
@@ -1032,7 +1034,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.vaultWithdraw({ vaultAddress: "0x4b90BBE5...", amount: "50" });
         - lang: Python
@@ -1075,7 +1077,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.vaultPreWithdraw({ vaultAddress: "0x4b90BBE5...", amount: "50" });
         - lang: Python
@@ -1123,7 +1125,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.vaultRebalance({
               vaultAddress: "0xMainVault...",
@@ -1169,7 +1171,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.vaultUpdateOwner({
               vaultAddress: "0x4b90BBE5...", owner: "0xNewOwner...",
@@ -1210,7 +1212,7 @@ paths:
           $ref: "#/components/responses/ExchangeOk"
       x-codeSamples:
         - lang: JavaScript
-          label: JavaScript
+          label: JavaScript pseudocode
           source: |
             await client.vaultClose({ vaultAddress: "0x4b90BBE5..." });
         - lang: Python
