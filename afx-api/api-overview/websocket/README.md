@@ -11,8 +11,8 @@ WebSocket operations are JSON messages sent over an open WebSocket connection. T
 
 | Environment | URL |
 | ----------- | --- |
-| Mainnet | `wss://ws10.afx.xyz/ws/dex` |
-| Testnet | `wss://ws10-testnet.afx.xyz/ws/dex` |
+| Mainnet | `wss://ws.afx.xyz/ws/dex` |
+| Testnet | `wss://ws-testnet.afx.xyz/ws/dex` |
 
 ## Python SDK Examples
 

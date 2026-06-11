@@ -5,7 +5,7 @@ info:
   description: |
     Real-time market data and account updates via WebSocket.
 
-    **Connection URL:** `wss://ws10.afx.xyz/ws/dex`
+    **Connection URL:** `wss://ws.afx.xyz/ws/dex`
 
     WebSocket operations are JSON messages sent over an open WebSocket connection. They are not HTTP `POST` requests, even if this reference is rendered from an OpenAPI-shaped source.
 
@@ -23,9 +23,9 @@ info:
     | Max messages per second | 50 |
 
 servers:
-  - url: wss://ws10.afx.xyz/ws/dex
+  - url: wss://ws.afx.xyz/ws/dex
     description: Mainnet
-  - url: wss://ws10-testnet.afx.xyz/ws/dex
+  - url: wss://ws-testnet.afx.xyz/ws/dex
     description: Testnet
 
 paths:
@@ -53,7 +53,7 @@ paths:
         - lang: JavaScript
           label: JavaScript
           source: |
-            const ws = new WebSocket("wss://ws10.afx.xyz/ws/dex");
+            const ws = new WebSocket("wss://ws.afx.xyz/ws/dex");
 
             ws.onopen = () => {
               // Heartbeat every 30s
@@ -71,7 +71,7 @@ paths:
             import asyncio, json, websockets
 
             async def main():
-                async with websockets.connect("wss://ws10.afx.xyz/ws/dex") as ws:
+                async with websockets.connect("wss://ws.afx.xyz/ws/dex") as ws:
                     await ws.send(json.dumps({"method": "ping"}))
                     print(json.loads(await ws.recv()))  # {"channel": "pong"}
 

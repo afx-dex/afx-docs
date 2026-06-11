@@ -11,9 +11,9 @@ info:
     - `expiryAfter`: optional `uint64` Unix timestamp in milliseconds. The request expires after this timestamp; `null` means no expiry and must be signed as `0`.
 
 servers:
-  - url: https://api10.afx.xyz
+  - url: https://api.afx.xyz
     description: Mainnet
-  - url: https://api10-testnet.afx.xyz
+  - url: https://api-testnet.afx.xyz
     description: Testnet
 
 paths:
