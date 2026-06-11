@@ -836,139 +836,21 @@ paths:
   # ═══════════════════════════════════════════════════════════════════
   #  Vault Operations
   # ═══════════════════════════════════════════════════════════════════
-  /exchange/vaultCreate:
-    post:
-      operationId: vaultCreate
-      summary: Create Vault
-      tags: [Vault]
-      description: |
-        Create a new vault with initial deposit.
-
-        **Signature:** Agent · **Protobuf:** `MsgVaultCreate`
-
-        ```protobuf
-        message MsgVaultCreate {
-          string name          = 1;
-          string description   = 2;
-          string amount        = 3;
-          int64  currency_code = 4;
-        }
-        ```
-
-        Response `data` includes additional field `vault` — the newly created vault address.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/VaultCreateRequest"
-            examples:
-              default:
-                value:
-                  action:
-                    type: vaultCreate
-                    name: "My Vault"
-                    description: "Automated trading vault"
-                    amount: "1000"
-                    currencyCode: 1
-                  signature: { r: "0x...", s: "0x...", v: 27 }
-                  nonce: 1763023626904
-      responses:
-        "200":
-          description: Vault created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code: { type: integer, example: 0 }
-                  message: { type: string, example: success }
-                  data:
-                    type: object
-                    properties:
-                      txHash: { type: string }
-                      txCode: { type: integer }
-                      txMsg: { type: string }
-                      vault: { type: string, description: "New vault address" }
-              examples:
-                success:
-                  value:
-                    code: 0
-                    message: success
-                    data:
-                      txHash: "0x..."
-                      txCode: 0
-                      txMsg: ""
-                      vault: "0x4b90BBE5Bc03Bf8981b48f7aCb2ccCa271e6CCEd"
-      x-codeSamples:
-        - lang: JavaScript
-          label: JavaScript
-          source: |
-            const result = await client.vaultCreate({
-              name: "My Vault", description: "Automated trading vault",
-              amount: "1000", currencyCode: 1,
-            });
-            console.log(result.data.vault); // new vault address
-        - lang: Python
-          label: Python
-          source: |
-            # Not currently exposed by afx-python-sdk's high-level client.
-            # Track SDK support at https://github.com/afx-dex/afx-python-sdk.
-
-  /exchange/vaultCreateSubVault:
-    post:
-      operationId: vaultCreateSubVault
-      summary: Create Sub-Vault
-      tags: [Vault]
-      description: |
-        Create a sub-vault under a parent vault. Parent vault specified via outer `vaultAddress` field.
-
-        **Signature:** Agent · **Protobuf:** `MsgVaultCreateSubVault`
-
-        ```protobuf
-        message MsgVaultCreateSubVault {}  // empty message
-        ```
-      requestBody:
-        required: true
-        content:
-          application/json:
-            examples:
-              default:
-                value:
-                  action:
-                    type: vaultCreateSubVault
-                  signature: { r: "0x...", s: "0x...", v: 27 }
-                  nonce: 1763023626904
-                  vaultAddress: "0x4b90BBE5..."
-      responses:
-        "200":
-          $ref: "#/components/responses/ExchangeOk"
-      x-codeSamples:
-        - lang: JavaScript
-          label: JavaScript
-          source: |
-            // Parent vault address is required
-            await client.vaultCreateSubVault({ vaultAddress: "0x4b90BBE5..." });
-        - lang: Python
-          label: Python
-          source: |
-            # Not currently exposed by afx-python-sdk's high-level client.
-            # Track SDK support at https://github.com/afx-dex/afx-python-sdk.
-
   /exchange/vaultDeposit:
     post:
       operationId: vaultDeposit
       summary: Vault Deposit
       tags: [Vault]
       description: |
-        Deposit funds into a vault. Vault address specified via outer `vaultAddress` field.
+        Deposit funds into a vault.
 
         **Signature:** Agent · **Protobuf:** `MsgVaultDeposit`
 
         ```protobuf
         message MsgVaultDeposit {
-          string amount        = 1;
-          int64  currency_code = 2;
+          string vault         = 1;
+          string amount        = 2;
+          int64  currency_code = 3;
         }
         ```
       requestBody:
@@ -980,11 +862,11 @@ paths:
                 value:
                   action:
                     type: vaultDeposit
+                    vault: "0x4b90BBE5..."
                     amount: "100"
                     currencyCode: 1
                   signature: { r: "0x...", s: "0x...", v: 27 }
                   nonce: 1763023626904
-                  vaultAddress: "0x4b90BBE5..."
       responses:
         "200":
           $ref: "#/components/responses/ExchangeOk"
@@ -1004,14 +886,15 @@ paths:
       summary: Vault Withdraw
       tags: [Vault]
       description: |
-        Withdraw from a vault by amount. Vault address specified via outer `vaultAddress` field.
+        Withdraw from a vault by share amount. Use the user's withdrawable vault shares, not a USDC amount.
 
         **Signature:** Agent · **Protobuf:** `MsgVaultWithdraw`
 
         ```protobuf
         message MsgVaultWithdraw {
-          string amount        = 1;
-          int64  currency_code = 2;
+          string vault         = 1;
+          string share         = 2;
+          int64  currency_code = 3;
         }
         ```
       requestBody:
@@ -1023,11 +906,11 @@ paths:
                 value:
                   action:
                     type: vaultWithdraw
-                    amount: "50"
+                    vault: "0x4b90BBE5..."
+                    share: "9.5"
                     currencyCode: 1
                   signature: { r: "0x...", s: "0x...", v: 27 }
                   nonce: 1763023626904
-                  vaultAddress: "0x4b90BBE5..."
       responses:
         "200":
           $ref: "#/components/responses/ExchangeOk"
@@ -1035,190 +918,11 @@ paths:
         - lang: JavaScript
           label: JavaScript
           source: |
-            await client.vaultWithdraw({ vaultAddress: "0x4b90BBE5...", amount: "50" });
+            await client.vaultWithdraw({ vaultAddress: "0x4b90BBE5...", share: "9.5" });
         - lang: Python
           label: Python
           source: |
-            client.exchange.vault_withdraw(vault_address="0x4b90BBE5...", amount="50")
-
-  /exchange/vaultPreWithdraw:
-    post:
-      operationId: vaultPreWithdraw
-      summary: Vault Pre-Withdraw
-      tags: [Vault]
-      description: |
-        Request a pre-withdrawal from vault. Vault address via outer `vaultAddress` field.
-
-        **Signature:** Agent · **Protobuf:** `MsgVaultPreWithdraw`
-
-        ```protobuf
-        message MsgVaultPreWithdraw {
-          string amount        = 1;
-          int64  currency_code = 2;
-        }
-        ```
-      requestBody:
-        required: true
-        content:
-          application/json:
-            examples:
-              default:
-                value:
-                  action:
-                    type: vaultPreWithdraw
-                    amount: "50"
-                    currencyCode: 1
-                  signature: { r: "0x...", s: "0x...", v: 27 }
-                  nonce: 1763023626904
-                  vaultAddress: "0x4b90BBE5..."
-      responses:
-        "200":
-          $ref: "#/components/responses/ExchangeOk"
-      x-codeSamples:
-        - lang: JavaScript
-          label: JavaScript
-          source: |
-            await client.vaultPreWithdraw({ vaultAddress: "0x4b90BBE5...", amount: "50" });
-        - lang: Python
-          label: Python
-          source: |
-            # Not currently exposed by afx-python-sdk's high-level client.
-            # Track SDK support at https://github.com/afx-dex/afx-python-sdk.
-
-  /exchange/vaultRebalance:
-    post:
-      operationId: vaultRebalance
-      summary: Vault Rebalance
-      tags: [Vault]
-      description: |
-        Rebalance funds between vaults. Outer `vaultAddress` specifies the main vault.
-
-        **Signature:** Agent · **Protobuf:** `MsgVaultRebalance`
-
-        ```protobuf
-        message MsgVaultRebalance {
-          string from          = 1;
-          string to            = 2;
-          string amount        = 3;
-          int64  currency_code = 4;
-        }
-        ```
-      requestBody:
-        required: true
-        content:
-          application/json:
-            examples:
-              default:
-                value:
-                  action:
-                    type: vaultRebalance
-                    from: "0xSubVault1..."
-                    to: "0xSubVault2..."
-                    amount: "500"
-                    currencyCode: 1
-                  signature: { r: "0x...", s: "0x...", v: 27 }
-                  nonce: 1763023626904
-                  vaultAddress: "0xMainVault..."
-      responses:
-        "200":
-          $ref: "#/components/responses/ExchangeOk"
-      x-codeSamples:
-        - lang: JavaScript
-          label: JavaScript
-          source: |
-            await client.vaultRebalance({
-              vaultAddress: "0xMainVault...",
-              from: "0xSubVault1...", to: "0xSubVault2...",
-              amount: "500",
-            });
-        - lang: Python
-          label: Python
-          source: |
-            # Not currently exposed by afx-python-sdk's high-level client.
-            # Track SDK support at https://github.com/afx-dex/afx-python-sdk.
-
-  /exchange/vaultUpdateOwner:
-    post:
-      operationId: vaultUpdateOwner
-      summary: Vault Update Owner
-      tags: [Vault]
-      description: |
-        Transfer vault ownership. Vault address via outer `vaultAddress` field.
-
-        **Signature:** Agent · **Protobuf:** `MsgVaultUpdateOwner`
-
-        ```protobuf
-        message MsgVaultUpdateOwner {
-          string owner = 1;
-        }
-        ```
-      requestBody:
-        required: true
-        content:
-          application/json:
-            examples:
-              default:
-                value:
-                  action:
-                    type: vaultUpdateOwner
-                    owner: "0xNewOwner..."
-                  signature: { r: "0x...", s: "0x...", v: 27 }
-                  nonce: 1763023626904
-                  vaultAddress: "0x4b90BBE5..."
-      responses:
-        "200":
-          $ref: "#/components/responses/ExchangeOk"
-      x-codeSamples:
-        - lang: JavaScript
-          label: JavaScript
-          source: |
-            await client.vaultUpdateOwner({
-              vaultAddress: "0x4b90BBE5...", owner: "0xNewOwner...",
-            });
-        - lang: Python
-          label: Python
-          source: |
-            # Not currently exposed by afx-python-sdk's high-level client.
-            # Track SDK support at https://github.com/afx-dex/afx-python-sdk.
-
-  /exchange/vaultClose:
-    post:
-      operationId: vaultClose
-      summary: Close Vault
-      tags: [Vault]
-      description: |
-        Close a vault. Vault address via outer `vaultAddress` field.
-
-        **Signature:** Agent · **Protobuf:** `MsgVaultClose`
-
-        ```protobuf
-        message MsgVaultClose {}  // empty message
-        ```
-      requestBody:
-        required: true
-        content:
-          application/json:
-            examples:
-              default:
-                value:
-                  action:
-                    type: vaultClose
-                  signature: { r: "0x...", s: "0x...", v: 27 }
-                  nonce: 1763023626904
-                  vaultAddress: "0x4b90BBE5..."
-      responses:
-        "200":
-          $ref: "#/components/responses/ExchangeOk"
-      x-codeSamples:
-        - lang: JavaScript
-          label: JavaScript
-          source: |
-            await client.vaultClose({ vaultAddress: "0x4b90BBE5..." });
-        - lang: Python
-          label: Python
-          source: |
-            # Not currently exposed by afx-python-sdk's high-level client.
-            # Track SDK support at https://github.com/afx-dex/afx-python-sdk.
+            client.exchange.vault_withdraw(vault_address="0x4b90BBE5...", share="9.5")
 
   # ═══════════════════════════════════════════════════════════════════
   #  Errors
@@ -1506,21 +1210,5 @@ components:
           properties:
             type: { type: string, enum: [bindReferral] }
             referralCode: { type: string }
-        signature: { $ref: "#/components/schemas/Signature" }
-        nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }
-
-    VaultCreateRequest:
-      type: object
-      required: [action, signature, nonce]
-      properties:
-        action:
-          type: object
-          required: [type, name, description, amount, currencyCode]
-          properties:
-            type: { type: string, enum: [vaultCreate] }
-            name: { type: string }
-            description: { type: string }
-            amount: { type: string, description: "Initial deposit amount" }
-            currencyCode: { type: integer, format: int64 }
         signature: { $ref: "#/components/schemas/Signature" }
         nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }
