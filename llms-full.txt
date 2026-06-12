@@ -2,6 +2,8 @@
 
 Use the official SDKs before hand-rolling signing or protobuf encoding.
 
+Canonical API Reference: https://afx-docs.gitbook.io/afx/api-reference
+
 Python:
 
 ```bash

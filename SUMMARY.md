@@ -1,6 +1,6 @@
 # Table of contents
 
-* [API Reference](README.md)
+* [API Reference](index.md)
   * [Quick Start](quickstart.md)
   * [Exchange API](exchange/README.md)
     * ```yaml
