@@ -5,9 +5,9 @@ This repository is optimized for coding agents that need to build against AFX DE
 ## Start Here
 
 1. Read `llms.txt`.
-2. Use `afx-api/agent-guides/first-trade.md` for the canonical first trade task.
-3. Use `afx-api/artifacts/openapi.json` for REST endpoints.
-4. Use `afx-api/artifacts/asyncapi.json` for WebSocket channels.
+2. Use `agent-guides/first-trade.md` for the canonical first trade task.
+3. Use `artifacts/openapi.json` for REST endpoints.
+4. Use `artifacts/asyncapi.json` for WebSocket channels.
 5. Use the official SDKs unless the user explicitly asks for raw signing.
 
 ## Rules
@@ -24,4 +24,3 @@ This repository is optimized for coding agents that need to build against AFX DE
 
 - Python: `https://github.com/afx-dex/afx-python-sdk`
 - JavaScript: `https://github.com/afx-dex/afx-js-sdk`
-

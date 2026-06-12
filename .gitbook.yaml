@@ -1,5 +1,5 @@
 root: ./
 
 structure:
-  readme: ./api-overview.md
+  readme: ./README.md
   summary: ./SUMMARY.md

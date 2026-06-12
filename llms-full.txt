@@ -53,9 +53,8 @@ First trade flow:
 
 Machine-readable files:
 
-- `/afx-api/artifacts/openapi.json`
-- `/afx-api/artifacts/asyncapi.json`
-- `/afx-api/artifacts/schemas/signed-action-envelope.schema.json`
-- `/afx-api/artifacts/schemas/signed-actions.schema.json`
-- `/afx-api/agent-guides/first-trade.md`
-
+- `/artifacts/openapi.json`
+- `/artifacts/asyncapi.json`
+- `/artifacts/schemas/signed-action-envelope.schema.json`
+- `/artifacts/schemas/signed-actions.schema.json`
+- `/agent-guides/first-trade.md`

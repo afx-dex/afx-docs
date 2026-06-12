@@ -11,12 +11,12 @@ AFX DEX publishes machine-readable artifacts for coding agents, SDK generators, 
 
 | Artifact | Path |
 | --- | --- |
-| Combined REST OpenAPI | `afx-api/artifacts/openapi.json` |
-| Info API OpenAPI | `afx-api/artifacts/openapi-info.json` |
-| Exchange API OpenAPI | `afx-api/artifacts/openapi-exchange.json` |
-| WebSocket AsyncAPI | `afx-api/artifacts/asyncapi.json` |
-| Signed exchange envelope schema | `afx-api/artifacts/schemas/signed-action-envelope.schema.json` |
-| Signed action payload schemas | `afx-api/artifacts/schemas/signed-actions.schema.json` |
+| Combined REST OpenAPI | `artifacts/openapi.json` |
+| Info API OpenAPI | `artifacts/openapi-info.json` |
+| Exchange API OpenAPI | `artifacts/openapi-exchange.json` |
+| WebSocket AsyncAPI | `artifacts/asyncapi.json` |
+| Signed exchange envelope schema | `artifacts/schemas/signed-action-envelope.schema.json` |
+| Signed action payload schemas | `artifacts/schemas/signed-actions.schema.json` |
 
 ## AI Agent Entry Points
 
@@ -28,7 +28,7 @@ AFX DEX publishes machine-readable artifacts for coding agents, SDK generators, 
 | OpenClaw | `OPENCLAW.md` |
 | LLM index | `llms.txt` |
 | Full LLM context | `llms-full.txt` |
-| Paste-ready first trade task | `afx-api/agent-guides/first-trade.md` |
+| Paste-ready first trade task | `agent-guides/first-trade.md` |
 
 ## Recommended Agent Flow
 
@@ -37,4 +37,3 @@ AFX DEX publishes machine-readable artifacts for coding agents, SDK generators, 
 3. Run the first trade guide on testnet.
 4. Query product metadata before choosing symbols, leverage, or quantities.
 5. Cancel test orders and verify no unintended position remains.
-

@@ -19,7 +19,7 @@ layout:
     visible: true
 ---
 
-# API
+# API Reference
 
 AFX DEX is a fully on-chain perpetual futures exchange. No API keys required — all requests are authenticated via EIP-712 signatures from Ethereum wallets.
 
