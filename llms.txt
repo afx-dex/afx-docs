@@ -5,32 +5,32 @@ AFX DEX is a decentralized perpetuals exchange with an AI-agent-friendly API sur
 ## Primary Docs
 
 - Public API Reference: https://afx-docs.gitbook.io/afx/api-reference
-- Source overview: /index.md
-- Quick start: /quickstart.md
-- Agent safety: /agent-safety.md
-- Python SDK: /sdk.md
-- Signing: /signing.md
-- Exchange API: /openapi/exchange.yaml
-- Info API: /openapi/info.yaml
-- WebSocket API: /openapi/websocket.yaml
+- Source overview: https://raw.githubusercontent.com/afx-dex/afx-docs/main/index.md
+- Quick start: https://raw.githubusercontent.com/afx-dex/afx-docs/main/quickstart.md
+- Agent safety: https://raw.githubusercontent.com/afx-dex/afx-docs/main/agent-safety.md
+- Python SDK: https://raw.githubusercontent.com/afx-dex/afx-docs/main/sdk.md
+- Signing: https://raw.githubusercontent.com/afx-dex/afx-docs/main/signing.md
+- Exchange API: https://raw.githubusercontent.com/afx-dex/afx-docs/main/openapi/exchange.yaml
+- Info API: https://raw.githubusercontent.com/afx-dex/afx-docs/main/openapi/info.yaml
+- WebSocket API: https://raw.githubusercontent.com/afx-dex/afx-docs/main/openapi/websocket.yaml
 
 ## Machine-Readable Artifacts
 
-- Combined REST OpenAPI: /artifacts/openapi.json
-- Info OpenAPI: /artifacts/openapi-info.json
-- Exchange OpenAPI: /artifacts/openapi-exchange.json
-- WebSocket AsyncAPI: /artifacts/asyncapi.json
-- Signed action envelope schema: /artifacts/schemas/signed-action-envelope.schema.json
-- Signed action payload schemas: /artifacts/schemas/signed-actions.schema.json
+- Combined REST OpenAPI: https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/openapi.json
+- Info OpenAPI: https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/openapi-info.json
+- Exchange OpenAPI: https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/openapi-exchange.json
+- WebSocket AsyncAPI: https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/asyncapi.json
+- Signed action envelope schema: https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/schemas/signed-action-envelope.schema.json
+- Signed action payload schemas: https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/schemas/signed-actions.schema.json
 
 ## Agent Entry Points
 
-- General agent instructions: /AGENTS.md
-- Codex instructions: /CODEX.md
-- Claude Code instructions: /CLAUDE.md
-- OpenClaw instructions: /OPENCLAW.md
-- Agent safety guide: /agent-safety.md
-- Paste-ready first trade guide: /agent-guides/first-trade.md
+- General agent instructions: https://raw.githubusercontent.com/afx-dex/afx-docs/main/AGENTS.md
+- Codex instructions: https://raw.githubusercontent.com/afx-dex/afx-docs/main/CODEX.md
+- Claude Code instructions: https://raw.githubusercontent.com/afx-dex/afx-docs/main/CLAUDE.md
+- OpenClaw instructions: https://raw.githubusercontent.com/afx-dex/afx-docs/main/OPENCLAW.md
+- Agent safety guide: https://raw.githubusercontent.com/afx-dex/afx-docs/main/agent-safety.md
+- Paste-ready first trade guide: https://raw.githubusercontent.com/afx-dex/afx-docs/main/agent-guides/first-trade.md
 
 ## SDKs
 

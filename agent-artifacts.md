@@ -9,27 +9,27 @@ AFX DEX publishes machine-readable artifacts for coding agents, SDK generators, 
 
 ## API Artifacts
 
-| Artifact | Path |
-| --- | --- |
-| Combined REST OpenAPI | `artifacts/openapi.json` |
-| Info API OpenAPI | `artifacts/openapi-info.json` |
-| Exchange API OpenAPI | `artifacts/openapi-exchange.json` |
-| WebSocket AsyncAPI | `artifacts/asyncapi.json` |
-| Signed exchange envelope schema | `artifacts/schemas/signed-action-envelope.schema.json` |
-| Signed action payload schemas | `artifacts/schemas/signed-actions.schema.json` |
+| Artifact | Repo path | Public raw URL |
+| --- | --- | --- |
+| Combined REST OpenAPI | `artifacts/openapi.json` | `https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/openapi.json` |
+| Info API OpenAPI | `artifacts/openapi-info.json` | `https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/openapi-info.json` |
+| Exchange API OpenAPI | `artifacts/openapi-exchange.json` | `https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/openapi-exchange.json` |
+| WebSocket AsyncAPI | `artifacts/asyncapi.json` | `https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/asyncapi.json` |
+| Signed exchange envelope schema | `artifacts/schemas/signed-action-envelope.schema.json` | `https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/schemas/signed-action-envelope.schema.json` |
+| Signed action payload schemas | `artifacts/schemas/signed-actions.schema.json` | `https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/schemas/signed-actions.schema.json` |
 
 ## AI Agent Entry Points
 
-| Agent | Path |
-| --- | --- |
-| General | `AGENTS.md` |
-| Codex | `CODEX.md` |
-| Claude Code | `CLAUDE.md` |
-| OpenClaw | `OPENCLAW.md` |
-| LLM index | `llms.txt` |
-| Full LLM context | `llms-full.txt` |
-| Paste-ready first trade task | `agent-guides/first-trade.md` |
-| Agent safety guide | `agent-safety.md` |
+| Agent | Repo path | Public raw URL |
+| --- | --- | --- |
+| General | `AGENTS.md` | `https://raw.githubusercontent.com/afx-dex/afx-docs/main/AGENTS.md` |
+| Codex | `CODEX.md` | `https://raw.githubusercontent.com/afx-dex/afx-docs/main/CODEX.md` |
+| Claude Code | `CLAUDE.md` | `https://raw.githubusercontent.com/afx-dex/afx-docs/main/CLAUDE.md` |
+| OpenClaw | `OPENCLAW.md` | `https://raw.githubusercontent.com/afx-dex/afx-docs/main/OPENCLAW.md` |
+| LLM index | `llms.txt` | `https://raw.githubusercontent.com/afx-dex/afx-docs/main/llms.txt` |
+| Full LLM context | `llms-full.txt` | `https://raw.githubusercontent.com/afx-dex/afx-docs/main/llms-full.txt` |
+| Paste-ready first trade task | `agent-guides/first-trade.md` | `https://raw.githubusercontent.com/afx-dex/afx-docs/main/agent-guides/first-trade.md` |
+| Agent safety guide | `agent-safety.md` | `https://raw.githubusercontent.com/afx-dex/afx-docs/main/agent-safety.md` |
 
 ## Recommended Agent Flow
 

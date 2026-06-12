@@ -58,9 +58,9 @@ First trade flow:
 
 Machine-readable files:
 
-- `/artifacts/openapi.json`
-- `/artifacts/asyncapi.json`
-- `/artifacts/schemas/signed-action-envelope.schema.json`
-- `/artifacts/schemas/signed-actions.schema.json`
-- `/agent-safety.md`
-- `/agent-guides/first-trade.md`
+- Combined REST OpenAPI: `https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/openapi.json`
+- WebSocket AsyncAPI: `https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/asyncapi.json`
+- Signed exchange envelope schema: `https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/schemas/signed-action-envelope.schema.json`
+- Signed action payload schemas: `https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/schemas/signed-actions.schema.json`
+- Agent safety guide: `https://raw.githubusercontent.com/afx-dex/afx-docs/main/agent-safety.md`
+- First trade guide: `https://raw.githubusercontent.com/afx-dex/afx-docs/main/agent-guides/first-trade.md`

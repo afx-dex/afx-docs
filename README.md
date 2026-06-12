@@ -24,11 +24,18 @@ This repository is the GitBook-synced source for the AFX DEX API Reference.
 
 ## AI And Agent Entry Points
 
-- LLM index: `llms.txt`
-- Full LLM context: `llms-full.txt`
-- General agent instructions: `AGENTS.md`
-- Codex instructions: `CODEX.md`
-- Claude Code instructions: `CLAUDE.md`
-- OpenClaw instructions: `OPENCLAW.md`
+- LLM index: [`llms.txt`](https://raw.githubusercontent.com/afx-dex/afx-docs/main/llms.txt)
+- Full LLM context: [`llms-full.txt`](https://raw.githubusercontent.com/afx-dex/afx-docs/main/llms-full.txt)
+- General agent instructions: [`AGENTS.md`](https://raw.githubusercontent.com/afx-dex/afx-docs/main/AGENTS.md)
+- Codex instructions: [`CODEX.md`](https://raw.githubusercontent.com/afx-dex/afx-docs/main/CODEX.md)
+- Claude Code instructions: [`CLAUDE.md`](https://raw.githubusercontent.com/afx-dex/afx-docs/main/CLAUDE.md)
+- OpenClaw instructions: [`OPENCLAW.md`](https://raw.githubusercontent.com/afx-dex/afx-docs/main/OPENCLAW.md)
+
+## Machine-Readable Artifacts
+
+- Combined REST OpenAPI: [`artifacts/openapi.json`](https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/openapi.json)
+- Exchange API OpenAPI: [`artifacts/openapi-exchange.json`](https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/openapi-exchange.json)
+- Info API OpenAPI: [`artifacts/openapi-info.json`](https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/openapi-info.json)
+- WebSocket AsyncAPI: [`artifacts/asyncapi.json`](https://raw.githubusercontent.com/afx-dex/afx-docs/main/artifacts/asyncapi.json)
 
 For integrations, query `GET /info/public/product-meta` before hardcoding symbols, product codes, leverage, or precision.
