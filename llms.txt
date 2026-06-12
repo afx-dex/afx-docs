@@ -4,22 +4,22 @@ AFX DEX is a decentralized perpetuals exchange with an AI-agent-friendly API sur
 
 ## Primary Docs
 
-- Overview: /api-overview.md
-- Quick start: /afx-api/api-overview/quickstart.md
-- Python SDK: /afx-api/api-overview/sdk.md
-- Signing: /afx-api/api-overview/signing.md
-- Exchange API: /afx-api/openapi/exchange.yaml
-- Info API: /afx-api/openapi/info.yaml
-- WebSocket API: /afx-api/openapi/websocket.yaml
+- Overview: /README.md
+- Quick start: /quickstart.md
+- Python SDK: /sdk.md
+- Signing: /signing.md
+- Exchange API: /openapi/exchange.yaml
+- Info API: /openapi/info.yaml
+- WebSocket API: /openapi/websocket.yaml
 
 ## Machine-Readable Artifacts
 
-- Combined REST OpenAPI: /afx-api/artifacts/openapi.json
-- Info OpenAPI: /afx-api/artifacts/openapi-info.json
-- Exchange OpenAPI: /afx-api/artifacts/openapi-exchange.json
-- WebSocket AsyncAPI: /afx-api/artifacts/asyncapi.json
-- Signed action envelope schema: /afx-api/artifacts/schemas/signed-action-envelope.schema.json
-- Signed action payload schemas: /afx-api/artifacts/schemas/signed-actions.schema.json
+- Combined REST OpenAPI: /artifacts/openapi.json
+- Info OpenAPI: /artifacts/openapi-info.json
+- Exchange OpenAPI: /artifacts/openapi-exchange.json
+- WebSocket AsyncAPI: /artifacts/asyncapi.json
+- Signed action envelope schema: /artifacts/schemas/signed-action-envelope.schema.json
+- Signed action payload schemas: /artifacts/schemas/signed-actions.schema.json
 
 ## Agent Entry Points
 
@@ -27,10 +27,9 @@ AFX DEX is a decentralized perpetuals exchange with an AI-agent-friendly API sur
 - Codex instructions: /CODEX.md
 - Claude Code instructions: /CLAUDE.md
 - OpenClaw instructions: /OPENCLAW.md
-- Paste-ready first trade guide: /afx-api/agent-guides/first-trade.md
+- Paste-ready first trade guide: /agent-guides/first-trade.md
 
 ## SDKs
 
 - Python SDK: https://github.com/afx-dex/afx-python-sdk
 - JavaScript SDK: https://github.com/afx-dex/afx-js-sdk
-

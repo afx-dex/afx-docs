@@ -2,7 +2,7 @@
 
 When asked to build or test against AFX DEX:
 
-1. Read `llms.txt` and `afx-api/agent-guides/first-trade.md`.
+1. Read `llms.txt` and `agent-guides/first-trade.md`.
 2. Use the official SDK first.
 3. Keep secrets in environment variables only.
 4. Run testnet examples before mainnet.
@@ -10,7 +10,6 @@ When asked to build or test against AFX DEX:
 
 Useful files:
 
-- `afx-api/artifacts/openapi.json`
-- `afx-api/artifacts/asyncapi.json`
-- `afx-api/artifacts/schemas/signed-actions.schema.json`
-
+- `artifacts/openapi.json`
+- `artifacts/asyncapi.json`
+- `artifacts/schemas/signed-actions.schema.json`
