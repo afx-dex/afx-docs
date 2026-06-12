@@ -7,6 +7,7 @@ AFX DEX is a decentralized perpetuals exchange with an AI-agent-friendly API sur
 - Public API Reference: https://afx-docs.gitbook.io/afx/api-reference
 - Source overview: /index.md
 - Quick start: /quickstart.md
+- Agent safety: /agent-safety.md
 - Python SDK: /sdk.md
 - Signing: /signing.md
 - Exchange API: /openapi/exchange.yaml
@@ -28,6 +29,7 @@ AFX DEX is a decentralized perpetuals exchange with an AI-agent-friendly API sur
 - Codex instructions: /CODEX.md
 - Claude Code instructions: /CLAUDE.md
 - OpenClaw instructions: /OPENCLAW.md
+- Agent safety guide: /agent-safety.md
 - Paste-ready first trade guide: /agent-guides/first-trade.md
 
 ## SDKs

@@ -15,7 +15,7 @@ Used for most trading operations. The Agent wallet signs a hash derived from the
 
 **Domain:** `Exchange`
 
-**Operations:** `placeOrder`, `replaceOrder`, `placeBracketOrder`, `cancelOrder`, `cancelAll`, `setLeverage`, `setMarginMode`, `assignPosMargin`, `bindReferral`, all vault operations.
+**Operations:** `placeOrder`, `replaceOrder`, `placeBracketOrder`, `cancelOrder`, `cancelAll`, `setLeverage`, `setMarginMode`, `assignPosMargin`, `bindReferral`, and vault-context operations when the Agent is explicitly authorized for that vault workflow.
 {% endcolumn %}
 
 {% column %}
@@ -25,9 +25,20 @@ Used for privileged operations. The Master wallet signs the action fields **dire
 
 **Domain:** `SignTransaction`
 
-**Operations:** `approveAgent`, `withdraw`, `faucetClaim`.
+**Operations:** `approveAgent`, `revokeAgent`, `withdraw`, `faucetClaim`.
 {% endcolumn %}
 {% endcolumns %}
+
+## Permission Boundary
+
+| Operation family | Signer | Operational risk |
+| --- | --- | --- |
+| Order placement, replacement, cancellation, leverage, margin mode, and position margin | Agent wallet | Can change trading exposure and liquidation risk. Cannot withdraw account funds to an external address. |
+| Agent approval and revocation | Master wallet | Controls whether an Agent wallet can act for the Master account. Keep revocation available as an emergency runbook step. |
+| Account withdrawal | Master wallet | Moves account funds to an external address. Never place the Master private key in an automated trading runtime. |
+| Vault operations | Agent wallet in vault context | Can affect vault balances, ownership, withdrawal flow, or vault lifecycle depending on the action. Do not treat a vault-authorized Agent as trading-only. |
+
+For operational guidance, see [Agent Safety](agent-safety.md).
 
 ***
 
@@ -149,6 +160,26 @@ Each action has its own EIP-712 type definition. Common domain:
 ```
 
 `validitySeconds` is the agent authorization duration in seconds. `0` means the authorization is valid for 7 days; maximum 365 days.
+
+### revokeAgent
+
+Revocation uses the same `approveAgent` signing flow with:
+
+```json
+{
+  "type": "approveAgent",
+  "agentAddress": "0x0000000000000000000000000000000000000000",
+  "validitySeconds": 0
+}
+```
+
+The Python SDK exposes this as:
+
+```python
+client.exchange.revoke_agent(agent_name="my-bot")
+```
+
+Use revocation when rotating Agent keys, stopping an automated strategy, or responding to suspected key exposure.
 
 ### withdraw
 

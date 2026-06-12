@@ -21,7 +21,7 @@ layout:
 
 # API Reference
 
-AFX DEX is a fully on-chain perpetual futures exchange. No API keys required — all requests are authenticated via EIP-712 signatures from Ethereum wallets.
+AFX DEX uses wallet-signed requests and on-chain settlement for perpetual trading. No API keys required -- all Exchange API requests are authenticated via EIP-712 signatures from Ethereum wallets.
 
 <a href="quickstart.md" class="button primary">Quick Start — First Trade in 5 Minutes</a>
 
@@ -62,7 +62,7 @@ Domain: `SignTransaction`
 
 Authorized by Master for daily trading.
 
-Signs: `placeOrder`, `replaceOrder`, `placeBracketOrder`, `cancelOrder`, `setLeverage`, and all other trading operations.
+Signs: `placeOrder`, `replaceOrder`, `placeBracketOrder`, `cancelOrder`, `setLeverage`, `setMarginMode`, and other authorized trading operations.
 
 Domain: `Exchange`
 {% endcolumn %}
@@ -74,13 +74,15 @@ See [Authentication](signing.md) for the full EIP-712 signing specification.
 
 | Operation family | Signature | Notes |
 | ---------------- | --------- | ----- |
-| Trading actions such as `placeOrder`, `replaceOrder`, `cancelOrder`, `setLeverage`, and `setMarginMode` | Agent wallet | Intended for day-to-day trading automation. These actions can change market risk but cannot withdraw funds to an external address. |
-| `approveAgent` and `withdraw` | Master wallet | Privileged operations. Keep the Master wallet separate from automated trading infrastructure. |
-| Vault operations | Agent wallet | Vault actions can affect vault balances and management state. Review the exact vault operation before granting an Agent wallet automated access. |
+| Trading actions such as `placeOrder`, `replaceOrder`, `cancelOrder`, `setLeverage`, and `setMarginMode` | Agent wallet | Intended for day-to-day trading automation. These actions can change market risk but cannot withdraw account funds to an external address. |
+| `approveAgent`, `revokeAgent`, account `withdraw`, and testnet `faucetClaim` | Master wallet | Privileged operations. Keep the Master wallet separate from automated trading infrastructure. |
+| Vault operations | Agent wallet in a vault context | Vault actions can affect vault balances, ownership, withdrawal flow, or closure. Do not assume a vault-authorized Agent is trading-only. Review each vault operation before granting automated access. |
 
 {% hint style="warning" %}
 Only the Master wallet can authorize or revoke an Agent wallet. Do not give the Master private key to trading bots or AI agents.
 {% endhint %}
+
+See [Agent Safety](agent-safety.md) for key handling, revocation, rotation, and vault-operation guidance.
 
 ## Common Response Format
 

@@ -15,6 +15,10 @@ The `action.type` field determines which operation to execute. Every request req
 
 JavaScript snippets in this section are illustrative pseudocode for action shape and flow. The official high-level SDK examples are currently provided by the Python SDK.
 
+{% hint style="warning" %}
+Vault operations can affect vault balances, ownership, withdrawal flow, or lifecycle depending on the action. Do not treat a vault-authorized Agent as trading-only. Review [Agent Safety](../agent-safety.md) before automating vault workflows.
+{% endhint %}
+
 ## Python SDK Examples
 
 The official SDK repository includes runnable examples for common Exchange actions:

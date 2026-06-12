@@ -14,8 +14,16 @@ info:
     **Two signature types:**
     | Type | Domain Name | Signer | Used By |
     |------|-------------|--------|---------|
-    | **Agent** | `Exchange` | Agent Wallet | placeOrder, replaceOrder, placeBracketOrder, cancelOrder, setLeverage, vault operations, etc. |
-    | **Master** | `SignTransaction` | Master Wallet | approveAgent, withdraw, faucetClaim |
+    | **Agent** | `Exchange` | Agent Wallet | placeOrder, replaceOrder, placeBracketOrder, cancelOrder, setLeverage, setMarginMode, and explicitly authorized vault-context operations |
+    | **Master** | `SignTransaction` | Master Wallet | approveAgent, revokeAgent, withdraw, faucetClaim |
+
+    **Permission boundary:**
+    | Operation family | Signer | Operational risk |
+    |------------------|--------|------------------|
+    | Trading actions | Agent Wallet | Can change exposure and liquidation risk. Cannot withdraw account funds to an external address. |
+    | Agent approval / revocation | Master Wallet | Controls whether an Agent can act for the Master account. |
+    | Account withdrawal | Master Wallet | Moves account funds externally. Keep the Master key out of automated runtimes. |
+    | Vault-context operations | Agent Wallet in vault context | May affect vault balances, ownership, withdrawal flow, or lifecycle. Do not treat a vault-authorized Agent as trading-only. |
 
 servers:
   - url: https://api.afx.xyz
@@ -29,7 +37,9 @@ paths:
       operationId: agentSignature
       summary: Agent Signature
       description: |
-        Used for most trading operations: placing/replacing/canceling orders, bracket orders, setting leverage, vault operations, etc.
+        Used for most trading operations: placing/replacing/canceling orders, bracket orders, setting leverage, setting margin mode, and explicitly authorized vault-context operations.
+
+        Agent-signed account trading actions cannot withdraw account funds to an external address. Vault-context actions are a higher-risk category and should be reviewed separately before granting automated access.
 
         The Agent wallet signs a hash derived from the **protobuf-serialized** action payload.
 
@@ -256,7 +266,7 @@ paths:
       operationId: masterSignature
       summary: Master Signature
       description: |
-        Used for privileged operations: `approveAgent`, `withdraw`, `faucetClaim`.
+        Used for privileged operations: `approveAgent`, `revokeAgent`, `withdraw`, `faucetClaim`.
 
         The Master wallet signs the action fields **directly** as an EIP-712 message — no protobuf involved.
 
@@ -299,6 +309,24 @@ paths:
         | `agentAddress` | Agent wallet address (`0x` hex) |
         | `agentName` | Agent name (free text). SDK default: `app.afx.xyz` |
         | `validitySeconds` | Agent authorization duration in seconds. `0` means the authorization is valid for 7 days; maximum 365 days. |
+
+        ---
+
+        ## revokeAgent
+
+        Revocation uses the same `approveAgent` action with the zero address:
+
+        ```json
+        {
+          "type": "approveAgent",
+          "agentAddress": "0x0000000000000000000000000000000000000000",
+          "validitySeconds": 0
+        }
+        ```
+
+        The Python SDK exposes this as `client.exchange.revoke_agent(...)`.
+
+        Use revocation when rotating Agent keys, stopping an automated strategy, or responding to suspected key exposure.
 
         ---
 

@@ -23,6 +23,9 @@ Wallet roles:
 
 - Master wallet controls funds and signs `approveAgent`, `withdraw`, and testnet `faucetClaim`.
 - Agent wallet is authorized by the Master and signs daily trading actions.
+- Keep the Master private key out of automated trading runtimes.
+- Use Agent revocation or rotation when stopping a bot, responding to suspected exposure, or ending a temporary experiment.
+- Treat vault-context operations as higher risk than ordinary order placement because they may affect vault balances, ownership, withdrawal flow, or lifecycle.
 
 Networks:
 
@@ -59,4 +62,5 @@ Machine-readable files:
 - `/artifacts/asyncapi.json`
 - `/artifacts/schemas/signed-action-envelope.schema.json`
 - `/artifacts/schemas/signed-actions.schema.json`
+- `/agent-safety.md`
 - `/agent-guides/first-trade.md`

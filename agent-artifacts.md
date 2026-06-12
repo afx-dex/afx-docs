@@ -29,6 +29,7 @@ AFX DEX publishes machine-readable artifacts for coding agents, SDK generators, 
 | LLM index | `llms.txt` |
 | Full LLM context | `llms-full.txt` |
 | Paste-ready first trade task | `agent-guides/first-trade.md` |
+| Agent safety guide | `agent-safety.md` |
 
 ## Recommended Agent Flow
 
@@ -36,4 +37,6 @@ AFX DEX publishes machine-readable artifacts for coding agents, SDK generators, 
 2. Use the official Python or JavaScript SDK.
 3. Run the first trade guide on testnet.
 4. Query product metadata before choosing symbols, leverage, or quantities.
-5. Cancel test orders and verify no unintended position remains.
+5. Keep the Master private key out of trading runtimes.
+6. Cancel test orders and verify no unintended position remains.
+7. Revoke or rotate temporary Agent keys.

@@ -39,5 +39,6 @@
           spec: websocket
     ```
 * [Signing](signing.md)
+* [Agent Safety](agent-safety.md)
 * [Python SDK](sdk.md)
 * [Agent Artifacts](agent-artifacts.md)

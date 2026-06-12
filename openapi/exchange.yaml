@@ -751,6 +751,46 @@ paths:
             # Revoke the active agent wallet.
             client.exchange.revoke_agent(agent_name="my-trading-bot")
 
+  /exchange/revokeAgent:
+    post:
+      operationId: revokeAgent
+      summary: Revoke Agent
+      tags: [Authorization]
+      description: |
+        Revoke the currently approved Agent wallet.
+
+        **Signature:** Master · **No protobuf** — fields are signed directly via EIP-712.
+
+        Revocation uses the same `approveAgent` action with `agentAddress` set to `0x0000000000000000000000000000000000000000` and `validitySeconds` set to `0`.
+
+        Use this operation when rotating Agent keys, stopping an automated strategy, or responding to suspected Agent key exposure.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApproveAgentRequest"
+            examples:
+              default:
+                value:
+                  action:
+                    type: approveAgent
+                    agentAddress: "0x0000000000000000000000000000000000000000"
+                    agentName: "my-trading-bot"
+                    validitySeconds: 0
+                    dexChain: "Mainnet"
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+                  expiryAfter: 1763023686904
+      responses:
+        "200":
+          $ref: "#/components/responses/ExchangeOk"
+      x-codeSamples:
+        - lang: Python
+          label: Python
+          source: |
+            client.exchange.revoke_agent(agent_name="my-trading-bot")
+
   /exchange/withdraw:
     post:
       operationId: withdraw

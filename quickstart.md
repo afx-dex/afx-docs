@@ -120,13 +120,15 @@ Use the returned `code` value when placing orders. Do not hardcode product codes
 Signed by the **Agent** wallet. This places a buy order far below market price so it won't fill immediately.
 
 ```python
+btc = next(p for p in products["data"]["perpProducts"] if p["symbol"] == "BTCUSDC")
+
 result = client.exchange.place_order(
-    symbol_code=1,       # BTCUSDC
-    px="50000.0",        # limit price
-    qty="0.001",         # quantity in BTC
+    symbol_code=int(btc["code"]),
+    px="50000.0",      # limit price
+    qty="0.001",       # quantity in BTC
     side="BUY",
     ord_type="LIMIT",
-    tif="GTC",           # Good Till Cancelled
+    tif="GTC",         # Good Till Cancelled
 )
 print(f"txHash: {result['data']['txHash']}")
 ```
