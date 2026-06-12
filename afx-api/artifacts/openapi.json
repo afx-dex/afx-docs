@@ -1,0 +1,4320 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "AFX DEX REST API",
+    "version": "1.0.0",
+    "description": "Machine-readable REST API artifact for AFX DEX Info API and signed Exchange request envelopes."
+  },
+  "servers": [
+    {
+      "url": "https://api.afx.xyz",
+      "description": "Mainnet"
+    },
+    {
+      "url": "https://api-testnet.afx.xyz",
+      "description": "Testnet"
+    }
+  ],
+  "paths": {
+    "/info/account/wallet": {
+      "get": {
+        "operationId": "queryWallet",
+        "summary": "Query Wallet Balances",
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User address (0x hex)"
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "Currency code filter"
+          },
+          {
+            "name": "includeZero",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Include zero-balance currencies"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AccountWallet"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "code": 0,
+                      "message": "success",
+                      "data": [
+                        {
+                          "userAddr": "0xabc...",
+                          "currency": 1,
+                          "balance": "10000.000000",
+                          "availableBalance": "8500.000000",
+                          "availableTransferBalance": "8500.000000",
+                          "equity": "10500.000000",
+                          "status": "NORMAL",
+                          "blockTime": 1776920000000
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/account/wallet?userAddr=0xabc...`\n);\nconsole.log(await resp.json());\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/account/wallet\",\n    params={\"userAddr\": \"0xabc...\"})\nprint(resp.json())\n"
+          }
+        ]
+      }
+    },
+    "/info/account/ledger": {
+      "get": {
+        "operationId": "queryLedger",
+        "summary": "Query Account Ledger",
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "bizType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Business type filter"
+          },
+          {
+            "name": "txHash",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "Start timestamp (ms)"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "End timestamp (ms)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated ledger entries"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/account/ledger?userAddr=0xabc...&page=1&pageSize=20`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/account/ledger\",\n    params={\"userAddr\": \"0xabc...\", \"page\": 1, \"pageSize\": 20})\n"
+          }
+        ]
+      }
+    },
+    "/info/account/agent": {
+      "get": {
+        "operationId": "queryAgent",
+        "summary": "Query Account Agents",
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "agentAddress",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "masterAddress",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated agent list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AccountAgent"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/account/agent?userAddr=0xabc...`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/account/agent\",\n    params={\"userAddr\": \"0xabc...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/account/agent/active": {
+      "get": {
+        "operationId": "queryActiveAgent",
+        "summary": "Query Active Agent",
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "agentName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Active agent info",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AccountAgent"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/account/agent/active?userAddr=0xabc...&agentName=my-bot`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/account/agent/active\",\n    params={\"userAddr\": \"0xabc...\", \"agentName\": \"my-bot\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/order/states": {
+      "get": {
+        "operationId": "queryOrderStates",
+        "summary": "Query Order States",
+        "tags": [
+          "Orders"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "Symbol code filter"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Order status filter"
+          },
+          {
+            "name": "side",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Side filter (1=BUY, 2=SELL)"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Type filter (1=LIMIT, 2=MARKET)"
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientOrderId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "parentOrderId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated order states",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OrderState"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/order/states?userAddr=0xabc...&symbol=1`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/order/states\",\n    params={\"userAddr\": \"0xabc...\", \"symbol\": 1})\n"
+          }
+        ]
+      }
+    },
+    "/info/order/events": {
+      "get": {
+        "operationId": "queryOrderEvents",
+        "summary": "Query Order Events",
+        "tags": [
+          "Orders"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientOrderId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "execStatus",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "side",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated order events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OrderEvent"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/order/events?userAddr=0xabc...&orderId=12345`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/order/events\",\n    params={\"userAddr\": \"0xabc...\", \"orderId\": \"12345\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/position/list": {
+      "get": {
+        "operationId": "queryPositions",
+        "summary": "Query Positions",
+        "tags": [
+          "Positions"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "posMode",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Position mode (1=ONE_WAY, 2=HEDGE)"
+          },
+          {
+            "name": "includeZero",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Position list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Position"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/position/list?userAddr=0xabc...`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/position/list\",\n    params={\"userAddr\": \"0xabc...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/trade/page": {
+      "get": {
+        "operationId": "queryTrades",
+        "summary": "Query Trades",
+        "tags": [
+          "Trades"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "execId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "side",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Maker/Taker role filter"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated trade records",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Trade"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/trade/page?userAddr=0xabc...&symbol=1`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/trade/page\",\n    params={\"userAddr\": \"0xabc...\", \"symbol\": 1})\n"
+          }
+        ]
+      }
+    },
+    "/info/single": {
+      "get": {
+        "operationId": "getProductSingle",
+        "summary": "Query Single Product",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "Symbol code"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ProductMeta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(`${BASE_URL}/info/single?symbol=1`);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/single\", params={\"symbol\": 1})\n"
+          }
+        ]
+      }
+    },
+    "/info/public/product-meta": {
+      "get": {
+        "operationId": "getAllProducts",
+        "summary": "Query All Products",
+        "tags": [
+          "Products"
+        ],
+        "parameters": [
+          {
+            "name": "listStatus",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Filter by listing status"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All product metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ProductMeta"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(`${BASE_URL}/info/public/product-meta`);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/public/product-meta\")\n"
+          }
+        ]
+      }
+    },
+    "/info/kline/last": {
+      "get": {
+        "operationId": "getKlineLast",
+        "summary": "Query Latest Klines",
+        "tags": [
+          "Kline"
+        ],
+        "description": "Get latest N kline candles, sorted by timestamp descending.",
+        "parameters": [
+          {
+            "name": "symbol_name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Symbol name (e.g. `BTCUSDC`)"
+          },
+          {
+            "name": "interval",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "Interval in seconds (60, 300, 900, 3600, 86400, ...)"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 100
+            },
+            "description": "Number of candles to return"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kline data array",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Kline"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/kline/last?symbol_name=BTCUSDC&interval=60&limit=100`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/kline/last\",\n    params={\"symbol_name\": \"BTCUSDC\", \"interval\": 60, \"limit\": 100})\n"
+          }
+        ]
+      }
+    },
+    "/info/kline/before": {
+      "get": {
+        "operationId": "getKlineBefore",
+        "summary": "Query Klines Before Timestamp",
+        "tags": [
+          "Kline"
+        ],
+        "description": "Get N klines before a given timestamp. Defaults to current time.",
+        "parameters": [
+          {
+            "name": "symbol_name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "interval",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "timestamp",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "Upper bound timestamp (ms). Defaults to now."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kline data array",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Kline"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/kline/before?symbol_name=BTCUSDC&interval=60&limit=200`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/kline/before\",\n    params={\"symbol_name\": \"BTCUSDC\", \"interval\": 60, \"limit\": 200})\n"
+          }
+        ]
+      }
+    },
+    "/info/kline/list": {
+      "get": {
+        "operationId": "getKlineList",
+        "summary": "Query Klines in Time Range",
+        "tags": [
+          "Kline"
+        ],
+        "description": "Get all klines in a time range, sorted ascending.",
+        "parameters": [
+          {
+            "name": "symbol_name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "interval",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kline data array",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Kline"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/kline/list?symbol_name=BTCUSDC&interval=3600&startTime=1700000000000&endTime=1700100000000`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/kline/list\", params={\n    \"symbol_name\": \"BTCUSDC\", \"interval\": 3600,\n    \"startTime\": 1700000000000, \"endTime\": 1700100000000,\n})\n"
+          }
+        ]
+      }
+    },
+    "/info/fundingRate/current": {
+      "get": {
+        "operationId": "getFundingRateCurrent",
+        "summary": "Query Current Funding Rates",
+        "tags": [
+          "Funding Rate"
+        ],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "description": "Symbol code. Omit for all symbols."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current funding rate(s)"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(`${BASE_URL}/info/fundingRate/current?symbol=1`);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/fundingRate/current\",\n    params={\"symbol\": 1})\n"
+          }
+        ]
+      }
+    },
+    "/info/fundingRate/history": {
+      "get": {
+        "operationId": "getFundingRateHistory",
+        "summary": "Query Funding Rate History",
+        "tags": [
+          "Funding Rate"
+        ],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated funding rate history"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/fundingRate/history?symbol=1&page=1&pageSize=20`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/fundingRate/history\",\n    params={\"symbol\": 1, \"page\": 1, \"pageSize\": 20})\n"
+          }
+        ]
+      }
+    },
+    "/info/funding/history": {
+      "get": {
+        "operationId": "queryUserFundingHistory",
+        "summary": "Query User Funding History",
+        "tags": [
+          "Funding Rate"
+        ],
+        "description": "Query a user's funding fee settlement history.",
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated user funding history"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/funding/history?userAddr=0xabc...&symbol=1`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/funding/history\",\n    params={\"userAddr\": \"0xabc...\", \"symbol\": 1})\n"
+          }
+        ]
+      }
+    },
+    "/info/vault/detail": {
+      "get": {
+        "operationId": "getVaultDetail",
+        "summary": "Query Vault Detail",
+        "tags": [
+          "Vault"
+        ],
+        "description": "Returns vault info (TVL, APR, PnL). If `userAddress` is provided, also returns user position data.\nWhen querying a parent vault, TVL/PnL/APR aggregate all sub-vaults.\n",
+        "parameters": [
+          {
+            "name": "vaultAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userAddress",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include user position data"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vault detail",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "success": {
+                    "value": {
+                      "code": 0,
+                      "message": "success",
+                      "data": {
+                        "vaultAddress": "0x4b90BBE5...",
+                        "ownerAddress": "0xfc846581...",
+                        "vaultName": "test",
+                        "tvl": "100.000000",
+                        "price": "1.000000",
+                        "apr": null,
+                        "status": 1,
+                        "yourDeposits": "100.000000",
+                        "userCurrentValue": "100.000000"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/vault/detail?vaultAddress=0x4b90...&userAddress=0xfc84...`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/vault/detail\", params={\n    \"vaultAddress\": \"0x4b90...\", \"userAddress\": \"0xfc84...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/vault/user-list": {
+      "get": {
+        "operationId": "getUserVaultList",
+        "summary": "Query User's Vault List",
+        "tags": [
+          "Vault"
+        ],
+        "description": "Returns all vaults where user holds shares > 0.",
+        "parameters": [
+          {
+            "name": "userAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of vaults with user holdings"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/vault/user-list?userAddress=0xabc...`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/vault/user-list\",\n    params={\"userAddress\": \"0xabc...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/vault/user": {
+      "get": {
+        "operationId": "getUserVaultInfo",
+        "summary": "Query User Vault Position",
+        "tags": [
+          "Vault"
+        ],
+        "description": "Returns user's full position info in a specific vault.",
+        "parameters": [
+          {
+            "name": "vaultAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User vault position detail"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/vault/user?vaultAddress=0x4b90...&userAddress=0xfc84...`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/vault/user\",\n    params={\"vaultAddress\": \"0x4b90...\", \"userAddress\": \"0xfc84...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/vault/list": {
+      "get": {
+        "operationId": "getVaultList",
+        "summary": "Query All Vaults",
+        "tags": [
+          "Vault"
+        ],
+        "description": "Returns all parent vaults (Active and Closed). Sub-vaults not listed.\nTVL and APR aggregate sub-vault data.\n",
+        "parameters": [
+          {
+            "name": "userAddress",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include `yourDeposit` field when provided"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vault list with total locked value"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(`${BASE_URL}/info/vault/list`);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/vault/list\")\n"
+          }
+        ]
+      }
+    },
+    "/info/vault/history": {
+      "get": {
+        "operationId": "getVaultHistory",
+        "summary": "Query Vault History",
+        "tags": [
+          "Vault"
+        ],
+        "description": "Returns vault TVL or PnL time-series data.\n\n| interval | Range | Granularity |\n|----------|-------|-------------|\n| 24h | Last 24 hours | 1 hour |\n| 7d | Last 7 days | 12 hours |\n| 30d | Last 30 days | 1 day |\n| all-time | All history | 1 month |\n",
+        "parameters": [
+          {
+            "name": "vaultAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "tvl",
+              "enum": [
+                "tvl",
+                "pnl"
+              ]
+            }
+          },
+          {
+            "name": "interval",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "24h",
+              "enum": [
+                "24h",
+                "7d",
+                "30d",
+                "all-time"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Time-series data"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/vault/history?vaultAddress=0x4b90...&type=tvl&interval=7d`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/vault/history\", params={\n    \"vaultAddress\": \"0x4b90...\", \"type\": \"tvl\", \"interval\": \"7d\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/vault/events": {
+      "get": {
+        "operationId": "getVaultEvents",
+        "summary": "Query Vault Deposit/Withdraw Events",
+        "tags": [
+          "Vault"
+        ],
+        "parameters": [
+          {
+            "name": "vaultAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated deposit/withdraw events"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/vault/events?vaultAddress=0x4b90...&page=1`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/vault/events\",\n    params={\"vaultAddress\": \"0x4b90...\", \"page\": 1})\n"
+          }
+        ]
+      }
+    },
+    "/info/vault/depositors": {
+      "get": {
+        "operationId": "getVaultDepositors",
+        "summary": "Query Vault Depositors",
+        "tags": [
+          "Vault"
+        ],
+        "description": "Returns all depositors with shares > 0.",
+        "parameters": [
+          {
+            "name": "vaultAddress",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Depositor list"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/vault/depositors?vaultAddress=0x4b90...`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/vault/depositors\",\n    params={\"vaultAddress\": \"0x4b90...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/referral/code": {
+      "get": {
+        "operationId": "getReferralCode",
+        "summary": "Query Referral Code",
+        "tags": [
+          "Referral"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Referral code info"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(`${BASE_URL}/info/referral/code?userAddr=0xabc...`);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/referral/code\",\n    params={\"userAddr\": \"0xabc...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/referral/summary": {
+      "get": {
+        "operationId": "getReferralSummary",
+        "summary": "Query Referral Summary",
+        "tags": [
+          "Referral"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "all"
+            }
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Referral summary statistics"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/referral/summary?userAddr=0xabc...&period=all`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/referral/summary\",\n    params={\"userAddr\": \"0xabc...\", \"period\": \"all\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/referral/referrals": {
+      "get": {
+        "operationId": "getReferrals",
+        "summary": "Query Referral List",
+        "tags": [
+          "Referral"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "dateJoined"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "desc"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated referral list"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/referral/referrals?userAddr=0xabc...&page=1&size=10`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/referral/referrals\",\n    params={\"userAddr\": \"0xabc...\", \"page\": 1, \"size\": 10})\n"
+          }
+        ]
+      }
+    },
+    "/info/referral/payouts": {
+      "get": {
+        "operationId": "getPayouts",
+        "summary": "Query Referral Payouts",
+        "tags": [
+          "Referral"
+        ],
+        "parameters": [
+          {
+            "name": "userAddr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated payout list"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/referral/payouts?userAddr=0xabc...`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/referral/payouts\",\n    params={\"userAddr\": \"0xabc...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/referral/tiers": {
+      "get": {
+        "operationId": "getTierConfigs",
+        "summary": "Query Referral Tiers",
+        "tags": [
+          "Referral"
+        ],
+        "description": "Returns referral tier configuration (no parameters).",
+        "responses": {
+          "200": {
+            "description": "Tier config list"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(`${BASE_URL}/info/referral/tiers`);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/referral/tiers\")\n"
+          }
+        ]
+      }
+    },
+    "/info/explore/transaction/page": {
+      "get": {
+        "operationId": "queryTransactions",
+        "summary": "Query Transactions",
+        "tags": [
+          "Explorer"
+        ],
+        "parameters": [
+          {
+            "name": "user",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User address"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated transaction list"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/explore/transaction/page?user=0xabc...`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/explore/transaction/page\",\n    params={\"user\": \"0xabc...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/explore/transaction/detail": {
+      "get": {
+        "operationId": "queryTransactionDetail",
+        "summary": "Query Transaction Detail",
+        "tags": [
+          "Explorer"
+        ],
+        "parameters": [
+          {
+            "name": "txHash",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction detail with parsed action"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/explore/transaction/detail?txHash=0xdef...`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/explore/transaction/detail\",\n    params={\"txHash\": \"0xdef...\"})\n"
+          }
+        ]
+      }
+    },
+    "/info/explore/block/detail": {
+      "get": {
+        "operationId": "queryBlockDetail",
+        "summary": "Query Block Detail",
+        "tags": [
+          "Explorer"
+        ],
+        "parameters": [
+          {
+            "name": "blockHeight",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Block detail with paginated transactions"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript",
+            "source": "const resp = await fetch(\n  `${BASE_URL}/info/explore/block/detail?blockHeight=123456`\n);\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "resp = requests.get(f\"{BASE_URL}/info/explore/block/detail\",\n    params={\"blockHeight\": 123456})\n"
+          }
+        ]
+      }
+    },
+    "/exchange/placeOrder": {
+      "post": {
+        "operationId": "placeOrder",
+        "summary": "Place Order",
+        "tags": [
+          "Orders"
+        ],
+        "description": "Submit one or more orders. Supports limit, market, and conditional (TP/SL) orders.\n\n**Signature:** Agent · **Protobuf:** `MsgPlaceOrders`\n\n**Outer request fields:**\n- `nonce`: `uint64` Unix timestamp in milliseconds. Use the current millisecond timestamp and do not reuse the same nonce for another signed request.\n- `expiryAfter`: optional `uint64` Unix timestamp in milliseconds. The request expires after this timestamp; `null` means no expiry and must be signed as `0`.\n\n```protobuf\nmessage MsgPlaceOrder {\n  int64  cl_ord_id           = 1;\n  int64  symbol_code         = 2;\n  string ord_px              = 3;\n  string ord_qty             = 4;\n  string trigger_px          = 5;\n  OrdType                   ord_type           = 6;\n  OrdSide                   ord_side           = 7;\n  OrdTIF                    time_in_force      = 8;\n  ReduceOnlyOption          reduce_only_option = 9;\n  int64  parent_ord_id      = 10;\n  ConditionalOrdTriggerType tpsl_trigger_type  = 11;\n  string slippage_pct       = 12;\n}\nmessage MsgPlaceOrders {\n  repeated MsgPlaceOrder orders = 1;\n}\n```\n\n**Enum Reference:**\n| Enum | Values |\n|------|--------|\n| OrdType | LIMIT=1, MARKET=2 |\n| OrdSide | BUY=1, SELL=2, BUY_CLOSE_HEDGE=3, SELL_CLOSE_HEDGE=4 |\n| OrdTIF | GTC=1, IOC=2, FOK=3, POST_ONLY=4 |\n| ReduceOnlyOption | REDUCE_ONLY=1, TP_FROM_POSITION=2, SL_FROM_POSITION=3 |\n| ConditionalOrdTriggerType | LAST_PRICE=1, MARK_PRICE=2, INDEX_PRICE=3 |\n\n`NONE` is the proto default value. `MARKET_LIQ_SELLOFF`, `LIMIT_LIQ_SELLOFF`, `ADL`, and `LIQUIDATION` are display-only `OrdType` values used by query or stream data. Do not send those values in order requests.\n\n`slippagePct` is a decimal ratio string for market orders. For example, `\"0.001\"` means 0.1%, `\"0.01\"` means 1%, and `\"0.05\"` means 5%. Check each product's `maxSlippagePct` from `GET /info/public/product-meta`.\n\nField names differ by layer:\n\n| Concept | Python SDK | Protobuf | REST action |\n|---------|------------|----------|-------------|\n| Symbol code | `symbol_code` | `symbol_code` | `symbolCode` |\n| Order price | `px` | `ord_px` | `ordPx` |\n| Order quantity | `qty` | `ord_qty` | `ordQty` |\n| Reduce-only option | `reduce_only_option` | `reduce_only_option` | `reduceOnlyOption` |\n| Trigger type | `trigger_type` | `tpsl_trigger_type` | `tpslTriggerType` |\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceOrderRequest"
+              },
+              "examples": {
+                "limitOrder": {
+                  "summary": "Limit Buy",
+                  "value": {
+                    "action": {
+                      "type": "placeOrder",
+                      "orders": [
+                        {
+                          "symbolCode": 1,
+                          "ordPx": "40000.5",
+                          "ordQty": "0.5",
+                          "ordType": "LIMIT",
+                          "ordSide": "BUY",
+                          "timeInForce": "GTC"
+                        }
+                      ]
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                },
+                "marketOrder": {
+                  "summary": "Market Buy",
+                  "value": {
+                    "action": {
+                      "type": "placeOrder",
+                      "orders": [
+                        {
+                          "symbolCode": 1,
+                          "ordPx": "0",
+                          "ordQty": "0.1",
+                          "ordType": "MARKET",
+                          "ordSide": "BUY",
+                          "timeInForce": "IOC",
+                          "slippagePct": "0.01"
+                        }
+                      ]
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                },
+                "stopLoss": {
+                  "summary": "Stop Loss",
+                  "value": {
+                    "action": {
+                      "type": "placeOrder",
+                      "orders": [
+                        {
+                          "symbolCode": 1,
+                          "ordPx": "0",
+                          "ordQty": "0",
+                          "ordType": "MARKET",
+                          "ordSide": "SELL",
+                          "timeInForce": "IOC",
+                          "reduceOnlyOption": "SL_FROM_POSITION",
+                          "triggerPx": "38000",
+                          "tpslTriggerType": "LAST_PRICE",
+                          "slippagePct": "0.01"
+                        }
+                      ]
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "// Limit buy\nconst result = await client.placeOrder({\n  symbolCode: 1, px: \"40000.5\", qty: \"0.5\",\n  side: \"BUY\", ordType: \"LIMIT\", tif: \"GTC\",\n});\nconsole.log(result);\n\n// Market buy\nconst result2 = await client.placeOrder({\n  symbolCode: 1, px: \"0\", qty: \"0.1\",\n  side: \"BUY\", ordType: \"MARKET\", tif: \"IOC\",\n  slippagePct: \"0.01\",\n});\n\n// Stop loss\nconst result3 = await client.placeOrder({\n  symbolCode: 1, px: \"0\", qty: \"0\",\n  side: \"SELL\", ordType: \"MARKET\", tif: \"IOC\",\n  reduceOnlyOption: \"SL_FROM_POSITION\",\n  triggerPx: \"38000\", tpslTriggerType: \"LAST_PRICE\",\n  slippagePct: \"0.01\",\n});\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "from afx import AfxClient\n\nclient = AfxClient.from_env(testnet=True)\n\n# Limit buy\nresult = client.exchange.place_order(\n    symbol_code=1, px=\"40000.5\", qty=\"0.5\",\n    side=\"BUY\", ord_type=\"LIMIT\", tif=\"GTC\",\n)\nprint(result)\n\n# Market buy\nresult2 = client.exchange.place_order(\n    symbol_code=1, px=\"0\", qty=\"0.1\",\n    side=\"BUY\", ord_type=\"MARKET\", tif=\"IOC\",\n    slippage_pct=\"0.01\",\n)\n"
+          }
+        ]
+      }
+    },
+    "/exchange/replaceOrder": {
+      "post": {
+        "operationId": "replaceOrder",
+        "summary": "Replace Order",
+        "tags": [
+          "Orders"
+        ],
+        "description": "Replace an existing order by `ordId` or `clOrdId`.\n\n**Signature:** Agent · **Protobuf:** `MsgReplaceOrder`\n\n```protobuf\nmessage MsgReplaceOrder {\n  int64  cl_ord_id           = 1;\n  int64  symbol_code         = 2;\n  string ord_px              = 3;\n  string ord_qty             = 4;\n  string trigger_px          = 5;\n  OrdType                   ord_type           = 6;\n  OrdSide                   ord_side           = 7;\n  OrdTIF                    time_in_force      = 8;\n  ReduceOnlyOption          reduce_only_option = 9;\n  int64  parent_ord_id      = 10;\n  ConditionalOrdTriggerType tpsl_trigger_type  = 11;\n  string slippage_pct       = 12;\n  int64  ord_id             = 13;\n}\n```\n\nAt least one of `ordId` or `clOrdId` must identify the existing order.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplaceOrderRequest"
+              },
+              "examples": {
+                "byClOrdId": {
+                  "summary": "Replace by client order ID",
+                  "value": {
+                    "action": {
+                      "type": "replaceOrder",
+                      "symbolCode": 1,
+                      "ordPx": "50100",
+                      "ordQty": "0.001",
+                      "ordType": "LIMIT",
+                      "ordSide": "BUY",
+                      "timeInForce": "GTC",
+                      "clOrdId": 99001
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.replaceOrder({\n  symbolCode: 1,\n  px: \"50100\",\n  qty: \"0.001\",\n  side: \"BUY\",\n  ordType: \"LIMIT\",\n  tif: \"GTC\",\n  clOrdId: 99001,\n});\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python (afx-python-sdk)",
+            "source": "import time\n\nfrom afx import AfxClient\n\nclient = AfxClient.from_env(testnet=True)\ncl_ord_id = int(time.time() * 1000)\n\nclient.exchange.place_order(\n    symbol_code=1,\n    px=\"50000\",\n    qty=\"0.001\",\n    side=\"BUY\",\n    ord_type=\"LIMIT\",\n    tif=\"GTC\",\n    cl_ord_id=cl_ord_id,\n)\n\nresult = client.exchange.replace_order(\n    symbol_code=1,\n    px=\"50100\",\n    qty=\"0.001\",\n    side=\"BUY\",\n    ord_type=\"LIMIT\",\n    tif=\"GTC\",\n    cl_ord_id=cl_ord_id,\n)\nprint(result)\n\n# Full example:\n# https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/replace_order.py\n"
+          }
+        ]
+      }
+    },
+    "/exchange/placeBracketOrder": {
+      "post": {
+        "operationId": "placeBracketOrder",
+        "summary": "Place Bracket Order",
+        "tags": [
+          "Orders"
+        ],
+        "description": "Place a main order with one or two attached TP/SL child orders.\n\n**Signature:** Agent · **Protobuf:** `MsgPlaceBracketOrder`\n\n```protobuf\nmessage MsgPlaceBracketOrder {\n  MsgPlaceOrder main_order        = 1;\n  MsgPlaceOrder take_profit_order = 2;\n  MsgPlaceOrder stop_loss_order   = 3;\n}\n```\n\nThe request must contain 2 or 3 orders. The first order is the main order. Child orders must use `reduceOnly` as `TP_FROM_POSITION` or `SL_FROM_POSITION`.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceBracketOrderRequest"
+              },
+              "examples": {
+                "withTakeProfitAndStopLoss": {
+                  "summary": "Main limit order with TP and SL",
+                  "value": {
+                    "action": {
+                      "type": "placeBracketOrder",
+                      "orders": [
+                        {
+                          "symbolCode": 1,
+                          "ordPx": "50000",
+                          "ordQty": "0.001",
+                          "ordType": "LIMIT",
+                          "ordSide": "BUY",
+                          "timeInForce": "GTC",
+                          "clOrdId": 99001
+                        },
+                        {
+                          "symbolCode": 1,
+                          "ordPx": "55000",
+                          "ordQty": "0.001",
+                          "triggerPx": "55000",
+                          "ordType": "LIMIT",
+                          "ordSide": "SELL",
+                          "timeInForce": "GTC",
+                          "reduceOnly": "TP_FROM_POSITION",
+                          "tpslTriggerType": "LAST_PRICE",
+                          "clOrdId": 99002
+                        },
+                        {
+                          "symbolCode": 1,
+                          "ordPx": "0",
+                          "ordQty": "0.001",
+                          "triggerPx": "45000",
+                          "ordType": "MARKET",
+                          "ordSide": "SELL",
+                          "timeInForce": "IOC",
+                          "reduceOnly": "SL_FROM_POSITION",
+                          "tpslTriggerType": "LAST_PRICE",
+                          "slippagePct": "0.01",
+                          "clOrdId": 99003
+                        }
+                      ]
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.placeBracketOrder({\n  orders: [\n    {\n      symbolCode: 1, px: \"50000\", qty: \"0.001\",\n      side: \"BUY\", ordType: \"LIMIT\", tif: \"GTC\",\n      clOrdId: 99001,\n    },\n    {\n      symbolCode: 1, px: \"55000\", qty: \"0.001\",\n      triggerPx: \"55000\", side: \"SELL\",\n      ordType: \"LIMIT\", tif: \"GTC\",\n      reduceOnly: \"TP_FROM_POSITION\",\n      tpslTriggerType: \"LAST_PRICE\",\n      clOrdId: 99002,\n    },\n    {\n      symbolCode: 1, px: \"0\", qty: \"0.001\",\n      triggerPx: \"45000\", side: \"SELL\",\n      ordType: \"MARKET\", tif: \"IOC\",\n      reduceOnly: \"SL_FROM_POSITION\",\n      tpslTriggerType: \"LAST_PRICE\",\n      slippagePct: \"0.01\",\n      clOrdId: 99003,\n    },\n  ],\n});\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python (afx-python-sdk)",
+            "source": "import time\n\nfrom afx import AfxClient\n\nclient = AfxClient.from_env(testnet=True)\nbase_cl_ord_id = int(time.time() * 1000)\n\nresult = client.exchange.place_bracket_order(\n    main_order={\n        \"symbol_code\": 1,\n        \"px\": \"50000\",\n        \"qty\": \"0.001\",\n        \"side\": \"BUY\",\n        \"ord_type\": \"LIMIT\",\n        \"tif\": \"GTC\",\n        \"cl_ord_id\": base_cl_ord_id,\n    },\n    take_profit_order={\n        \"symbol_code\": 1,\n        \"px\": \"55000\",\n        \"qty\": \"0.001\",\n        \"trigger_px\": \"55000\",\n        \"side\": \"SELL\",\n        \"ord_type\": \"LIMIT\",\n        \"tif\": \"GTC\",\n        \"reduce_only_option\": \"TP_FROM_POSITION\",\n        \"trigger_type\": \"LAST_PRICE\",\n        \"cl_ord_id\": base_cl_ord_id + 1,\n    },\n    stop_loss_order={\n        \"symbol_code\": 1,\n        \"px\": \"0\",\n        \"qty\": \"0.001\",\n        \"trigger_px\": \"45000\",\n        \"side\": \"SELL\",\n        \"ord_type\": \"MARKET\",\n        \"tif\": \"IOC\",\n        \"reduce_only_option\": \"SL_FROM_POSITION\",\n        \"trigger_type\": \"LAST_PRICE\",\n        \"slippage_pct\": \"0.01\",\n        \"cl_ord_id\": base_cl_ord_id + 2,\n    },\n)\nprint(result)\n\n# Full example:\n# https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/place_bracket_order.py\n"
+          }
+        ]
+      }
+    },
+    "/exchange/cancelOrder": {
+      "post": {
+        "operationId": "cancelOrder",
+        "summary": "Cancel Order",
+        "tags": [
+          "Orders"
+        ],
+        "description": "Cancel one or more orders by orderId or clOrdId.\n\n**Signature:** Agent · **Protobuf:** `MsgCancelOrders`\n\n**Outer request fields:**\n- `nonce`: `uint64` Unix timestamp in milliseconds. Use the current millisecond timestamp and do not reuse the same nonce for another signed request.\n\n```protobuf\nmessage MsgCancelOrder {\n  int64 symbol_code = 1;\n  int64 cl_ord_id   = 2;\n  int64 ord_id      = 3;\n}\nmessage MsgCancelOrders {\n  repeated MsgCancelOrder orders = 1;\n}\n```\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelOrderRequest"
+              },
+              "examples": {
+                "byOrdId": {
+                  "summary": "Cancel by orderId",
+                  "value": {
+                    "action": {
+                      "type": "cancelOrder",
+                      "cancels": [
+                        {
+                          "symbolCode": 1,
+                          "ordId": "12345"
+                        }
+                      ]
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                },
+                "byClOrdId": {
+                  "summary": "Cancel by clOrdId",
+                  "value": {
+                    "action": {
+                      "type": "cancelOrder",
+                      "cancels": [
+                        {
+                          "symbolCode": 1,
+                          "clOrdId": "99001"
+                        }
+                      ]
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "// Cancel by system order ID\nawait client.cancelOrder({ symbolCode: 1, ordId: \"12345\" });\n\n// Cancel by client order ID\nawait client.cancelOrder({ symbolCode: 1, clOrdId: \"99001\" });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "# Cancel by system order ID\nclient.exchange.cancel_order(symbol_code=1, ord_id=\"12345\")\n\n# Cancel by client order ID\nclient.exchange.cancel_order(symbol_code=1, cl_ord_id=\"99001\")\n"
+          }
+        ]
+      }
+    },
+    "/exchange/cancelAll": {
+      "post": {
+        "operationId": "cancelAll",
+        "summary": "Cancel All Orders",
+        "tags": [
+          "Orders"
+        ],
+        "description": "Cancel all orders for a symbol.\n\n**Signature:** Agent · **Protobuf:** `MsgCancelAll`\n\n**Outer request fields:**\n- `nonce`: `uint64` Unix timestamp in milliseconds. Use the current millisecond timestamp and do not reuse the same nonce for another signed request.\n\n```protobuf\nmessage MsgCancelAll {\n  int64 symbol_code          = 1;\n  bool  is_conditional_order = 2;\n}\n```\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelAllRequest"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "action": {
+                      "type": "cancelAll",
+                      "symbolCode": 1,
+                      "conditionalOrder": false
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.cancelAll({ symbolCode: 1 });\n\n// Cancel conditional orders only\nawait client.cancelAll({ symbolCode: 1, conditional: true });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "client.exchange.cancel_all(symbol_code=1)\n\n# Cancel conditional orders only\nclient.exchange.cancel_all(symbol_code=1, conditional=True)\n"
+          }
+        ]
+      }
+    },
+    "/exchange/setLeverage": {
+      "post": {
+        "operationId": "setLeverage",
+        "summary": "Set Leverage",
+        "tags": [
+          "Account"
+        ],
+        "description": "Set leverage for a symbol.\n\n**Signature:** Agent · **Protobuf:** `MsgSetLeverage`\n\n```protobuf\nmessage MsgSetLeverage {\n  int64  symbol_code = 1;\n  string leverage    = 2;\n}\n```\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetLeverageRequest"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "action": {
+                      "type": "setLeverage",
+                      "symbolCode": 1,
+                      "leverage": "10"
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.setLeverage({ symbolCode: 1, leverage: \"10\" });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "client.exchange.set_leverage(symbol_code=1, leverage=\"10\")\n"
+          }
+        ]
+      }
+    },
+    "/exchange/setMarginMode": {
+      "post": {
+        "operationId": "setMarginMode",
+        "summary": "Set Margin Mode",
+        "tags": [
+          "Account"
+        ],
+        "description": "Set margin mode for a symbol.\n\n**Signature:** Agent · **Protobuf:** `MsgSetMarginMode`\n\n```protobuf\nmessage MsgSetMarginMode {\n  int64              symbol_code = 1;\n  PositionMarginMode margin_mode = 2;  // CROSS=1, ISOLATED=2\n}\n```\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetMarginModeRequest"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "action": {
+                      "type": "setMarginMode",
+                      "symbolCode": 1,
+                      "marginMode": "CROSS"
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.setMarginMode({ symbolCode: 1, mode: \"CROSS\" });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "client.exchange.set_margin_mode(symbol_code=1, mode=\"CROSS\")\n"
+          }
+        ]
+      }
+    },
+    "/exchange/assignPosMargin": {
+      "post": {
+        "operationId": "assignPosMargin",
+        "summary": "Assign Position Margin",
+        "tags": [
+          "Account"
+        ],
+        "description": "Add or remove margin for an isolated position.\n\n**Signature:** Agent · **Protobuf:** `MsgAssignPosMargin`\n\n```protobuf\nmessage MsgAssignPosMargin {\n  int64  symbol_code        = 1;\n  string assigned_pos_margin = 2;\n}\n```\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignPosMarginRequest"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "action": {
+                      "type": "assignPosMargin",
+                      "symbolCode": 1,
+                      "assignedPosMargin": "100"
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.assignPosMargin({ symbolCode: 1, amount: \"100\" });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "client.exchange.assign_pos_margin(symbol_code=1, amount=\"100\")\n"
+          }
+        ]
+      }
+    },
+    "/exchange/approveAgent": {
+      "post": {
+        "operationId": "approveAgent",
+        "summary": "Approve Agent",
+        "tags": [
+          "Authorization"
+        ],
+        "description": "Authorize an Agent wallet to trade on behalf of the Master wallet.\n\n**Signature:** Master · **No protobuf** — fields are signed directly via EIP-712.\n\nTo revoke the current Agent wallet, submit the same `approveAgent` action with `agentAddress` set to `0x0000000000000000000000000000000000000000` and `validitySeconds` set to `0`. The Python SDK exposes this as `client.exchange.revoke_agent(...)`.\n\n**EIP-712 type:**\n```json\n{\n  \"ApproveAgent\": [\n    { \"name\": \"dexChain\",     \"type\": \"string\"  },\n    { \"name\": \"agentAddress\", \"type\": \"address\" },\n    { \"name\": \"agentName\",    \"type\": \"string\"  },\n    { \"name\": \"validitySeconds\", \"type\": \"uint64\" },\n    { \"name\": \"nonce\",        \"type\": \"uint64\"  },\n    { \"name\": \"expiryAfter\",  \"type\": \"uint64\"  }\n  ]\n}\n```\n`validitySeconds` is the agent authorization duration. `0` means the authorization is valid for 7 days; maximum 365 days.\nDomain name: `\"SignTransaction\"`\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveAgentRequest"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "action": {
+                      "type": "approveAgent",
+                      "agentAddress": "0x76b6c4dc45f39463a1c8f6500c94b247c53fe184",
+                      "agentName": "my-trading-bot",
+                      "validitySeconds": 604800,
+                      "dexChain": "Mainnet"
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904,
+                    "expiryAfter": 1763023686904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.approveAgent({ agentName: \"my-trading-bot\", validitySeconds: 604800 });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "client.exchange.approve_agent(agent_name=\"my-trading-bot\", validity_seconds=604800)\n\n# Revoke the active agent wallet.\nclient.exchange.revoke_agent(agent_name=\"my-trading-bot\")\n"
+          }
+        ]
+      }
+    },
+    "/exchange/withdraw": {
+      "post": {
+        "operationId": "withdraw",
+        "summary": "Withdraw",
+        "tags": [
+          "Authorization"
+        ],
+        "description": "Withdraw funds from DEX to an external address.\n\n**Signature:** Master · **No protobuf**\n\n**EIP-712 type:**\n```json\n{\n  \"Withdraw\": [\n    { \"name\": \"dexChain\",    \"type\": \"string\"  },\n    { \"name\": \"destination\", \"type\": \"address\" },\n    { \"name\": \"amount\",      \"type\": \"string\"  },\n    { \"name\": \"withdrawSequence\", \"type\": \"uint64\" },\n    { \"name\": \"nonce\",       \"type\": \"uint64\"  },\n    { \"name\": \"expiryAfter\", \"type\": \"uint64\"  }\n  ]\n}\n```\nDomain name: `\"SignTransaction\"`. `dexChain` is determined by the server environment. `withdrawSequence` is included in both the action body and the signed EIP-712 message. If omitted in the Python SDK, it defaults to the request `nonce`.\n\nFor withdrawals, use a longer `expiryAfter` window, such as current Unix time in milliseconds + 3,600,000.\nThe minimum mainnet withdrawal amount is 2 USDC.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WithdrawRequest"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "action": {
+                      "type": "withdraw",
+                      "destination": "0xabc123...",
+                      "amount": "100",
+                      "withdrawSequence": 1763023626904
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904,
+                    "expiryAfter": 1763027226904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.withdraw({ destination: \"0xabc...\", amount: \"100\", expirySeconds: 3600 });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "client.exchange.withdraw(destination=\"0xabc...\", amount=\"100\", expiry_seconds=3600)\n"
+          }
+        ]
+      }
+    },
+    "/exchange/bindReferral": {
+      "post": {
+        "operationId": "bindReferral",
+        "summary": "Bind Referral",
+        "tags": [
+          "Referral"
+        ],
+        "description": "Bind a referral code to the account.\n\n**Signature:** Agent · **Protobuf:** `MsgBindReferral`\n\n```protobuf\n// package: dex.offchain.referral.v1\nmessage MsgBindReferral {\n  string referral_code = 1;\n}\n```\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BindReferralRequest"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "action": {
+                      "type": "bindReferral",
+                      "referralCode": "ABC123"
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.bindReferral({ code: \"ABC123\" });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "client.exchange.bind_referral(code=\"ABC123\")\n"
+          }
+        ]
+      }
+    },
+    "/exchange/vaultDeposit": {
+      "post": {
+        "operationId": "vaultDeposit",
+        "summary": "Vault Deposit",
+        "tags": [
+          "Vault"
+        ],
+        "description": "Deposit funds into a vault.\n\n**Signature:** Agent · **Protobuf:** `MsgVaultDeposit`\n\n```protobuf\nmessage MsgVaultDeposit {\n  string vault         = 1;\n  string amount        = 2;\n  int64  currency_code = 3;\n}\n```\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "action": {
+                      "type": "vaultDeposit",
+                      "vault": "0x4b90BBE5...",
+                      "amount": "100",
+                      "currencyCode": 1
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.vaultDeposit({ vaultAddress: \"0x4b90BBE5...\", amount: \"100\" });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "client.exchange.vault_deposit(vault_address=\"0x4b90BBE5...\", amount=\"100\")\n"
+          }
+        ]
+      }
+    },
+    "/exchange/vaultWithdraw": {
+      "post": {
+        "operationId": "vaultWithdraw",
+        "summary": "Vault Withdraw",
+        "tags": [
+          "Vault"
+        ],
+        "description": "Withdraw from a vault by share amount. Use the user's withdrawable vault shares, not a USDC amount.\n\n**Signature:** Agent · **Protobuf:** `MsgVaultWithdraw`\n\n```protobuf\nmessage MsgVaultWithdraw {\n  string vault         = 1;\n  string share         = 2;\n  int64  currency_code = 3;\n}\n```\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "action": {
+                      "type": "vaultWithdraw",
+                      "vault": "0x4b90BBE5...",
+                      "share": "9.5",
+                      "currencyCode": 1
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.vaultWithdraw({ vaultAddress: \"0x4b90BBE5...\", share: \"9.5\" });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "client.exchange.vault_withdraw(vault_address=\"0x4b90BBE5...\", share=\"9.5\")\n"
+          }
+        ]
+      }
+    },
+    "/errors": {
+      "get": {
+        "operationId": "errorCodes",
+        "summary": "Error Codes",
+        "tags": [
+          "Errors"
+        ],
+        "description": "All Exchange API responses return a `code` field. `0` means success. Non-zero codes indicate an error.\n\n| Code | Description |\n| ---- | ----------- |\n| `0` | Success |\n| `40201` | Unsupported action type |\n| `40204` | Signature verification failed |\n| `40207` | Invalid nonce |\n| `40208` | Request expired |\n| `40220` | Rate limit exceeded |\n| `40006` | Location is not supported |\n",
+        "responses": {
+          "200": {
+            "description": "Reference only"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccountWallet": {
+        "type": "object",
+        "properties": {
+          "blockHeight": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "userAddr": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "balance": {
+            "type": "string"
+          },
+          "availableBalance": {
+            "type": "string"
+          },
+          "availableTransferBalance": {
+            "type": "string"
+          },
+          "equity": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "blockTime": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "AccountAgent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "masterAddress": {
+            "type": "string"
+          },
+          "agentAddress": {
+            "type": "string"
+          },
+          "agentName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "1=ACTIVE, 2=REVOKED"
+          },
+          "permission": {
+            "type": "string"
+          },
+          "approvedAt": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "approvedBlock": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "approvalTx": {
+            "type": "string"
+          },
+          "revokedAt": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "revokedBlock": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "revokeTx": {
+            "type": "string"
+          }
+        }
+      },
+      "OrderState": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "blockHeight": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "ordId": {
+            "type": "string"
+          },
+          "clOrdId": {
+            "type": "string"
+          },
+          "parentOrdId": {
+            "type": "string"
+          },
+          "userAddr": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "side": {
+            "type": "integer",
+            "description": "1=BUY, 2=SELL"
+          },
+          "type": {
+            "type": "integer",
+            "description": "1=LIMIT, 2=MARKET"
+          },
+          "price": {
+            "type": "string"
+          },
+          "qty": {
+            "type": "string"
+          },
+          "filledQty": {
+            "type": "string"
+          },
+          "leaveQty": {
+            "type": "string"
+          },
+          "cumFilledValue": {
+            "type": "string"
+          },
+          "cumFee": {
+            "type": "string"
+          },
+          "triggerPx": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "NEW, PARTIALLY_FILLED, FILLED, CANCELED"
+          },
+          "timeInForce": {
+            "type": "string"
+          },
+          "reduceOnly": {
+            "type": "integer",
+            "description": "0=NONE, 1=REDUCE_ONLY, 2=TP, 3=SL"
+          },
+          "conditionalOrderTriggerType": {
+            "type": "integer"
+          },
+          "blockTime": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "OrderEvent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "blockHeight": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "userAddr": {
+            "type": "string"
+          },
+          "ordId": {
+            "type": "string"
+          },
+          "clOrdId": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "side": {
+            "type": "string"
+          },
+          "execStatus": {
+            "type": "string"
+          },
+          "ordPx": {
+            "type": "string"
+          },
+          "filledPx": {
+            "type": "string"
+          },
+          "execQty": {
+            "type": "string"
+          },
+          "leavesQty": {
+            "type": "string"
+          },
+          "execId": {
+            "type": "string"
+          },
+          "realizedPnl": {
+            "type": "string"
+          },
+          "openFee": {
+            "type": "string"
+          },
+          "closeFee": {
+            "type": "string"
+          },
+          "blockTime": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "txHash": {
+            "type": "string"
+          },
+          "ordType": {
+            "type": "integer"
+          },
+          "timeInForce": {
+            "type": "string"
+          },
+          "ordQty": {
+            "type": "string"
+          },
+          "triggerPx": {
+            "type": "string"
+          }
+        }
+      },
+      "Position": {
+        "type": "object",
+        "properties": {
+          "userAddr": {
+            "type": "string"
+          },
+          "symbolCode": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "leverage": {
+            "type": "string"
+          },
+          "longSize": {
+            "type": "string"
+          },
+          "shortSize": {
+            "type": "string"
+          },
+          "longEntryValue": {
+            "type": "string"
+          },
+          "shortEntryValue": {
+            "type": "string"
+          },
+          "positionMode": {
+            "type": "string",
+            "description": "ONE_WAY, HEDGE"
+          },
+          "positionMarginMode": {
+            "type": "string",
+            "description": "CROSS, ISOLATED"
+          },
+          "assignedPosBalance": {
+            "type": "string"
+          },
+          "unrealizedPnl": {
+            "type": "string"
+          },
+          "cumRealizedPnl": {
+            "type": "string"
+          },
+          "curMarkPx": {
+            "type": "string"
+          },
+          "cumTransactionFee": {
+            "type": "string"
+          },
+          "createTime": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "blockTime": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "Trade": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "blockHeight": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "userAddr": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "clientOrderId": {
+            "type": "string"
+          },
+          "side": {
+            "type": "string"
+          },
+          "execStatus": {
+            "type": "string"
+          },
+          "orderPx": {
+            "type": "string"
+          },
+          "filledPx": {
+            "type": "string"
+          },
+          "execQty": {
+            "type": "string"
+          },
+          "leavesQty": {
+            "type": "string"
+          },
+          "execId": {
+            "type": "string"
+          },
+          "realizedPnl": {
+            "type": "string"
+          },
+          "openFee": {
+            "type": "string"
+          },
+          "closeFee": {
+            "type": "string"
+          },
+          "blockTime": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "txHash": {
+            "type": "string"
+          }
+        }
+      },
+      "ProductMeta": {
+        "type": "object",
+        "properties": {
+          "md5Checksum": {
+            "type": "string"
+          },
+          "perpProducts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Display name"
+                },
+                "symbol": {
+                  "type": "string",
+                  "description": "Symbol name e.g. BTCUSDC"
+                },
+                "code": {
+                  "type": "string",
+                  "description": "Symbol code"
+                },
+                "currencyCode": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "maxLeverage": {
+                  "type": "integer"
+                },
+                "pricePrecision": {
+                  "type": "integer"
+                },
+                "qtyPrecision": {
+                  "type": "integer"
+                },
+                "tickSize": {
+                  "type": "string"
+                },
+                "stepSize": {
+                  "type": "string"
+                },
+                "maxOrderQty": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "maxSlippagePct": {
+                  "type": "string"
+                },
+                "maxPositionNtnl": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "fundingInterval": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "seconds"
+                },
+                "productType": {
+                  "type": "string"
+                },
+                "listStatus": {
+                  "type": "string"
+                },
+                "onlyIsolated": {
+                  "type": "boolean"
+                },
+                "baseCurrency": {
+                  "type": "string"
+                },
+                "quoteCurrency": {
+                  "type": "string"
+                },
+                "settleCurrency": {
+                  "type": "string"
+                },
+                "minOrderValue": {
+                  "type": "string"
+                },
+                "defaultMakerFeeRate": {
+                  "type": "string"
+                },
+                "defaultTakerFeeRate": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "marginTables": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "tableId": {
+                  "type": "integer"
+                },
+                "riskLimitVo": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "minimumValue": {
+                        "type": "string"
+                      },
+                      "maintainMarginRatio": {
+                        "type": "string"
+                      },
+                      "maxLeverage": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "currencies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "currency": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "walletPrecision": {
+                  "type": "integer"
+                },
+                "displayPrecision": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Kline": {
+        "type": "object",
+        "properties": {
+          "symbolName": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "K-line start time (seconds)"
+          },
+          "intrvl": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Interval (seconds)"
+          },
+          "open": {
+            "type": "string"
+          },
+          "high": {
+            "type": "string"
+          },
+          "low": {
+            "type": "string"
+          },
+          "close": {
+            "type": "string"
+          },
+          "volume": {
+            "type": "string"
+          },
+          "turnover": {
+            "type": "string"
+          },
+          "tradeCount": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "Signature": {
+        "type": "object",
+        "required": [
+          "r",
+          "s",
+          "v"
+        ],
+        "properties": {
+          "r": {
+            "type": "string",
+            "description": "32-byte hex, zero-padded to 64 chars"
+          },
+          "s": {
+            "type": "string",
+            "description": "32-byte hex, zero-padded to 64 chars"
+          },
+          "v": {
+            "type": "integer",
+            "description": "27 or 28"
+          }
+        }
+      },
+      "ExchangeResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "`0` = success. See Error Codes section for non-zero values.",
+            "example": 0
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "txHash": {
+                "type": "string"
+              },
+              "txCode": {
+                "type": "integer"
+              },
+              "txMsg": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "PlaceOrderRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "orders"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "placeOrder"
+                ]
+              },
+              "orders": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "symbolCode",
+                    "ordPx",
+                    "ordQty",
+                    "ordType",
+                    "ordSide",
+                    "timeInForce"
+                  ],
+                  "properties": {
+                    "symbolCode": {
+                      "type": "integer",
+                      "format": "int64",
+                      "example": 1
+                    },
+                    "ordPx": {
+                      "type": "string",
+                      "description": "Limit `> 0`, Market `\"0\"`"
+                    },
+                    "ordQty": {
+                      "type": "string"
+                    },
+                    "ordType": {
+                      "type": "string",
+                      "enum": [
+                        "LIMIT",
+                        "MARKET"
+                      ],
+                      "description": "NONE and display-only values MARKET_LIQ_SELLOFF, LIMIT_LIQ_SELLOFF, ADL, and LIQUIDATION must not be sent in requests."
+                    },
+                    "ordSide": {
+                      "type": "string",
+                      "enum": [
+                        "BUY",
+                        "SELL",
+                        "BUY_CLOSE_HEDGE",
+                        "SELL_CLOSE_HEDGE"
+                      ]
+                    },
+                    "timeInForce": {
+                      "type": "string",
+                      "enum": [
+                        "GTC",
+                        "IOC",
+                        "FOK",
+                        "POST_ONLY"
+                      ]
+                    },
+                    "clOrdId": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "parentOrdId": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "reduceOnlyOption": {
+                      "type": "string",
+                      "enum": [
+                        "REDUCE_ONLY",
+                        "TP_FROM_POSITION",
+                        "SL_FROM_POSITION"
+                      ]
+                    },
+                    "triggerPx": {
+                      "type": "string"
+                    },
+                    "tpslTriggerType": {
+                      "type": "string",
+                      "enum": [
+                        "LAST_PRICE",
+                        "MARK_PRICE",
+                        "INDEX_PRICE"
+                      ]
+                    },
+                    "slippagePct": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "expiryAfter": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Unix timestamp in milliseconds after which the request expires. null = no expiry; use 0 in the signature payload when this field is null."
+          },
+          "vaultAddress": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ReplaceOrderRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "symbolCode",
+              "ordPx",
+              "ordQty",
+              "ordType",
+              "ordSide",
+              "timeInForce"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "replaceOrder"
+                ]
+              },
+              "symbolCode": {
+                "type": "integer",
+                "format": "int64",
+                "example": 1
+              },
+              "ordPx": {
+                "type": "string",
+                "description": "Limit `> 0`, Market `\"0\"`"
+              },
+              "ordQty": {
+                "type": "string"
+              },
+              "ordType": {
+                "type": "string",
+                "enum": [
+                  "LIMIT",
+                  "MARKET"
+                ],
+                "description": "NONE and display-only values MARKET_LIQ_SELLOFF, LIMIT_LIQ_SELLOFF, ADL, and LIQUIDATION must not be sent in requests."
+              },
+              "ordSide": {
+                "type": "string",
+                "enum": [
+                  "BUY",
+                  "SELL",
+                  "BUY_CLOSE_HEDGE",
+                  "SELL_CLOSE_HEDGE"
+                ]
+              },
+              "timeInForce": {
+                "type": "string",
+                "enum": [
+                  "GTC",
+                  "IOC",
+                  "FOK",
+                  "POST_ONLY"
+                ]
+              },
+              "clOrdId": {
+                "type": "integer",
+                "format": "int64",
+                "description": "Client order ID. clOrdId or ordId is required."
+              },
+              "ordId": {
+                "type": "integer",
+                "format": "int64",
+                "description": "System order ID. clOrdId or ordId is required."
+              },
+              "parentOrdId": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "reduceOnly": {
+                "type": "string",
+                "enum": [
+                  "REDUCE_ONLY",
+                  "TP_FROM_POSITION",
+                  "SL_FROM_POSITION"
+                ]
+              },
+              "triggerPx": {
+                "type": "string"
+              },
+              "tpslTriggerType": {
+                "type": "string",
+                "enum": [
+                  "LAST_PRICE",
+                  "MARK_PRICE",
+                  "INDEX_PRICE"
+                ]
+              },
+              "slippagePct": {
+                "type": "string"
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "expiryAfter": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Unix timestamp in milliseconds after which the request expires. null = no expiry; use 0 in the signature payload when this field is null."
+          },
+          "vaultAddress": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "PlaceBracketOrderRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "orders"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "placeBracketOrder"
+                ]
+              },
+              "orders": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 3,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "symbolCode",
+                    "ordPx",
+                    "ordQty",
+                    "ordType",
+                    "ordSide",
+                    "timeInForce"
+                  ],
+                  "properties": {
+                    "symbolCode": {
+                      "type": "integer",
+                      "format": "int64",
+                      "example": 1
+                    },
+                    "ordPx": {
+                      "type": "string",
+                      "description": "Limit `> 0`, Market `\"0\"`"
+                    },
+                    "ordQty": {
+                      "type": "string"
+                    },
+                    "ordType": {
+                      "type": "string",
+                      "enum": [
+                        "LIMIT",
+                        "MARKET"
+                      ],
+                      "description": "NONE and display-only values MARKET_LIQ_SELLOFF, LIMIT_LIQ_SELLOFF, ADL, and LIQUIDATION must not be sent in requests."
+                    },
+                    "ordSide": {
+                      "type": "string",
+                      "enum": [
+                        "BUY",
+                        "SELL",
+                        "BUY_CLOSE_HEDGE",
+                        "SELL_CLOSE_HEDGE"
+                      ]
+                    },
+                    "timeInForce": {
+                      "type": "string",
+                      "enum": [
+                        "GTC",
+                        "IOC",
+                        "FOK",
+                        "POST_ONLY"
+                      ]
+                    },
+                    "clOrdId": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "parentOrdId": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "reduceOnly": {
+                      "type": "string",
+                      "enum": [
+                        "REDUCE_ONLY",
+                        "TP_FROM_POSITION",
+                        "SL_FROM_POSITION"
+                      ]
+                    },
+                    "triggerPx": {
+                      "type": "string"
+                    },
+                    "tpslTriggerType": {
+                      "type": "string",
+                      "enum": [
+                        "LAST_PRICE",
+                        "MARK_PRICE",
+                        "INDEX_PRICE"
+                      ]
+                    },
+                    "slippagePct": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "expiryAfter": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Unix timestamp in milliseconds after which the request expires. null = no expiry; use 0 in the signature payload when this field is null."
+          },
+          "vaultAddress": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CancelOrderRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "cancels"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "cancelOrder"
+                ]
+              },
+              "cancels": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "symbolCode"
+                  ],
+                  "properties": {
+                    "symbolCode": {
+                      "type": "string"
+                    },
+                    "clOrdId": {
+                      "type": "string",
+                      "description": "Client order ID (clOrdId or ordId required)"
+                    },
+                    "ordId": {
+                      "type": "string",
+                      "description": "System order ID (clOrdId or ordId required)"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "vaultAddress": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CancelAllRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "symbolCode"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "cancelAll"
+                ]
+              },
+              "symbolCode": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "conditionalOrder": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "vaultAddress": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "SetLeverageRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "symbolCode",
+              "leverage"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "setLeverage"
+                ]
+              },
+              "symbolCode": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "leverage": {
+                "type": "string",
+                "description": ">= 1, max 2 decimal places"
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "vaultAddress": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "SetMarginModeRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "symbolCode",
+              "marginMode"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "setMarginMode"
+                ]
+              },
+              "symbolCode": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "marginMode": {
+                "type": "string",
+                "enum": [
+                  "CROSS",
+                  "ISOLATED"
+                ]
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "vaultAddress": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "AssignPosMarginRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "symbolCode",
+              "assignedPosMargin"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "assignPosMargin"
+                ]
+              },
+              "symbolCode": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "assignedPosMargin": {
+                "type": "string",
+                "description": "Amount to assign (non-zero)"
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "vaultAddress": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ApproveAgentRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "agentAddress",
+              "agentName",
+              "validitySeconds",
+              "dexChain"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "approveAgent"
+                ]
+              },
+              "agentAddress": {
+                "type": "string",
+                "description": "Agent wallet address (0x hex)"
+              },
+              "agentName": {
+                "type": "string",
+                "default": "app.afx.xyz",
+                "description": "Agent name. SDK default: app.afx.xyz"
+              },
+              "validitySeconds": {
+                "type": "integer",
+                "format": "int64",
+                "description": "Agent authorization duration in seconds. 0 means the authorization is valid for 7 days; maximum 365 days."
+              },
+              "dexChain": {
+                "type": "string",
+                "enum": [
+                  "Mainnet",
+                  "Testnet"
+                ]
+              },
+              "referralCode": {
+                "type": "string",
+                "description": "Referral code (only effective on first approve)"
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "expiryAfter": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Unix timestamp in milliseconds after which the request expires. null = no expiry; use 0 in the signature payload when this field is null."
+          }
+        }
+      },
+      "WithdrawRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "destination",
+              "amount"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "withdraw"
+                ]
+              },
+              "destination": {
+                "type": "string",
+                "description": "Recipient address (0x hex)"
+              },
+              "amount": {
+                "type": "string",
+                "description": "Withdrawal amount. Minimum mainnet withdrawal: 2 USDC."
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "expiryAfter": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Unix timestamp in milliseconds after which the request expires. For withdrawals, use a longer window such as current time + 3,600,000 milliseconds. null = no expiry; use 0 in the signature payload when this field is null."
+          }
+        }
+      },
+      "BindReferralRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "referralCode"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "bindReferral"
+                ]
+              },
+              "referralCode": {
+                "type": "string"
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          }
+        }
+      }
+    },
+    "responses": {
+      "ExchangeOk": {
+        "description": "Transaction submitted",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ExchangeResponse"
+            },
+            "examples": {
+              "success": {
+                "value": {
+                  "code": 0,
+                  "message": "success",
+                  "data": {
+                    "txHash": "0xabc...",
+                    "txCode": 0,
+                    "txMsg": ""
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

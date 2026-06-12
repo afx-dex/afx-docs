@@ -1,0 +1,1232 @@
+{
+  "asyncapi": "3.0.0",
+  "info": {
+    "title": "AFX DEX WebSocket API",
+    "version": "1.0.0",
+    "description": "Machine-readable WebSocket channels for AFX DEX."
+  },
+  "servers": {
+    "mainnet": {
+      "host": "ws.afx.xyz",
+      "pathname": "/ws/dex",
+      "protocol": "wss"
+    },
+    "testnet": {
+      "host": "ws-testnet.afx.xyz",
+      "pathname": "/ws/dex",
+      "protocol": "wss"
+    }
+  },
+  "channels": {
+    "orderBook.{symbol}.{depth}": {
+      "address": "orderBook.{symbol}.{depth}",
+      "messages": {
+        "OrderBook": {
+          "$ref": "#/components/messages/OrderBook"
+        }
+      },
+      "parameters": {
+        "symbol": {
+          "schema": {
+            "type": "string"
+          }
+        },
+        "depth": {
+          "schema": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "candle.{symbol}.{interval}": {
+      "address": "candle.{symbol}.{interval}",
+      "messages": {
+        "Candle": {
+          "$ref": "#/components/messages/Candle"
+        }
+      },
+      "parameters": {
+        "symbol": {
+          "schema": {
+            "type": "string"
+          }
+        },
+        "interval": {
+          "schema": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "trades.{symbol}": {
+      "address": "trades.{symbol}",
+      "messages": {
+        "Trades": {
+          "$ref": "#/components/messages/Trades"
+        }
+      },
+      "parameters": {
+        "symbol": {
+          "schema": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ticker.{symbol}": {
+      "address": "ticker.{symbol}",
+      "messages": {
+        "Ticker": {
+          "$ref": "#/components/messages/Ticker"
+        }
+      },
+      "parameters": {
+        "symbol": {
+          "schema": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "allTickers": {
+      "address": "allTickers",
+      "messages": {
+        "AllTickers": {
+          "$ref": "#/components/messages/AllTickers"
+        }
+      }
+    },
+    "block": {
+      "address": "block",
+      "messages": {
+        "Block": {
+          "$ref": "#/components/messages/Block"
+        }
+      }
+    },
+    "blockHeight": {
+      "address": "blockHeight",
+      "messages": {
+        "BlockHeight": {
+          "$ref": "#/components/messages/BlockHeight"
+        }
+      }
+    },
+    "tx": {
+      "address": "tx",
+      "messages": {
+        "Tx": {
+          "$ref": "#/components/messages/Tx"
+        }
+      }
+    },
+    "aopState.{userAddress}": {
+      "address": "aopState.{userAddress}",
+      "messages": {
+        "AopState": {
+          "$ref": "#/components/messages/AopState"
+        }
+      },
+      "parameters": {
+        "userAddress": {
+          "schema": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "orderHist.{userAddress}": {
+      "address": "orderHist.{userAddress}",
+      "messages": {
+        "OrderHist": {
+          "$ref": "#/components/messages/OrderHist"
+        }
+      },
+      "parameters": {
+        "userAddress": {
+          "schema": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "userFilled.{userAddress}": {
+      "address": "userFilled.{userAddress}",
+      "messages": {
+        "UserFilled": {
+          "$ref": "#/components/messages/UserFilled"
+        }
+      },
+      "parameters": {
+        "userAddress": {
+          "schema": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "closedPosition.{userAddress}": {
+      "address": "closedPosition.{userAddress}",
+      "messages": {
+        "ClosedPosition": {
+          "$ref": "#/components/messages/ClosedPosition"
+        }
+      },
+      "parameters": {
+        "userAddress": {
+          "schema": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "userFunding.{userAddress}": {
+      "address": "userFunding.{userAddress}",
+      "messages": {
+        "UserFunding": {
+          "$ref": "#/components/messages/UserFunding"
+        }
+      },
+      "parameters": {
+        "userAddress": {
+          "schema": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "userEvent.{userAddress}": {
+      "address": "userEvent.{userAddress}",
+      "messages": {
+        "UserEvent": {
+          "$ref": "#/components/messages/UserEvent"
+        }
+      },
+      "parameters": {
+        "userAddress": {
+          "schema": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "operations": {
+    "subscribe": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/orderBook.{symbol}.{depth}"
+      },
+      "messages": [
+        {
+          "$ref": "#/components/messages/SubscribeRequest"
+        }
+      ]
+    }
+  },
+  "components": {
+    "messages": {
+      "OrderBook": {
+        "name": "OrderBook",
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "Candle": {
+        "name": "Candle",
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "Trades": {
+        "name": "Trades",
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "Ticker": {
+        "name": "Ticker",
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "AllTickers": {
+        "name": "AllTickers",
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "Block": {
+        "name": "Block",
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "BlockHeight": {
+        "name": "BlockHeight",
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "Tx": {
+        "name": "Tx",
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "AopState": {
+        "name": "AopState",
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "OrderHist": {
+        "name": "OrderHist",
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "UserFilled": {
+        "name": "UserFilled",
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "ClosedPosition": {
+        "name": "ClosedPosition",
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "UserFunding": {
+        "name": "UserFunding",
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "UserEvent": {
+        "name": "UserEvent",
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "SubscribeRequest": {
+        "name": "SubscribeRequest",
+        "payload": {
+          "type": "object",
+          "required": [
+            "method",
+            "subscription"
+          ],
+          "properties": {
+            "method": {
+              "type": "string",
+              "enum": [
+                "subscribe",
+                "unsubscribe",
+                "ping"
+              ]
+            },
+            "subscription": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "OrderBookPush": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "example": "orderBook"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "`snapshot` or `incremental`"
+              },
+              "symbolCode": {
+                "type": "integer",
+                "description": "Symbol code"
+              },
+              "symbol": {
+                "type": "string",
+                "description": "Symbol name"
+              },
+              "block": {
+                "type": "integer",
+                "description": "Block height"
+              },
+              "sequence": {
+                "type": "integer",
+                "description": "Sequence number"
+              },
+              "depth": {
+                "type": "integer",
+                "description": "Requested depth"
+              },
+              "timestamp": {
+                "type": "integer",
+                "description": "Timestamp (ms)"
+              },
+              "book": {
+                "type": "object",
+                "properties": {
+                  "bids": {
+                    "type": "array",
+                    "description": "Bid levels `[price, qty]`",
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "asks": {
+                    "type": "array",
+                    "description": "Ask levels `[price, qty]`",
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "CandlePush": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "example": "candle"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "symbolName": {
+                "type": "string",
+                "description": "Symbol name"
+              },
+              "timestamp": {
+                "type": "integer",
+                "description": "Candle start time (seconds)"
+              },
+              "intrvl": {
+                "type": "integer",
+                "description": "Interval (seconds)"
+              },
+              "open": {
+                "type": "string",
+                "description": "Open price"
+              },
+              "high": {
+                "type": "string",
+                "description": "High price"
+              },
+              "low": {
+                "type": "string",
+                "description": "Low price"
+              },
+              "close": {
+                "type": "string",
+                "description": "Close price"
+              },
+              "volume": {
+                "type": "string",
+                "description": "Trading volume"
+              },
+              "turnover": {
+                "type": "string",
+                "description": "Trading turnover (value)"
+              },
+              "tradeCount": {
+                "type": "integer",
+                "description": "Number of trades"
+              }
+            }
+          }
+        }
+      },
+      "TradesPush": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "example": "trades"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "`snapshot` or `incremental`"
+              },
+              "sequence": {
+                "type": "integer",
+                "description": "Sequence number"
+              },
+              "symbol": {
+                "type": "string",
+                "description": "Symbol name"
+              },
+              "trades": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "symbol": {
+                      "type": "string"
+                    },
+                    "ordSide": {
+                      "type": "string",
+                      "description": "BUY or SELL"
+                    },
+                    "filledPx": {
+                      "type": "string",
+                      "description": "Trade price"
+                    },
+                    "filledQty": {
+                      "type": "string",
+                      "description": "Trade quantity"
+                    },
+                    "transactionTime": {
+                      "type": "integer",
+                      "description": "Timestamp (ms)"
+                    },
+                    "txHash": {
+                      "type": "string",
+                      "description": "On-chain tx hash"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "TickerPush": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "example": "ticker"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "`snapshot` or `incremental`"
+              },
+              "sequence": {
+                "type": "integer",
+                "description": "Sequence number"
+              },
+              "timestamp": {
+                "type": "integer",
+                "description": "Timestamp (ms)"
+              },
+              "symbol": {
+                "type": "string",
+                "description": "Symbol name"
+              },
+              "ticker": {
+                "type": "object",
+                "properties": {
+                  "s": {
+                    "type": "string",
+                    "description": "Symbol"
+                  },
+                  "p": {
+                    "type": "string",
+                    "description": "Last price"
+                  },
+                  "op": {
+                    "type": "string",
+                    "description": "Oracle price"
+                  },
+                  "mp": {
+                    "type": "string",
+                    "description": "Mark price"
+                  },
+                  "mid": {
+                    "type": "string",
+                    "description": "Mid price"
+                  },
+                  "oi": {
+                    "type": "string",
+                    "description": "Open interest"
+                  },
+                  "fr": {
+                    "type": "string",
+                    "description": "Funding rate"
+                  },
+                  "lfr": {
+                    "type": "string",
+                    "description": "Last funding rate"
+                  },
+                  "o": {
+                    "type": "string",
+                    "description": "24h open"
+                  },
+                  "h": {
+                    "type": "string",
+                    "description": "24h high"
+                  },
+                  "l": {
+                    "type": "string",
+                    "description": "24h low"
+                  },
+                  "v": {
+                    "type": "string",
+                    "description": "24h volume"
+                  },
+                  "tv": {
+                    "type": "string",
+                    "description": "24h turnover"
+                  },
+                  "P": {
+                    "type": "string",
+                    "description": "24h change %"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "AopStatePush": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "example": "aopState"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "`snapshot` or `incremental`"
+              },
+              "sequence": {
+                "type": "integer",
+                "description": "Sequence number"
+              },
+              "timestamp": {
+                "type": "integer",
+                "description": "Timestamp (ms)"
+              },
+              "userAddr": {
+                "type": "string",
+                "description": "User wallet address"
+              },
+              "aop": {
+                "type": "object",
+                "properties": {
+                  "accounts": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "userAddr": {
+                          "type": "string",
+                          "description": "User wallet address"
+                        },
+                        "currency": {
+                          "type": "integer",
+                          "description": "Currency code (1=USDC)"
+                        },
+                        "balance": {
+                          "type": "string",
+                          "description": "Total balance"
+                        },
+                        "availableBalance": {
+                          "type": "string",
+                          "description": "Available for trading"
+                        },
+                        "availableTransferBalance": {
+                          "type": "string",
+                          "description": "Available for withdrawal/transfer"
+                        },
+                        "equity": {
+                          "type": "string",
+                          "description": "Account equity (balance + unrealized P&L)"
+                        },
+                        "status": {
+                          "type": "string",
+                          "description": "NORMAL or LIQUIDATING"
+                        },
+                        "takerFeeRatio": {
+                          "type": "string",
+                          "description": "Taker fee rate"
+                        },
+                        "makerFeeRatio": {
+                          "type": "string",
+                          "description": "Maker fee rate"
+                        }
+                      }
+                    }
+                  },
+                  "orders": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "userAddr": {
+                          "type": "string",
+                          "description": "User wallet address"
+                        },
+                        "symbol": {
+                          "type": "string",
+                          "description": "Symbol name"
+                        },
+                        "ordId": {
+                          "type": "integer",
+                          "description": "System order ID"
+                        },
+                        "clOrdId": {
+                          "type": "integer",
+                          "description": "Client order ID"
+                        },
+                        "parentOrdId": {
+                          "type": "integer",
+                          "description": "Parent order ID (TP/SL)"
+                        },
+                        "ordPx": {
+                          "type": "string",
+                          "description": "Order price"
+                        },
+                        "ordQty": {
+                          "type": "string",
+                          "description": "Order quantity"
+                        },
+                        "triggerPx": {
+                          "type": "string",
+                          "description": "Trigger price (conditional orders)"
+                        },
+                        "ordStatus": {
+                          "type": "string",
+                          "description": "NEW, PARTIALLY_FILLED, FILLED, CANCELED"
+                        },
+                        "ordType": {
+                          "type": "string",
+                          "description": "LIMIT, MARKET"
+                        },
+                        "ordSide": {
+                          "type": "string",
+                          "description": "BUY, SELL"
+                        },
+                        "timeInForce": {
+                          "type": "string",
+                          "description": "GTC, IOC, FOK, POST_ONLY"
+                        },
+                        "reduceOnly": {
+                          "type": "string",
+                          "description": "NONE, REDUCE_ONLY, TP_FROM_POSITION, SL_FROM_POSITION"
+                        },
+                        "filledQty": {
+                          "type": "string",
+                          "description": "Cumulative filled quantity"
+                        },
+                        "leavesQty": {
+                          "type": "string",
+                          "description": "Remaining quantity"
+                        },
+                        "cumFilledValue": {
+                          "type": "string",
+                          "description": "Cumulative filled value"
+                        }
+                      }
+                    }
+                  },
+                  "positions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "userAddr": {
+                          "type": "string",
+                          "description": "User wallet address"
+                        },
+                        "symbolCode": {
+                          "type": "integer",
+                          "description": "Symbol code"
+                        },
+                        "symbol": {
+                          "type": "string",
+                          "description": "Symbol name"
+                        },
+                        "leverage": {
+                          "type": "string",
+                          "description": "Current leverage"
+                        },
+                        "longSize": {
+                          "type": "string",
+                          "description": "Long position size"
+                        },
+                        "longEntryValue": {
+                          "type": "string",
+                          "description": "Long position entry notional"
+                        },
+                        "shortSize": {
+                          "type": "string",
+                          "description": "Short position size"
+                        },
+                        "shortEntryValue": {
+                          "type": "string",
+                          "description": "Short position entry notional"
+                        },
+                        "posMode": {
+                          "type": "string",
+                          "description": "ONE_WAY or HEDGE"
+                        },
+                        "posMarginMode": {
+                          "type": "string",
+                          "description": "CROSS or ISOLATED"
+                        },
+                        "assignedPosBalance": {
+                          "type": "string",
+                          "description": "Assigned margin (isolated mode)"
+                        },
+                        "unrealizedPnl": {
+                          "type": "string",
+                          "description": "Unrealized P&L"
+                        },
+                        "cumRealizedPnl": {
+                          "type": "string",
+                          "description": "Cumulative realized P&L"
+                        },
+                        "curMarkPx": {
+                          "type": "string",
+                          "description": "Current mark price"
+                        },
+                        "cumTransactionFee": {
+                          "type": "string",
+                          "description": "Cumulative trading fees"
+                        },
+                        "marginTableId": {
+                          "type": "integer",
+                          "description": "Risk limit table ID"
+                        }
+                      }
+                    }
+                  },
+                  "settings": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "symbol": {
+                          "type": "string"
+                        },
+                        "leverage": {
+                          "type": "array",
+                          "description": "[posMode, leverage]"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "OrderHistPush": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "example": "orderHist"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "`snapshot` or `incremental`"
+              },
+              "orderHists": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "userAddr": {
+                      "type": "string",
+                      "description": "User wallet address"
+                    },
+                    "symbol": {
+                      "type": "string",
+                      "description": "Symbol name"
+                    },
+                    "ordId": {
+                      "type": "integer",
+                      "description": "System order ID"
+                    },
+                    "execId": {
+                      "type": "integer",
+                      "description": "Execution ID"
+                    },
+                    "clOrdId": {
+                      "type": "integer",
+                      "description": "Client order ID"
+                    },
+                    "transactionTime": {
+                      "type": "integer",
+                      "description": "Timestamp (ms)"
+                    },
+                    "ordType": {
+                      "type": "string",
+                      "description": "LIMIT or MARKET"
+                    },
+                    "ordSide": {
+                      "type": "string",
+                      "description": "BUY or SELL"
+                    },
+                    "execStatus": {
+                      "type": "string",
+                      "description": "NEW, FILLED, CANCELED, PARTIALLY_FILLED"
+                    },
+                    "ordPx": {
+                      "type": "string",
+                      "description": "Order price"
+                    },
+                    "execPx": {
+                      "type": "string",
+                      "description": "Execution price"
+                    },
+                    "triggerPx": {
+                      "type": "string",
+                      "description": "Trigger price (conditional orders)"
+                    },
+                    "execQty": {
+                      "type": "string",
+                      "description": "Execution quantity"
+                    },
+                    "ordQty": {
+                      "type": "string",
+                      "description": "Original order quantity"
+                    },
+                    "reduceOnly": {
+                      "type": "string",
+                      "description": "NONE, REDUCE_ONLY, TP_FROM_POSITION, SL_FROM_POSITION"
+                    },
+                    "slippagePct": {
+                      "type": "string",
+                      "description": "Slippage percentage"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "UserFilledPush": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "example": "userFilled"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "`snapshot` or `incremental`"
+              },
+              "userFills": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "userAddr": {
+                      "type": "string",
+                      "description": "User wallet address"
+                    },
+                    "symbol": {
+                      "type": "string",
+                      "description": "Symbol name"
+                    },
+                    "ordId": {
+                      "type": "integer",
+                      "description": "System order ID"
+                    },
+                    "execId": {
+                      "type": "integer",
+                      "description": "Execution ID"
+                    },
+                    "ordSide": {
+                      "type": "string",
+                      "description": "BUY or SELL"
+                    },
+                    "execStatus": {
+                      "type": "string",
+                      "description": "FILLED, PARTIALLY_FILLED"
+                    },
+                    "ordPx": {
+                      "type": "string",
+                      "description": "Order price"
+                    },
+                    "filledPx": {
+                      "type": "string",
+                      "description": "Actual fill price"
+                    },
+                    "execQty": {
+                      "type": "string",
+                      "description": "Fill quantity"
+                    },
+                    "ordQty": {
+                      "type": "string",
+                      "description": "Original order quantity"
+                    },
+                    "ordType": {
+                      "type": "string",
+                      "description": "LIMIT or MARKET"
+                    },
+                    "openFee": {
+                      "type": "string",
+                      "description": "Fee for opening position"
+                    },
+                    "closeFee": {
+                      "type": "string",
+                      "description": "Fee for closing position"
+                    },
+                    "posLongTerm": {
+                      "type": "integer",
+                      "description": "Long position cycle identifier"
+                    },
+                    "posShortTerm": {
+                      "type": "integer",
+                      "description": "Short position cycle identifier"
+                    },
+                    "txHash": {
+                      "type": "string",
+                      "description": "On-chain transaction hash"
+                    },
+                    "transactionTime": {
+                      "type": "integer",
+                      "description": "Timestamp (ms)"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ClosedPositionPush": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "example": "closedPosition"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "`snapshot` or `incremental`"
+              },
+              "closedPositions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "userAddr": {
+                      "type": "string",
+                      "description": "User wallet address"
+                    },
+                    "symbolCode": {
+                      "type": "integer",
+                      "description": "Symbol code"
+                    },
+                    "symbol": {
+                      "type": "string",
+                      "description": "Symbol name"
+                    },
+                    "side": {
+                      "type": "string",
+                      "description": "LONG or SHORT"
+                    },
+                    "term": {
+                      "type": "integer",
+                      "description": "Position cycle (increments each open from zero)"
+                    },
+                    "size": {
+                      "type": "string",
+                      "description": "Total traded quantity"
+                    },
+                    "ordPx": {
+                      "type": "string",
+                      "description": "Weighted avg opening price"
+                    },
+                    "closePx": {
+                      "type": "string",
+                      "description": "Weighted avg closing price"
+                    },
+                    "closedPnl": {
+                      "type": "string",
+                      "description": "Net P&L"
+                    },
+                    "tradingFees": {
+                      "type": "string",
+                      "description": "Total trading fees"
+                    },
+                    "fundingFees": {
+                      "type": "string",
+                      "description": "Cumulative funding fees"
+                    },
+                    "realisedPnl": {
+                      "type": "string",
+                      "description": "Realized P&L (after fees)"
+                    },
+                    "roi": {
+                      "type": "string",
+                      "description": "ROI percentage (e.g. '15.25' = 15.25%)"
+                    },
+                    "leverage": {
+                      "type": "string",
+                      "description": "Max leverage during position"
+                    },
+                    "openTime": {
+                      "type": "integer",
+                      "description": "Open time (ms)"
+                    },
+                    "closedTime": {
+                      "type": "integer",
+                      "description": "Close time (ms)"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "UserFundingPush": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "example": "userFunding"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "`snapshot` or `incremental`"
+              },
+              "funding": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "userAddr": {
+                      "type": "string",
+                      "description": "User wallet address"
+                    },
+                    "symbol": {
+                      "type": "string",
+                      "description": "Symbol name"
+                    },
+                    "posSize": {
+                      "type": "string",
+                      "description": "Position size at settlement"
+                    },
+                    "posSide": {
+                      "type": "string",
+                      "description": "LONG or SHORT"
+                    },
+                    "fundingRate": {
+                      "type": "string",
+                      "description": "Applied funding rate"
+                    },
+                    "fundingFee": {
+                      "type": "string",
+                      "description": "Funding fee amount (negative = paid, positive = received)"
+                    },
+                    "transactionTime": {
+                      "type": "integer",
+                      "description": "Settlement timestamp (ms)"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "UserEventPush": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "example": "userEvent"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "userAddr": {
+                "type": "string",
+                "description": "User wallet address"
+              },
+              "sequence": {
+                "type": "integer",
+                "description": "Sequence number"
+              },
+              "timestamp": {
+                "type": "integer",
+                "description": "Timestamp (ms)"
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "eventType": {
+                      "type": "string",
+                      "description": "`perpOrder`, `approveAgent`, `actionAck`, `vaultDeposit`, `vaultWithdraw`"
+                    },
+                    "event": {
+                      "type": "array",
+                      "description": "Event data (structure varies by eventType)"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

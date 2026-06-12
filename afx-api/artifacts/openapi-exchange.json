@@ -1,0 +1,1720 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "AFX DEX Exchange API",
+    "version": "1.0.0",
+    "description": "All trading operations are submitted through `POST /api/v1/exchange`, routed by `action.type`.\nEvery request must include an EIP-712 signature. See the **Signature** page for details.\n\nJavaScript snippets in this Exchange API reference are illustrative pseudocode for action shape and flow. The official high-level SDK examples are currently provided by the Python SDK.\n\nCommon signed request fields:\n- `nonce`: `uint64` Unix timestamp in milliseconds. Use the current millisecond timestamp and do not reuse the same nonce for another signed request.\n- `expiryAfter`: optional `uint64` Unix timestamp in milliseconds. The request expires after this timestamp; `null` means no expiry and must be signed as `0`.\n"
+  },
+  "servers": [
+    {
+      "url": "https://api.afx.xyz",
+      "description": "Mainnet"
+    },
+    {
+      "url": "https://api-testnet.afx.xyz",
+      "description": "Testnet"
+    }
+  ],
+  "paths": {
+    "/exchange/placeOrder": {
+      "post": {
+        "operationId": "placeOrder",
+        "summary": "Place Order",
+        "tags": [
+          "Orders"
+        ],
+        "description": "Submit one or more orders. Supports limit, market, and conditional (TP/SL) orders.\n\n**Signature:** Agent · **Protobuf:** `MsgPlaceOrders`\n\n**Outer request fields:**\n- `nonce`: `uint64` Unix timestamp in milliseconds. Use the current millisecond timestamp and do not reuse the same nonce for another signed request.\n- `expiryAfter`: optional `uint64` Unix timestamp in milliseconds. The request expires after this timestamp; `null` means no expiry and must be signed as `0`.\n\n```protobuf\nmessage MsgPlaceOrder {\n  int64  cl_ord_id           = 1;\n  int64  symbol_code         = 2;\n  string ord_px              = 3;\n  string ord_qty             = 4;\n  string trigger_px          = 5;\n  OrdType                   ord_type           = 6;\n  OrdSide                   ord_side           = 7;\n  OrdTIF                    time_in_force      = 8;\n  ReduceOnlyOption          reduce_only_option = 9;\n  int64  parent_ord_id      = 10;\n  ConditionalOrdTriggerType tpsl_trigger_type  = 11;\n  string slippage_pct       = 12;\n}\nmessage MsgPlaceOrders {\n  repeated MsgPlaceOrder orders = 1;\n}\n```\n\n**Enum Reference:**\n| Enum | Values |\n|------|--------|\n| OrdType | LIMIT=1, MARKET=2 |\n| OrdSide | BUY=1, SELL=2, BUY_CLOSE_HEDGE=3, SELL_CLOSE_HEDGE=4 |\n| OrdTIF | GTC=1, IOC=2, FOK=3, POST_ONLY=4 |\n| ReduceOnlyOption | REDUCE_ONLY=1, TP_FROM_POSITION=2, SL_FROM_POSITION=3 |\n| ConditionalOrdTriggerType | LAST_PRICE=1, MARK_PRICE=2, INDEX_PRICE=3 |\n\n`NONE` is the proto default value. `MARKET_LIQ_SELLOFF`, `LIMIT_LIQ_SELLOFF`, `ADL`, and `LIQUIDATION` are display-only `OrdType` values used by query or stream data. Do not send those values in order requests.\n\n`slippagePct` is a decimal ratio string for market orders. For example, `\"0.001\"` means 0.1%, `\"0.01\"` means 1%, and `\"0.05\"` means 5%. Check each product's `maxSlippagePct` from `GET /info/public/product-meta`.\n\nField names differ by layer:\n\n| Concept | Python SDK | Protobuf | REST action |\n|---------|------------|----------|-------------|\n| Symbol code | `symbol_code` | `symbol_code` | `symbolCode` |\n| Order price | `px` | `ord_px` | `ordPx` |\n| Order quantity | `qty` | `ord_qty` | `ordQty` |\n| Reduce-only option | `reduce_only_option` | `reduce_only_option` | `reduceOnlyOption` |\n| Trigger type | `trigger_type` | `tpsl_trigger_type` | `tpslTriggerType` |\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceOrderRequest"
+              },
+              "examples": {
+                "limitOrder": {
+                  "summary": "Limit Buy",
+                  "value": {
+                    "action": {
+                      "type": "placeOrder",
+                      "orders": [
+                        {
+                          "symbolCode": 1,
+                          "ordPx": "40000.5",
+                          "ordQty": "0.5",
+                          "ordType": "LIMIT",
+                          "ordSide": "BUY",
+                          "timeInForce": "GTC"
+                        }
+                      ]
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                },
+                "marketOrder": {
+                  "summary": "Market Buy",
+                  "value": {
+                    "action": {
+                      "type": "placeOrder",
+                      "orders": [
+                        {
+                          "symbolCode": 1,
+                          "ordPx": "0",
+                          "ordQty": "0.1",
+                          "ordType": "MARKET",
+                          "ordSide": "BUY",
+                          "timeInForce": "IOC",
+                          "slippagePct": "0.01"
+                        }
+                      ]
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                },
+                "stopLoss": {
+                  "summary": "Stop Loss",
+                  "value": {
+                    "action": {
+                      "type": "placeOrder",
+                      "orders": [
+                        {
+                          "symbolCode": 1,
+                          "ordPx": "0",
+                          "ordQty": "0",
+                          "ordType": "MARKET",
+                          "ordSide": "SELL",
+                          "timeInForce": "IOC",
+                          "reduceOnlyOption": "SL_FROM_POSITION",
+                          "triggerPx": "38000",
+                          "tpslTriggerType": "LAST_PRICE",
+                          "slippagePct": "0.01"
+                        }
+                      ]
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "// Limit buy\nconst result = await client.placeOrder({\n  symbolCode: 1, px: \"40000.5\", qty: \"0.5\",\n  side: \"BUY\", ordType: \"LIMIT\", tif: \"GTC\",\n});\nconsole.log(result);\n\n// Market buy\nconst result2 = await client.placeOrder({\n  symbolCode: 1, px: \"0\", qty: \"0.1\",\n  side: \"BUY\", ordType: \"MARKET\", tif: \"IOC\",\n  slippagePct: \"0.01\",\n});\n\n// Stop loss\nconst result3 = await client.placeOrder({\n  symbolCode: 1, px: \"0\", qty: \"0\",\n  side: \"SELL\", ordType: \"MARKET\", tif: \"IOC\",\n  reduceOnlyOption: \"SL_FROM_POSITION\",\n  triggerPx: \"38000\", tpslTriggerType: \"LAST_PRICE\",\n  slippagePct: \"0.01\",\n});\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "from afx import AfxClient\n\nclient = AfxClient.from_env(testnet=True)\n\n# Limit buy\nresult = client.exchange.place_order(\n    symbol_code=1, px=\"40000.5\", qty=\"0.5\",\n    side=\"BUY\", ord_type=\"LIMIT\", tif=\"GTC\",\n)\nprint(result)\n\n# Market buy\nresult2 = client.exchange.place_order(\n    symbol_code=1, px=\"0\", qty=\"0.1\",\n    side=\"BUY\", ord_type=\"MARKET\", tif=\"IOC\",\n    slippage_pct=\"0.01\",\n)\n"
+          }
+        ]
+      }
+    },
+    "/exchange/replaceOrder": {
+      "post": {
+        "operationId": "replaceOrder",
+        "summary": "Replace Order",
+        "tags": [
+          "Orders"
+        ],
+        "description": "Replace an existing order by `ordId` or `clOrdId`.\n\n**Signature:** Agent · **Protobuf:** `MsgReplaceOrder`\n\n```protobuf\nmessage MsgReplaceOrder {\n  int64  cl_ord_id           = 1;\n  int64  symbol_code         = 2;\n  string ord_px              = 3;\n  string ord_qty             = 4;\n  string trigger_px          = 5;\n  OrdType                   ord_type           = 6;\n  OrdSide                   ord_side           = 7;\n  OrdTIF                    time_in_force      = 8;\n  ReduceOnlyOption          reduce_only_option = 9;\n  int64  parent_ord_id      = 10;\n  ConditionalOrdTriggerType tpsl_trigger_type  = 11;\n  string slippage_pct       = 12;\n  int64  ord_id             = 13;\n}\n```\n\nAt least one of `ordId` or `clOrdId` must identify the existing order.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplaceOrderRequest"
+              },
+              "examples": {
+                "byClOrdId": {
+                  "summary": "Replace by client order ID",
+                  "value": {
+                    "action": {
+                      "type": "replaceOrder",
+                      "symbolCode": 1,
+                      "ordPx": "50100",
+                      "ordQty": "0.001",
+                      "ordType": "LIMIT",
+                      "ordSide": "BUY",
+                      "timeInForce": "GTC",
+                      "clOrdId": 99001
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.replaceOrder({\n  symbolCode: 1,\n  px: \"50100\",\n  qty: \"0.001\",\n  side: \"BUY\",\n  ordType: \"LIMIT\",\n  tif: \"GTC\",\n  clOrdId: 99001,\n});\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python (afx-python-sdk)",
+            "source": "import time\n\nfrom afx import AfxClient\n\nclient = AfxClient.from_env(testnet=True)\ncl_ord_id = int(time.time() * 1000)\n\nclient.exchange.place_order(\n    symbol_code=1,\n    px=\"50000\",\n    qty=\"0.001\",\n    side=\"BUY\",\n    ord_type=\"LIMIT\",\n    tif=\"GTC\",\n    cl_ord_id=cl_ord_id,\n)\n\nresult = client.exchange.replace_order(\n    symbol_code=1,\n    px=\"50100\",\n    qty=\"0.001\",\n    side=\"BUY\",\n    ord_type=\"LIMIT\",\n    tif=\"GTC\",\n    cl_ord_id=cl_ord_id,\n)\nprint(result)\n\n# Full example:\n# https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/replace_order.py\n"
+          }
+        ]
+      }
+    },
+    "/exchange/placeBracketOrder": {
+      "post": {
+        "operationId": "placeBracketOrder",
+        "summary": "Place Bracket Order",
+        "tags": [
+          "Orders"
+        ],
+        "description": "Place a main order with one or two attached TP/SL child orders.\n\n**Signature:** Agent · **Protobuf:** `MsgPlaceBracketOrder`\n\n```protobuf\nmessage MsgPlaceBracketOrder {\n  MsgPlaceOrder main_order        = 1;\n  MsgPlaceOrder take_profit_order = 2;\n  MsgPlaceOrder stop_loss_order   = 3;\n}\n```\n\nThe request must contain 2 or 3 orders. The first order is the main order. Child orders must use `reduceOnly` as `TP_FROM_POSITION` or `SL_FROM_POSITION`.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceBracketOrderRequest"
+              },
+              "examples": {
+                "withTakeProfitAndStopLoss": {
+                  "summary": "Main limit order with TP and SL",
+                  "value": {
+                    "action": {
+                      "type": "placeBracketOrder",
+                      "orders": [
+                        {
+                          "symbolCode": 1,
+                          "ordPx": "50000",
+                          "ordQty": "0.001",
+                          "ordType": "LIMIT",
+                          "ordSide": "BUY",
+                          "timeInForce": "GTC",
+                          "clOrdId": 99001
+                        },
+                        {
+                          "symbolCode": 1,
+                          "ordPx": "55000",
+                          "ordQty": "0.001",
+                          "triggerPx": "55000",
+                          "ordType": "LIMIT",
+                          "ordSide": "SELL",
+                          "timeInForce": "GTC",
+                          "reduceOnly": "TP_FROM_POSITION",
+                          "tpslTriggerType": "LAST_PRICE",
+                          "clOrdId": 99002
+                        },
+                        {
+                          "symbolCode": 1,
+                          "ordPx": "0",
+                          "ordQty": "0.001",
+                          "triggerPx": "45000",
+                          "ordType": "MARKET",
+                          "ordSide": "SELL",
+                          "timeInForce": "IOC",
+                          "reduceOnly": "SL_FROM_POSITION",
+                          "tpslTriggerType": "LAST_PRICE",
+                          "slippagePct": "0.01",
+                          "clOrdId": 99003
+                        }
+                      ]
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.placeBracketOrder({\n  orders: [\n    {\n      symbolCode: 1, px: \"50000\", qty: \"0.001\",\n      side: \"BUY\", ordType: \"LIMIT\", tif: \"GTC\",\n      clOrdId: 99001,\n    },\n    {\n      symbolCode: 1, px: \"55000\", qty: \"0.001\",\n      triggerPx: \"55000\", side: \"SELL\",\n      ordType: \"LIMIT\", tif: \"GTC\",\n      reduceOnly: \"TP_FROM_POSITION\",\n      tpslTriggerType: \"LAST_PRICE\",\n      clOrdId: 99002,\n    },\n    {\n      symbolCode: 1, px: \"0\", qty: \"0.001\",\n      triggerPx: \"45000\", side: \"SELL\",\n      ordType: \"MARKET\", tif: \"IOC\",\n      reduceOnly: \"SL_FROM_POSITION\",\n      tpslTriggerType: \"LAST_PRICE\",\n      slippagePct: \"0.01\",\n      clOrdId: 99003,\n    },\n  ],\n});\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python (afx-python-sdk)",
+            "source": "import time\n\nfrom afx import AfxClient\n\nclient = AfxClient.from_env(testnet=True)\nbase_cl_ord_id = int(time.time() * 1000)\n\nresult = client.exchange.place_bracket_order(\n    main_order={\n        \"symbol_code\": 1,\n        \"px\": \"50000\",\n        \"qty\": \"0.001\",\n        \"side\": \"BUY\",\n        \"ord_type\": \"LIMIT\",\n        \"tif\": \"GTC\",\n        \"cl_ord_id\": base_cl_ord_id,\n    },\n    take_profit_order={\n        \"symbol_code\": 1,\n        \"px\": \"55000\",\n        \"qty\": \"0.001\",\n        \"trigger_px\": \"55000\",\n        \"side\": \"SELL\",\n        \"ord_type\": \"LIMIT\",\n        \"tif\": \"GTC\",\n        \"reduce_only_option\": \"TP_FROM_POSITION\",\n        \"trigger_type\": \"LAST_PRICE\",\n        \"cl_ord_id\": base_cl_ord_id + 1,\n    },\n    stop_loss_order={\n        \"symbol_code\": 1,\n        \"px\": \"0\",\n        \"qty\": \"0.001\",\n        \"trigger_px\": \"45000\",\n        \"side\": \"SELL\",\n        \"ord_type\": \"MARKET\",\n        \"tif\": \"IOC\",\n        \"reduce_only_option\": \"SL_FROM_POSITION\",\n        \"trigger_type\": \"LAST_PRICE\",\n        \"slippage_pct\": \"0.01\",\n        \"cl_ord_id\": base_cl_ord_id + 2,\n    },\n)\nprint(result)\n\n# Full example:\n# https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/place_bracket_order.py\n"
+          }
+        ]
+      }
+    },
+    "/exchange/cancelOrder": {
+      "post": {
+        "operationId": "cancelOrder",
+        "summary": "Cancel Order",
+        "tags": [
+          "Orders"
+        ],
+        "description": "Cancel one or more orders by orderId or clOrdId.\n\n**Signature:** Agent · **Protobuf:** `MsgCancelOrders`\n\n**Outer request fields:**\n- `nonce`: `uint64` Unix timestamp in milliseconds. Use the current millisecond timestamp and do not reuse the same nonce for another signed request.\n\n```protobuf\nmessage MsgCancelOrder {\n  int64 symbol_code = 1;\n  int64 cl_ord_id   = 2;\n  int64 ord_id      = 3;\n}\nmessage MsgCancelOrders {\n  repeated MsgCancelOrder orders = 1;\n}\n```\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelOrderRequest"
+              },
+              "examples": {
+                "byOrdId": {
+                  "summary": "Cancel by orderId",
+                  "value": {
+                    "action": {
+                      "type": "cancelOrder",
+                      "cancels": [
+                        {
+                          "symbolCode": 1,
+                          "ordId": "12345"
+                        }
+                      ]
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                },
+                "byClOrdId": {
+                  "summary": "Cancel by clOrdId",
+                  "value": {
+                    "action": {
+                      "type": "cancelOrder",
+                      "cancels": [
+                        {
+                          "symbolCode": 1,
+                          "clOrdId": "99001"
+                        }
+                      ]
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "// Cancel by system order ID\nawait client.cancelOrder({ symbolCode: 1, ordId: \"12345\" });\n\n// Cancel by client order ID\nawait client.cancelOrder({ symbolCode: 1, clOrdId: \"99001\" });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "# Cancel by system order ID\nclient.exchange.cancel_order(symbol_code=1, ord_id=\"12345\")\n\n# Cancel by client order ID\nclient.exchange.cancel_order(symbol_code=1, cl_ord_id=\"99001\")\n"
+          }
+        ]
+      }
+    },
+    "/exchange/cancelAll": {
+      "post": {
+        "operationId": "cancelAll",
+        "summary": "Cancel All Orders",
+        "tags": [
+          "Orders"
+        ],
+        "description": "Cancel all orders for a symbol.\n\n**Signature:** Agent · **Protobuf:** `MsgCancelAll`\n\n**Outer request fields:**\n- `nonce`: `uint64` Unix timestamp in milliseconds. Use the current millisecond timestamp and do not reuse the same nonce for another signed request.\n\n```protobuf\nmessage MsgCancelAll {\n  int64 symbol_code          = 1;\n  bool  is_conditional_order = 2;\n}\n```\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelAllRequest"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "action": {
+                      "type": "cancelAll",
+                      "symbolCode": 1,
+                      "conditionalOrder": false
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.cancelAll({ symbolCode: 1 });\n\n// Cancel conditional orders only\nawait client.cancelAll({ symbolCode: 1, conditional: true });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "client.exchange.cancel_all(symbol_code=1)\n\n# Cancel conditional orders only\nclient.exchange.cancel_all(symbol_code=1, conditional=True)\n"
+          }
+        ]
+      }
+    },
+    "/exchange/setLeverage": {
+      "post": {
+        "operationId": "setLeverage",
+        "summary": "Set Leverage",
+        "tags": [
+          "Account"
+        ],
+        "description": "Set leverage for a symbol.\n\n**Signature:** Agent · **Protobuf:** `MsgSetLeverage`\n\n```protobuf\nmessage MsgSetLeverage {\n  int64  symbol_code = 1;\n  string leverage    = 2;\n}\n```\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetLeverageRequest"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "action": {
+                      "type": "setLeverage",
+                      "symbolCode": 1,
+                      "leverage": "10"
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.setLeverage({ symbolCode: 1, leverage: \"10\" });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "client.exchange.set_leverage(symbol_code=1, leverage=\"10\")\n"
+          }
+        ]
+      }
+    },
+    "/exchange/setMarginMode": {
+      "post": {
+        "operationId": "setMarginMode",
+        "summary": "Set Margin Mode",
+        "tags": [
+          "Account"
+        ],
+        "description": "Set margin mode for a symbol.\n\n**Signature:** Agent · **Protobuf:** `MsgSetMarginMode`\n\n```protobuf\nmessage MsgSetMarginMode {\n  int64              symbol_code = 1;\n  PositionMarginMode margin_mode = 2;  // CROSS=1, ISOLATED=2\n}\n```\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetMarginModeRequest"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "action": {
+                      "type": "setMarginMode",
+                      "symbolCode": 1,
+                      "marginMode": "CROSS"
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.setMarginMode({ symbolCode: 1, mode: \"CROSS\" });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "client.exchange.set_margin_mode(symbol_code=1, mode=\"CROSS\")\n"
+          }
+        ]
+      }
+    },
+    "/exchange/assignPosMargin": {
+      "post": {
+        "operationId": "assignPosMargin",
+        "summary": "Assign Position Margin",
+        "tags": [
+          "Account"
+        ],
+        "description": "Add or remove margin for an isolated position.\n\n**Signature:** Agent · **Protobuf:** `MsgAssignPosMargin`\n\n```protobuf\nmessage MsgAssignPosMargin {\n  int64  symbol_code        = 1;\n  string assigned_pos_margin = 2;\n}\n```\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignPosMarginRequest"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "action": {
+                      "type": "assignPosMargin",
+                      "symbolCode": 1,
+                      "assignedPosMargin": "100"
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.assignPosMargin({ symbolCode: 1, amount: \"100\" });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "client.exchange.assign_pos_margin(symbol_code=1, amount=\"100\")\n"
+          }
+        ]
+      }
+    },
+    "/exchange/approveAgent": {
+      "post": {
+        "operationId": "approveAgent",
+        "summary": "Approve Agent",
+        "tags": [
+          "Authorization"
+        ],
+        "description": "Authorize an Agent wallet to trade on behalf of the Master wallet.\n\n**Signature:** Master · **No protobuf** — fields are signed directly via EIP-712.\n\nTo revoke the current Agent wallet, submit the same `approveAgent` action with `agentAddress` set to `0x0000000000000000000000000000000000000000` and `validitySeconds` set to `0`. The Python SDK exposes this as `client.exchange.revoke_agent(...)`.\n\n**EIP-712 type:**\n```json\n{\n  \"ApproveAgent\": [\n    { \"name\": \"dexChain\",     \"type\": \"string\"  },\n    { \"name\": \"agentAddress\", \"type\": \"address\" },\n    { \"name\": \"agentName\",    \"type\": \"string\"  },\n    { \"name\": \"validitySeconds\", \"type\": \"uint64\" },\n    { \"name\": \"nonce\",        \"type\": \"uint64\"  },\n    { \"name\": \"expiryAfter\",  \"type\": \"uint64\"  }\n  ]\n}\n```\n`validitySeconds` is the agent authorization duration. `0` means the authorization is valid for 7 days; maximum 365 days.\nDomain name: `\"SignTransaction\"`\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveAgentRequest"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "action": {
+                      "type": "approveAgent",
+                      "agentAddress": "0x76b6c4dc45f39463a1c8f6500c94b247c53fe184",
+                      "agentName": "my-trading-bot",
+                      "validitySeconds": 604800,
+                      "dexChain": "Mainnet"
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904,
+                    "expiryAfter": 1763023686904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.approveAgent({ agentName: \"my-trading-bot\", validitySeconds: 604800 });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "client.exchange.approve_agent(agent_name=\"my-trading-bot\", validity_seconds=604800)\n\n# Revoke the active agent wallet.\nclient.exchange.revoke_agent(agent_name=\"my-trading-bot\")\n"
+          }
+        ]
+      }
+    },
+    "/exchange/withdraw": {
+      "post": {
+        "operationId": "withdraw",
+        "summary": "Withdraw",
+        "tags": [
+          "Authorization"
+        ],
+        "description": "Withdraw funds from DEX to an external address.\n\n**Signature:** Master · **No protobuf**\n\n**EIP-712 type:**\n```json\n{\n  \"Withdraw\": [\n    { \"name\": \"dexChain\",    \"type\": \"string\"  },\n    { \"name\": \"destination\", \"type\": \"address\" },\n    { \"name\": \"amount\",      \"type\": \"string\"  },\n    { \"name\": \"withdrawSequence\", \"type\": \"uint64\" },\n    { \"name\": \"nonce\",       \"type\": \"uint64\"  },\n    { \"name\": \"expiryAfter\", \"type\": \"uint64\"  }\n  ]\n}\n```\nDomain name: `\"SignTransaction\"`. `dexChain` is determined by the server environment. `withdrawSequence` is included in both the action body and the signed EIP-712 message. If omitted in the Python SDK, it defaults to the request `nonce`.\n\nFor withdrawals, use a longer `expiryAfter` window, such as current Unix time in milliseconds + 3,600,000.\nThe minimum mainnet withdrawal amount is 2 USDC.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WithdrawRequest"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "action": {
+                      "type": "withdraw",
+                      "destination": "0xabc123...",
+                      "amount": "100",
+                      "withdrawSequence": 1763023626904
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904,
+                    "expiryAfter": 1763027226904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.withdraw({ destination: \"0xabc...\", amount: \"100\", expirySeconds: 3600 });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "client.exchange.withdraw(destination=\"0xabc...\", amount=\"100\", expiry_seconds=3600)\n"
+          }
+        ]
+      }
+    },
+    "/exchange/bindReferral": {
+      "post": {
+        "operationId": "bindReferral",
+        "summary": "Bind Referral",
+        "tags": [
+          "Referral"
+        ],
+        "description": "Bind a referral code to the account.\n\n**Signature:** Agent · **Protobuf:** `MsgBindReferral`\n\n```protobuf\n// package: dex.offchain.referral.v1\nmessage MsgBindReferral {\n  string referral_code = 1;\n}\n```\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BindReferralRequest"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "action": {
+                      "type": "bindReferral",
+                      "referralCode": "ABC123"
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.bindReferral({ code: \"ABC123\" });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "client.exchange.bind_referral(code=\"ABC123\")\n"
+          }
+        ]
+      }
+    },
+    "/exchange/vaultDeposit": {
+      "post": {
+        "operationId": "vaultDeposit",
+        "summary": "Vault Deposit",
+        "tags": [
+          "Vault"
+        ],
+        "description": "Deposit funds into a vault.\n\n**Signature:** Agent · **Protobuf:** `MsgVaultDeposit`\n\n```protobuf\nmessage MsgVaultDeposit {\n  string vault         = 1;\n  string amount        = 2;\n  int64  currency_code = 3;\n}\n```\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "action": {
+                      "type": "vaultDeposit",
+                      "vault": "0x4b90BBE5...",
+                      "amount": "100",
+                      "currencyCode": 1
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.vaultDeposit({ vaultAddress: \"0x4b90BBE5...\", amount: \"100\" });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "client.exchange.vault_deposit(vault_address=\"0x4b90BBE5...\", amount=\"100\")\n"
+          }
+        ]
+      }
+    },
+    "/exchange/vaultWithdraw": {
+      "post": {
+        "operationId": "vaultWithdraw",
+        "summary": "Vault Withdraw",
+        "tags": [
+          "Vault"
+        ],
+        "description": "Withdraw from a vault by share amount. Use the user's withdrawable vault shares, not a USDC amount.\n\n**Signature:** Agent · **Protobuf:** `MsgVaultWithdraw`\n\n```protobuf\nmessage MsgVaultWithdraw {\n  string vault         = 1;\n  string share         = 2;\n  int64  currency_code = 3;\n}\n```\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "examples": {
+                "default": {
+                  "value": {
+                    "action": {
+                      "type": "vaultWithdraw",
+                      "vault": "0x4b90BBE5...",
+                      "share": "9.5",
+                      "currencyCode": 1
+                    },
+                    "signature": {
+                      "r": "0x...",
+                      "s": "0x...",
+                      "v": 27
+                    },
+                    "nonce": 1763023626904
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ExchangeOk"
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "JavaScript",
+            "label": "JavaScript pseudocode",
+            "source": "await client.vaultWithdraw({ vaultAddress: \"0x4b90BBE5...\", share: \"9.5\" });\n"
+          },
+          {
+            "lang": "Python",
+            "label": "Python",
+            "source": "client.exchange.vault_withdraw(vault_address=\"0x4b90BBE5...\", share=\"9.5\")\n"
+          }
+        ]
+      }
+    },
+    "/errors": {
+      "get": {
+        "operationId": "errorCodes",
+        "summary": "Error Codes",
+        "tags": [
+          "Errors"
+        ],
+        "description": "All Exchange API responses return a `code` field. `0` means success. Non-zero codes indicate an error.\n\n| Code | Description |\n| ---- | ----------- |\n| `0` | Success |\n| `40201` | Unsupported action type |\n| `40204` | Signature verification failed |\n| `40207` | Invalid nonce |\n| `40208` | Request expired |\n| `40220` | Rate limit exceeded |\n| `40006` | Location is not supported |\n",
+        "responses": {
+          "200": {
+            "description": "Reference only"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "ExchangeOk": {
+        "description": "Transaction submitted",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ExchangeResponse"
+            },
+            "examples": {
+              "success": {
+                "value": {
+                  "code": 0,
+                  "message": "success",
+                  "data": {
+                    "txHash": "0xabc...",
+                    "txCode": 0,
+                    "txMsg": ""
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Signature": {
+        "type": "object",
+        "required": [
+          "r",
+          "s",
+          "v"
+        ],
+        "properties": {
+          "r": {
+            "type": "string",
+            "description": "32-byte hex, zero-padded to 64 chars"
+          },
+          "s": {
+            "type": "string",
+            "description": "32-byte hex, zero-padded to 64 chars"
+          },
+          "v": {
+            "type": "integer",
+            "description": "27 or 28"
+          }
+        }
+      },
+      "ExchangeResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "`0` = success. See Error Codes section for non-zero values.",
+            "example": 0
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "txHash": {
+                "type": "string"
+              },
+              "txCode": {
+                "type": "integer"
+              },
+              "txMsg": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "PlaceOrderRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "orders"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "placeOrder"
+                ]
+              },
+              "orders": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "symbolCode",
+                    "ordPx",
+                    "ordQty",
+                    "ordType",
+                    "ordSide",
+                    "timeInForce"
+                  ],
+                  "properties": {
+                    "symbolCode": {
+                      "type": "integer",
+                      "format": "int64",
+                      "example": 1
+                    },
+                    "ordPx": {
+                      "type": "string",
+                      "description": "Limit `> 0`, Market `\"0\"`"
+                    },
+                    "ordQty": {
+                      "type": "string"
+                    },
+                    "ordType": {
+                      "type": "string",
+                      "enum": [
+                        "LIMIT",
+                        "MARKET"
+                      ],
+                      "description": "NONE and display-only values MARKET_LIQ_SELLOFF, LIMIT_LIQ_SELLOFF, ADL, and LIQUIDATION must not be sent in requests."
+                    },
+                    "ordSide": {
+                      "type": "string",
+                      "enum": [
+                        "BUY",
+                        "SELL",
+                        "BUY_CLOSE_HEDGE",
+                        "SELL_CLOSE_HEDGE"
+                      ]
+                    },
+                    "timeInForce": {
+                      "type": "string",
+                      "enum": [
+                        "GTC",
+                        "IOC",
+                        "FOK",
+                        "POST_ONLY"
+                      ]
+                    },
+                    "clOrdId": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "parentOrdId": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "reduceOnlyOption": {
+                      "type": "string",
+                      "enum": [
+                        "REDUCE_ONLY",
+                        "TP_FROM_POSITION",
+                        "SL_FROM_POSITION"
+                      ]
+                    },
+                    "triggerPx": {
+                      "type": "string"
+                    },
+                    "tpslTriggerType": {
+                      "type": "string",
+                      "enum": [
+                        "LAST_PRICE",
+                        "MARK_PRICE",
+                        "INDEX_PRICE"
+                      ]
+                    },
+                    "slippagePct": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "expiryAfter": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Unix timestamp in milliseconds after which the request expires. null = no expiry; use 0 in the signature payload when this field is null."
+          },
+          "vaultAddress": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ReplaceOrderRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "symbolCode",
+              "ordPx",
+              "ordQty",
+              "ordType",
+              "ordSide",
+              "timeInForce"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "replaceOrder"
+                ]
+              },
+              "symbolCode": {
+                "type": "integer",
+                "format": "int64",
+                "example": 1
+              },
+              "ordPx": {
+                "type": "string",
+                "description": "Limit `> 0`, Market `\"0\"`"
+              },
+              "ordQty": {
+                "type": "string"
+              },
+              "ordType": {
+                "type": "string",
+                "enum": [
+                  "LIMIT",
+                  "MARKET"
+                ],
+                "description": "NONE and display-only values MARKET_LIQ_SELLOFF, LIMIT_LIQ_SELLOFF, ADL, and LIQUIDATION must not be sent in requests."
+              },
+              "ordSide": {
+                "type": "string",
+                "enum": [
+                  "BUY",
+                  "SELL",
+                  "BUY_CLOSE_HEDGE",
+                  "SELL_CLOSE_HEDGE"
+                ]
+              },
+              "timeInForce": {
+                "type": "string",
+                "enum": [
+                  "GTC",
+                  "IOC",
+                  "FOK",
+                  "POST_ONLY"
+                ]
+              },
+              "clOrdId": {
+                "type": "integer",
+                "format": "int64",
+                "description": "Client order ID. clOrdId or ordId is required."
+              },
+              "ordId": {
+                "type": "integer",
+                "format": "int64",
+                "description": "System order ID. clOrdId or ordId is required."
+              },
+              "parentOrdId": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "reduceOnly": {
+                "type": "string",
+                "enum": [
+                  "REDUCE_ONLY",
+                  "TP_FROM_POSITION",
+                  "SL_FROM_POSITION"
+                ]
+              },
+              "triggerPx": {
+                "type": "string"
+              },
+              "tpslTriggerType": {
+                "type": "string",
+                "enum": [
+                  "LAST_PRICE",
+                  "MARK_PRICE",
+                  "INDEX_PRICE"
+                ]
+              },
+              "slippagePct": {
+                "type": "string"
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "expiryAfter": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Unix timestamp in milliseconds after which the request expires. null = no expiry; use 0 in the signature payload when this field is null."
+          },
+          "vaultAddress": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "PlaceBracketOrderRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "orders"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "placeBracketOrder"
+                ]
+              },
+              "orders": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 3,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "symbolCode",
+                    "ordPx",
+                    "ordQty",
+                    "ordType",
+                    "ordSide",
+                    "timeInForce"
+                  ],
+                  "properties": {
+                    "symbolCode": {
+                      "type": "integer",
+                      "format": "int64",
+                      "example": 1
+                    },
+                    "ordPx": {
+                      "type": "string",
+                      "description": "Limit `> 0`, Market `\"0\"`"
+                    },
+                    "ordQty": {
+                      "type": "string"
+                    },
+                    "ordType": {
+                      "type": "string",
+                      "enum": [
+                        "LIMIT",
+                        "MARKET"
+                      ],
+                      "description": "NONE and display-only values MARKET_LIQ_SELLOFF, LIMIT_LIQ_SELLOFF, ADL, and LIQUIDATION must not be sent in requests."
+                    },
+                    "ordSide": {
+                      "type": "string",
+                      "enum": [
+                        "BUY",
+                        "SELL",
+                        "BUY_CLOSE_HEDGE",
+                        "SELL_CLOSE_HEDGE"
+                      ]
+                    },
+                    "timeInForce": {
+                      "type": "string",
+                      "enum": [
+                        "GTC",
+                        "IOC",
+                        "FOK",
+                        "POST_ONLY"
+                      ]
+                    },
+                    "clOrdId": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "parentOrdId": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "reduceOnly": {
+                      "type": "string",
+                      "enum": [
+                        "REDUCE_ONLY",
+                        "TP_FROM_POSITION",
+                        "SL_FROM_POSITION"
+                      ]
+                    },
+                    "triggerPx": {
+                      "type": "string"
+                    },
+                    "tpslTriggerType": {
+                      "type": "string",
+                      "enum": [
+                        "LAST_PRICE",
+                        "MARK_PRICE",
+                        "INDEX_PRICE"
+                      ]
+                    },
+                    "slippagePct": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "expiryAfter": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Unix timestamp in milliseconds after which the request expires. null = no expiry; use 0 in the signature payload when this field is null."
+          },
+          "vaultAddress": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CancelOrderRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "cancels"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "cancelOrder"
+                ]
+              },
+              "cancels": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "symbolCode"
+                  ],
+                  "properties": {
+                    "symbolCode": {
+                      "type": "string"
+                    },
+                    "clOrdId": {
+                      "type": "string",
+                      "description": "Client order ID (clOrdId or ordId required)"
+                    },
+                    "ordId": {
+                      "type": "string",
+                      "description": "System order ID (clOrdId or ordId required)"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "vaultAddress": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CancelAllRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "symbolCode"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "cancelAll"
+                ]
+              },
+              "symbolCode": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "conditionalOrder": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "vaultAddress": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "SetLeverageRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "symbolCode",
+              "leverage"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "setLeverage"
+                ]
+              },
+              "symbolCode": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "leverage": {
+                "type": "string",
+                "description": ">= 1, max 2 decimal places"
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "vaultAddress": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "SetMarginModeRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "symbolCode",
+              "marginMode"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "setMarginMode"
+                ]
+              },
+              "symbolCode": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "marginMode": {
+                "type": "string",
+                "enum": [
+                  "CROSS",
+                  "ISOLATED"
+                ]
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "vaultAddress": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "AssignPosMarginRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "symbolCode",
+              "assignedPosMargin"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "assignPosMargin"
+                ]
+              },
+              "symbolCode": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "assignedPosMargin": {
+                "type": "string",
+                "description": "Amount to assign (non-zero)"
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "vaultAddress": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ApproveAgentRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "agentAddress",
+              "agentName",
+              "validitySeconds",
+              "dexChain"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "approveAgent"
+                ]
+              },
+              "agentAddress": {
+                "type": "string",
+                "description": "Agent wallet address (0x hex)"
+              },
+              "agentName": {
+                "type": "string",
+                "default": "app.afx.xyz",
+                "description": "Agent name. SDK default: app.afx.xyz"
+              },
+              "validitySeconds": {
+                "type": "integer",
+                "format": "int64",
+                "description": "Agent authorization duration in seconds. 0 means the authorization is valid for 7 days; maximum 365 days."
+              },
+              "dexChain": {
+                "type": "string",
+                "enum": [
+                  "Mainnet",
+                  "Testnet"
+                ]
+              },
+              "referralCode": {
+                "type": "string",
+                "description": "Referral code (only effective on first approve)"
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "expiryAfter": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Unix timestamp in milliseconds after which the request expires. null = no expiry; use 0 in the signature payload when this field is null."
+          }
+        }
+      },
+      "WithdrawRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "destination",
+              "amount"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "withdraw"
+                ]
+              },
+              "destination": {
+                "type": "string",
+                "description": "Recipient address (0x hex)"
+              },
+              "amount": {
+                "type": "string",
+                "description": "Withdrawal amount. Minimum mainnet withdrawal: 2 USDC."
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          },
+          "expiryAfter": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Unix timestamp in milliseconds after which the request expires. For withdrawals, use a longer window such as current time + 3,600,000 milliseconds. null = no expiry; use 0 in the signature payload when this field is null."
+          }
+        }
+      },
+      "BindReferralRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "signature",
+          "nonce"
+        ],
+        "properties": {
+          "action": {
+            "type": "object",
+            "required": [
+              "type",
+              "referralCode"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "bindReferral"
+                ]
+              },
+              "referralCode": {
+                "type": "string"
+              }
+            }
+          },
+          "signature": {
+            "$ref": "#/components/schemas/Signature"
+          },
+          "nonce": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request."
+          }
+        }
+      }
+    }
+  }
+}

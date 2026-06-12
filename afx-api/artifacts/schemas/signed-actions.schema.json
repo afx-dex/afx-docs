@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://afx.xyz/schemas/signed-actions.schema.json",
+  "title": "AFX Signed Action Payloads",
+  "oneOf": [
+    { "$ref": "#/$defs/placeOrder" },
+    { "$ref": "#/$defs/replaceOrder" },
+    { "$ref": "#/$defs/placeBracketOrder" },
+    { "$ref": "#/$defs/cancelOrder" },
+    { "$ref": "#/$defs/cancelAll" },
+    { "$ref": "#/$defs/setLeverage" },
+    { "$ref": "#/$defs/setMarginMode" },
+    { "$ref": "#/$defs/assignPosMargin" },
+    { "$ref": "#/$defs/approveAgent" },
+    { "$ref": "#/$defs/faucetClaim" },
+    { "$ref": "#/$defs/withdraw" },
+    { "$ref": "#/$defs/bindReferral" },
+    { "$ref": "#/$defs/vaultDeposit" },
+    { "$ref": "#/$defs/vaultWithdraw" }
+  ],
+  "$defs": {
+    "order": {
+      "type": "object",
+      "required": ["symbolCode", "ordPx", "ordQty", "ordType", "ordSide", "timeInForce"],
+      "properties": {
+        "symbolCode": { "type": "integer" },
+        "ordPx": { "type": "string" },
+        "ordQty": { "type": "string" },
+        "ordType": { "type": "string", "enum": ["LIMIT", "MARKET"] },
+        "ordSide": { "type": "string", "enum": ["BUY", "SELL", "BUY_CLOSE_HEDGE", "SELL_CLOSE_HEDGE"] },
+        "timeInForce": { "type": "string", "enum": ["GTC", "IOC", "FOK", "POST_ONLY"] },
+        "reduceOnlyOption": { "type": "string", "enum": ["REDUCE_ONLY", "TP_FROM_POSITION", "SL_FROM_POSITION"] },
+        "reduceOnly": { "type": "string", "enum": ["REDUCE_ONLY", "TP_FROM_POSITION", "SL_FROM_POSITION"] },
+        "triggerPx": { "type": "string" },
+        "tpslTriggerType": { "type": "string", "enum": ["LAST_PRICE", "MARK_PRICE", "INDEX_PRICE"] },
+        "slippagePct": { "type": "string" },
+        "clOrdId": { "type": "integer" },
+        "parentOrdId": { "type": "integer" },
+        "ordId": { "type": "integer" }
+      },
+      "additionalProperties": false
+    },
+    "placeOrder": {
+      "type": "object",
+      "required": ["type", "orders"],
+      "properties": {
+        "type": { "const": "placeOrder" },
+        "orders": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/order" } }
+      },
+      "additionalProperties": false
+    },
+    "replaceOrder": {
+      "type": "object",
+      "required": ["type", "symbolCode", "ordPx", "ordQty", "ordType", "ordSide", "timeInForce"],
+      "properties": {
+        "type": { "const": "replaceOrder" },
+        "symbolCode": { "type": "integer" },
+        "ordPx": { "type": "string" },
+        "ordQty": { "type": "string" },
+        "ordType": { "type": "string", "enum": ["LIMIT", "MARKET"] },
+        "ordSide": { "type": "string", "enum": ["BUY", "SELL", "BUY_CLOSE_HEDGE", "SELL_CLOSE_HEDGE"] },
+        "timeInForce": { "type": "string", "enum": ["GTC", "IOC", "FOK", "POST_ONLY"] },
+        "ordId": { "type": "integer" },
+        "clOrdId": { "type": "integer" },
+        "reduceOnly": { "type": "string", "enum": ["REDUCE_ONLY", "TP_FROM_POSITION", "SL_FROM_POSITION"] },
+        "triggerPx": { "type": "string" },
+        "tpslTriggerType": { "type": "string", "enum": ["LAST_PRICE", "MARK_PRICE", "INDEX_PRICE"] },
+        "slippagePct": { "type": "string" },
+        "parentOrdId": { "type": "integer" }
+      },
+      "anyOf": [
+        { "required": ["ordId"] },
+        { "required": ["clOrdId"] }
+      ],
+      "additionalProperties": false
+    },
+    "placeBracketOrder": {
+      "type": "object",
+      "required": ["type", "orders"],
+      "properties": {
+        "type": { "const": "placeBracketOrder" },
+        "orders": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/order" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "cancelOrder": {
+      "type": "object",
+      "required": ["type", "cancels"],
+      "properties": {
+        "type": { "const": "cancelOrder" },
+        "cancels": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["symbolCode"],
+            "properties": {
+              "symbolCode": { "type": "integer" },
+              "ordId": { "type": "string" },
+              "clOrdId": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "cancelAll": {
+      "type": "object",
+      "required": ["type", "symbolCode"],
+      "properties": {
+        "type": { "const": "cancelAll" },
+        "symbolCode": { "type": "integer" },
+        "conditionalOrder": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "setLeverage": {
+      "type": "object",
+      "required": ["type", "symbolCode", "leverage"],
+      "properties": {
+        "type": { "const": "setLeverage" },
+        "symbolCode": { "type": "integer" },
+        "leverage": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "setMarginMode": {
+      "type": "object",
+      "required": ["type", "symbolCode", "marginMode"],
+      "properties": {
+        "type": { "const": "setMarginMode" },
+        "symbolCode": { "type": "integer" },
+        "marginMode": { "type": "string", "enum": ["CROSS", "ISOLATED"] }
+      },
+      "additionalProperties": false
+    },
+    "assignPosMargin": {
+      "type": "object",
+      "required": ["type", "symbolCode", "assignedPosMargin"],
+      "properties": {
+        "type": { "const": "assignPosMargin" },
+        "symbolCode": { "type": "integer" },
+        "assignedPosMargin": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "approveAgent": {
+      "type": "object",
+      "required": ["type", "agentAddress", "agentName", "validitySeconds", "dexChain"],
+      "properties": {
+        "type": { "const": "approveAgent" },
+        "agentAddress": { "type": "string" },
+        "agentName": { "type": "string" },
+        "validitySeconds": { "type": "integer" },
+        "dexChain": { "type": "string", "enum": ["Mainnet", "Testnet"] }
+      },
+      "additionalProperties": false
+    },
+    "faucetClaim": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "faucetClaim" }
+      },
+      "additionalProperties": false
+    },
+    "withdraw": {
+      "type": "object",
+      "required": ["type", "destination", "amount", "withdrawSequence"],
+      "properties": {
+        "type": { "const": "withdraw" },
+        "destination": { "type": "string" },
+        "amount": { "type": "string" },
+        "withdrawSequence": { "type": "integer", "description": "Unix timestamp in seconds." }
+      },
+      "additionalProperties": false
+    },
+    "bindReferral": {
+      "type": "object",
+      "required": ["type", "referralCode"],
+      "properties": {
+        "type": { "const": "bindReferral" },
+        "referralCode": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "vaultDeposit": {
+      "type": "object",
+      "required": ["type", "vault", "amount", "currencyCode"],
+      "properties": {
+        "type": { "const": "vaultDeposit" },
+        "vault": { "type": "string" },
+        "amount": { "type": "string" },
+        "currencyCode": { "type": "integer" }
+      },
+      "additionalProperties": false
+    },
+    "vaultWithdraw": {
+      "type": "object",
+      "required": ["type", "vault", "share", "currencyCode"],
+      "properties": {
+        "type": { "const": "vaultWithdraw" },
+        "vault": { "type": "string" },
+        "share": { "type": "string" },
+        "currencyCode": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}
