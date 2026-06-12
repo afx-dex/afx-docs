@@ -4,7 +4,8 @@ AFX DEX is a decentralized perpetuals exchange with an AI-agent-friendly API sur
 
 ## Primary Docs
 
-- Overview: /README.md
+- Public API Reference: https://afx-docs.gitbook.io/afx/api-reference
+- Source overview: /index.md
 - Quick start: /quickstart.md
 - Python SDK: /sdk.md
 - Signing: /signing.md
