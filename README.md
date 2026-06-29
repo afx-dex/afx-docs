@@ -61,6 +61,8 @@ AFX is community\-centric with **\~65% of the total supply** allocated to the co
 
 ## Official Resources
 
+- **Main Site:** [https://www\.afx\.xyz](https://www.afx.xyz/)
+
 - **Trading App:** [https://app\.afx\.xyz](https://app.afx.xyz/trade/BTCUSDC)
 
 - **Documentation:** [https://docs\.afx\.xyz](https://docs.afx.xyz/)
