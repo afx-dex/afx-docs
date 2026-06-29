@@ -69,6 +69,7 @@ AFX is community\-centric with **\~65% of the total supply** allocated to the co
 
 - **Medium / Research:** [https://medium\.com/@AFXTrade](https://medium.com/@AFXTrade)
 
+- **AI Metadata:** [https://afx\.xyz\llms.txt](https://afx.xyz/llms.txt)
 ---
 
 ## Disclaimer
