@@ -6,7 +6,7 @@ info:
     All trading operations are submitted through `POST /api/v1/exchange`, routed by `action.type`.
     Every request must include an EIP-712 signature. See the **Signature** page for details.
 
-    JavaScript snippets in this Exchange API reference are illustrative pseudocode for action shape and flow. The official high-level SDK examples are currently provided by the Python SDK.
+    JavaScript and Python snippets in this Exchange API reference show the action shape and SDK flow. Full Builder Code examples link to the official JavaScript and Python SDK repositories.
 
     Common signed request fields:
     - `nonce`: `uint64` Unix timestamp in milliseconds. Use the current millisecond timestamp and do not reuse the same nonce for another signed request.
@@ -17,6 +17,21 @@ servers:
     description: Mainnet
   - url: https://api-testnet.afx.xyz
     description: Testnet
+
+tags:
+  - name: Builder Code
+    description: |
+      Builder Code lets a registered Builder place orders for a Trader after the Trader explicitly authorizes that Builder's agent wallet. The Builder never receives the Trader's private key.
+
+      **Integration flow:**
+      1. The Builder master wallet calls `registerBuilder` once.
+      2. Each Trader master wallet calls `approveAgentToBuilder` with the Builder agent address and fee cap.
+      3. The Builder agent calls `placeBuilderOrder` or `placeBuilderBracketOrder` for that Trader.
+      4. The Trader master wallet calls `revokeAgentToBuilder` to end the authorization.
+
+      **Start here:** [Python full lifecycle example](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/builder_lifecycle.py) · [JavaScript full lifecycle example](https://github.com/afx-dex/afx-js-sdk/blob/main/examples/exchange/builder-lifecycle.ts).
+
+      Use the SDKs unless you need a raw REST integration. The SDKs create protobuf bytes and EIP-712 signatures for you.
 
 paths:
   # ═══════════════════════════════════════════════════════════════════
@@ -986,6 +1001,314 @@ paths:
             client.exchange.vault_withdraw(vault_address="0x4b90BBE5...", share="9.5")
 
   # ═══════════════════════════════════════════════════════════════════
+  #  Builder Code
+  # ═══════════════════════════════════════════════════════════════════
+  /exchange/registerBuilder:
+    post:
+      operationId: registerBuilder
+      summary: Register Builder
+      tags: [Builder Code]
+      description: |
+        Register the Builder master wallet once. Submit `action.type=registerBuilder` to `POST /api/v1/exchange`.
+
+        **Signer:** Builder master wallet · **EIP-712 primary type:** `RegisterBuilder`
+
+        **Runnable examples:** [Python register Builder](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/register_builder.py) · [JavaScript register Builder](https://github.com/afx-dex/afx-js-sdk/blob/main/examples/exchange/register-builder.ts)
+
+        **Raw signing.** EIP-712 is a wallet typed-data signature, not a signature of the JSON request string. Sign this exact typed-data payload with the Builder master wallet. Use `chainId` `421614` for Testnet or `42161` for Mainnet; when `expiryAfter` is omitted in the request, sign it as `0`.
+
+        ```json
+        {
+          "types": {
+            "EIP712Domain": [
+              { "name": "name", "type": "string" },
+              { "name": "version", "type": "string" },
+              { "name": "chainId", "type": "uint256" },
+              { "name": "verifyingContract", "type": "address" }
+            ],
+            "RegisterBuilder": [
+              { "name": "dexChain", "type": "string" },
+              { "name": "name", "type": "string" },
+              { "name": "nonce", "type": "uint64" },
+              { "name": "expiryAfter", "type": "uint64" }
+            ]
+          },
+          "primaryType": "RegisterBuilder",
+          "domain": {
+            "name": "SignTransaction",
+            "version": "1",
+            "chainId": 421614,
+            "verifyingContract": "0x0100000000000000000000000000000000000001"
+          },
+          "message": {
+            "dexChain": "Testnet",
+            "name": "example-builder",
+            "nonce": 1763023626904,
+            "expiryAfter": 1763023926904
+          }
+        }
+        ```
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RegisterBuilderRequest" }
+            examples:
+              default:
+                value:
+                  action: { type: registerBuilder, name: example-builder, dexChain: Testnet }
+                  signature: { r: "0x...", s: "0x...", v: 27 }
+                  nonce: 1763023626904
+      responses:
+        "200": { $ref: "#/components/responses/ExchangeOk" }
+      x-codeSamples:
+        - lang: Python
+          label: Python SDK
+          source: |
+            result = client.exchange.register_builder("example-builder")
+            # See the linked runnable example above.
+        - lang: JavaScript
+          label: JavaScript SDK
+          source: |
+            const result = await client.exchange.registerBuilder({ name: "example-builder" });
+            // See the linked runnable example above.
+
+  /exchange/approveAgentToBuilder:
+    post:
+      operationId: approveAgentToBuilder
+      summary: Authorize Builder Agent
+      tags: [Builder Code]
+      description: |
+        Submit `action.type=approveAgentToBuilder` to `POST /api/v1/exchange`. The Trader master wallet authorizes the **Builder agent address**, not the Trader's own agent. `maxFeeRate` is a positive decimal string and must not exceed the environment-configured Builder fee cap.
+
+        **Signer:** Trader master wallet · **EIP-712 primary type:** `ApproveAgentToBuilder`
+
+        **Runnable examples:** [Python full lifecycle](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/builder_lifecycle.py) · [JavaScript approve Builder agent](https://github.com/afx-dex/afx-js-sdk/blob/main/examples/exchange/approve-agent-to-builder.ts)
+
+        **Raw signing.** Sign the following EIP-712 typed-data payload with the Trader master wallet. `agentAddress` is the Builder's agent address, `builderAddress` is the Builder's master address, and `expiryAfter` must be signed as `0` when omitted.
+
+        ```json
+        {
+          "types": {
+            "ApproveAgentToBuilder": [
+              { "name": "dexChain", "type": "string" },
+              { "name": "agentAddress", "type": "address" },
+              { "name": "builderAddress", "type": "address" },
+              { "name": "maxFeeRate", "type": "string" },
+              { "name": "validitySeconds", "type": "uint64" },
+              { "name": "nonce", "type": "uint64" },
+              { "name": "expiryAfter", "type": "uint64" }
+            ]
+          },
+          "primaryType": "ApproveAgentToBuilder",
+          "domain": { "name": "SignTransaction", "version": "1", "chainId": 421614, "verifyingContract": "0x0100000000000000000000000000000000000001" },
+          "message": {
+            "dexChain": "Testnet",
+            "agentAddress": "0x<builder-agent-address>",
+            "builderAddress": "0x<builder-master-address>",
+            "maxFeeRate": "0.0002",
+            "validitySeconds": 3600,
+            "nonce": 1763023626904,
+            "expiryAfter": 1763023926904
+          }
+        }
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ApproveAgentToBuilderRequest" }
+      responses:
+        "200": { $ref: "#/components/responses/ExchangeOk" }
+      x-codeSamples:
+        - lang: Python
+          label: Python SDK
+          source: |
+            trader.exchange.approve_agent_to_builder(
+                builder.wallet.master_address, "0.0002", 3600,
+                agent_address=builder.wallet.agent_address,
+            )
+            # See the linked runnable example above.
+        - lang: JavaScript
+          label: JavaScript SDK
+          source: |
+            await trader.exchange.approveAgentToBuilder({
+              builder: builder.wallet.masterAddress,
+              agentAddress: builder.wallet.agentAddress,
+              maxFeeRate: "0.0002", validitySeconds: 3600,
+            });
+            // See the linked runnable example above.
+
+  /exchange/revokeAgentToBuilder:
+    post:
+      operationId: revokeAgentToBuilder
+      summary: Revoke Builder Agent Authorization
+      tags: [Builder Code]
+      description: |
+        Submit `action.type=revokeAgentToBuilder` to `POST /api/v1/exchange`. The authorization is resolved from the Trader master signature; no Builder or agent address is included in the action.
+
+        **Signer:** Trader master wallet · **EIP-712 primary type:** `RevokeAgentToBuilder`
+
+        **Runnable examples:** [Python revoke Builder authorization](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/revoke_agent_to_builder.py) · [JavaScript revoke Builder authorization](https://github.com/afx-dex/afx-js-sdk/blob/main/examples/exchange/revoke-agent-to-builder.ts)
+
+        **Raw signing.** Sign this EIP-712 typed-data payload with the Trader master wallet. The server resolves the Builder and agent from the Trader's active authorization; do not add those addresses to the action.
+
+        ```json
+        {
+          "types": {
+            "RevokeAgentToBuilder": [
+              { "name": "dexChain", "type": "string" },
+              { "name": "nonce", "type": "uint64" },
+              { "name": "expiryAfter", "type": "uint64" }
+            ]
+          },
+          "primaryType": "RevokeAgentToBuilder",
+          "domain": { "name": "SignTransaction", "version": "1", "chainId": 421614, "verifyingContract": "0x0100000000000000000000000000000000000001" },
+          "message": {
+            "dexChain": "Testnet",
+            "nonce": 1763023626904,
+            "expiryAfter": 1763023926904
+          }
+        }
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RevokeAgentToBuilderRequest" }
+      responses:
+        "200": { $ref: "#/components/responses/ExchangeOk" }
+      x-codeSamples:
+        - lang: Python
+          label: Python SDK
+          source: |
+            result = trader.exchange.revoke_agent_to_builder()
+            # See the linked runnable example above.
+        - lang: JavaScript
+          label: JavaScript SDK
+          source: |
+            const result = await trader.exchange.revokeAgentToBuilder();
+            // See the linked runnable example above.
+
+  /exchange/placeBuilderOrder:
+    post:
+      operationId: placeBuilderOrder
+      summary: Place Builder Order
+      tags: [Builder Code]
+      description: |
+        Submit `action.type=placeBuilderOrder` to `POST /api/v1/exchange` after the Trader authorizes the Builder agent. `builderFeeRate` must be a non-negative decimal string and must not exceed the Trader authorization's `maxFeeRate`.
+
+        **Signer:** Builder agent · **Protobuf:** `MsgPlaceBuilderOrder`
+
+        **Runnable examples:** [Python full lifecycle](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/builder_lifecycle.py) · [JavaScript place Builder order](https://github.com/afx-dex/afx-js-sdk/blob/main/examples/exchange/place-builder-order.ts)
+
+        **Raw signing.** Serialize this message using proto3, then calculate `connectionId = keccak256(proto_bytes + bytes(vaultAddress) + little_endian_uint64(nonce) + little_endian_uint64(expiryAfter))`. Use empty bytes for an omitted `vaultAddress` and `0` for an omitted `expiryAfter`. The Builder agent then signs this EIP-712 typed-data payload. Use `source` `"b"` on Testnet or `"a"` on Mainnet.
+
+        ```json
+        {
+          "types": {
+            "Agent": [
+              { "name": "source", "type": "string" },
+              { "name": "connectionId", "type": "bytes32" }
+            ]
+          },
+          "primaryType": "Agent",
+          "domain": { "name": "Exchange", "version": "1", "chainId": 421614, "verifyingContract": "0x0100000000000000000000000000000000000001" },
+          "message": { "source": "b", "connectionId": "0x<keccak256-result>" }
+        }
+        ```
+
+        ```protobuf
+        message MsgPlaceBuilderOrder {
+          int64 cl_ord_id = 1;
+          int64 symbol_code = 2;
+          string ord_px = 3;
+          string ord_qty = 4;
+          string trigger_px = 5;
+          OrdType ord_type = 6;
+          OrdSide ord_side = 7;
+          OrdTIF time_in_force = 8;
+          ReduceOnlyOption reduce_only_option = 9;
+          int64 parent_ord_id = 10;
+          ConditionalOrdTriggerType tpsl_trigger_type = 11;
+          string slippage_pct = 12;
+          string builder_addr = 13;
+          string builder_fee_rate = 14;
+        }
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PlaceBuilderOrderRequest" }
+      responses:
+        "200": { $ref: "#/components/responses/ExchangeOk" }
+      x-codeSamples:
+        - lang: Python
+          label: Python SDK
+          source: |
+            result = builder.exchange.place_builder_order(
+                symbol_code=1, px="65000", qty="0.001",
+                builder=builder.wallet.master_address, builder_fee_rate="0.0002",
+            )
+            # See the linked runnable example above.
+        - lang: JavaScript
+          label: JavaScript SDK
+          source: |
+            const result = await builder.exchange.placeBuilderOrder(
+              { symbolCode: 1, px: "65000", qty: "0.001", side: "BUY", ordType: "LIMIT", tif: "GTC" },
+              { builder: builder.wallet.masterAddress, builderFeeRate: "0.0002" },
+            );
+            // See the linked runnable example above.
+
+  /exchange/placeBuilderBracketOrder:
+    post:
+      operationId: placeBuilderBracketOrder
+      summary: Place Builder Bracket Order
+      tags: [Builder Code]
+      description: |
+        Submit 2 or 3 orders with `action.type=placeBuilderBracketOrder` to `POST /api/v1/exchange`. The first order is the main order; remaining orders must be TP (`TP_FROM_POSITION`) or SL (`SL_FROM_POSITION`).
+
+        **Signer:** Builder agent · **Protobuf:** `MsgPlaceBuilderBracketOrder`
+
+        **Runnable examples:** [Python full lifecycle](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/builder_lifecycle.py) · [JavaScript full lifecycle](https://github.com/afx-dex/afx-js-sdk/blob/main/examples/exchange/builder-lifecycle.ts)
+
+        **Raw signing.** Each child order is a `MsgPlaceBuilderOrder` with the `builder_addr = 13` and `builder_fee_rate = 14` fields shown above. Serialize the wrapper below and use the same Builder-agent `Agent` EIP-712 signing process as `placeBuilderOrder`.
+
+        ```protobuf
+        message MsgPlaceBuilderBracketOrder {
+          MsgPlaceBuilderOrder main_order = 1;
+          MsgPlaceBuilderOrder take_profit_order = 2;
+          MsgPlaceBuilderOrder stop_loss_order = 3;
+        }
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PlaceBuilderBracketOrderRequest" }
+      responses:
+        "200": { $ref: "#/components/responses/ExchangeOk" }
+      x-codeSamples:
+        - lang: Python
+          label: Python SDK
+          source: |
+            result = builder.exchange.place_builder_bracket_order(
+                [main_order, take_profit_order, stop_loss_order],
+                builder.wallet.master_address, "0.0002",
+            )
+            # See the linked runnable example above.
+        - lang: JavaScript
+          label: JavaScript SDK
+          source: |
+            const result = await builder.exchange.placeBuilderBracketOrder(
+              [mainOrder, takeProfitOrder, stopLossOrder],
+              { builder: builder.wallet.masterAddress, builderFeeRate: "0.0002" },
+            );
+            // See the linked runnable example above.
+
+  # ═══════════════════════════════════════════════════════════════════
   #  Errors
   # ═══════════════════════════════════════════════════════════════════
   /errors:
@@ -1274,3 +1597,106 @@ components:
             referralCode: { type: string }
         signature: { $ref: "#/components/schemas/Signature" }
         nonce: { type: integer, format: int64, description: "Request nonce as a Unix timestamp in milliseconds. Recommended: current time in milliseconds. Must be unique; do not reuse the same nonce for another signed request." }
+
+    BuilderOrder:
+      type: object
+      required: [symbolCode, ordPx, ordQty, ordType, ordSide, timeInForce]
+      properties:
+        symbolCode: { type: integer, format: int64, example: 1 }
+        ordPx: { type: string, description: "Limit price; use `0` for a market order" }
+        ordQty: { type: string }
+        ordType: { type: string, enum: [LIMIT, MARKET, STOP_LIMIT, STOP_MARKET, TAKE_PROFIT_LIMIT, TAKE_PROFIT_MARKET] }
+        ordSide: { type: string, enum: [BUY, SELL, BUY_CLOSE_HEDGE, SELL_CLOSE_HEDGE] }
+        timeInForce: { type: string, enum: [GTC, IOC, FOK, POST_ONLY] }
+        clOrdId: { type: integer, format: int64 }
+        parentOrdId: { type: integer, format: int64 }
+        reduceOnly: { type: string, enum: [REDUCE_ONLY, TP_FROM_POSITION, SL_FROM_POSITION], description: "`reduceOnlyOption` is accepted as a compatibility alias." }
+        triggerPx: { type: string }
+        tpslTriggerType: { type: string, enum: [LAST_PRICE, MARK_PRICE, INDEX_PRICE] }
+        slippagePct: { type: string }
+
+    RegisterBuilderRequest:
+      type: object
+      required: [action, signature, nonce]
+      properties:
+        action:
+          type: object
+          required: [type, name, dexChain]
+          properties:
+            type: { type: string, enum: [registerBuilder] }
+            name: { type: string, minLength: 1 }
+            dexChain: { type: string, enum: [Mainnet, Testnet] }
+        signature: { $ref: "#/components/schemas/Signature" }
+        nonce: { type: integer, format: int64 }
+        expiryAfter: { type: integer, format: int64, nullable: true, description: "Sign `0` when omitted or null." }
+
+    ApproveAgentToBuilderRequest:
+      type: object
+      required: [action, signature, nonce]
+      properties:
+        action:
+          type: object
+          required: [type, agentAddress, builderAddress, maxFeeRate, validitySeconds, dexChain]
+          properties:
+            type: { type: string, enum: [approveAgentToBuilder] }
+            agentAddress: { type: string, description: "Builder agent address" }
+            builderAddress: { type: string, description: "Builder master wallet address" }
+            maxFeeRate: { type: string, description: "Positive decimal string; subject to the configured fee cap", example: "0.0002" }
+            validitySeconds: { type: integer, format: int64, minimum: 0 }
+            dexChain: { type: string, enum: [Mainnet, Testnet] }
+        signature: { $ref: "#/components/schemas/Signature" }
+        nonce: { type: integer, format: int64 }
+        expiryAfter: { type: integer, format: int64, nullable: true, description: "Sign `0` when omitted or null." }
+
+    RevokeAgentToBuilderRequest:
+      type: object
+      required: [action, signature, nonce]
+      properties:
+        action:
+          type: object
+          required: [type, dexChain]
+          properties:
+            type: { type: string, enum: [revokeAgentToBuilder] }
+            dexChain: { type: string, enum: [Mainnet, Testnet] }
+        signature: { $ref: "#/components/schemas/Signature" }
+        nonce: { type: integer, format: int64 }
+        expiryAfter: { type: integer, format: int64, nullable: true, description: "Sign `0` when omitted or null." }
+
+    PlaceBuilderOrderRequest:
+      type: object
+      required: [action, signature, nonce]
+      properties:
+        action:
+          type: object
+          required: [type, order, builder, builderFeeRate]
+          properties:
+            type: { type: string, enum: [placeBuilderOrder] }
+            order: { $ref: "#/components/schemas/BuilderOrder" }
+            builder: { type: string, description: "Builder master wallet address" }
+            builderFeeRate: { type: string, description: "Non-negative decimal string; must not exceed the Trader authorization", example: "0.0002" }
+        signature: { $ref: "#/components/schemas/Signature" }
+        nonce: { type: integer, format: int64 }
+        expiryAfter: { type: integer, format: int64, nullable: true, description: "Use `0` in the L1 connection ID when omitted or null." }
+        vaultAddress: { type: string, nullable: true }
+
+    PlaceBuilderBracketOrderRequest:
+      type: object
+      required: [action, signature, nonce]
+      properties:
+        action:
+          type: object
+          required: [type, orders, builder, builderFeeRate]
+          properties:
+            type: { type: string, enum: [placeBuilderBracketOrder] }
+            orders:
+              type: array
+              minItems: 2
+              maxItems: 3
+              description: "First item is the main order; later items are TP and/or SL orders."
+              items: { $ref: "#/components/schemas/BuilderOrder" }
+            builder: { type: string, description: "Builder master wallet address" }
+            builderFeeRate: { type: string, description: "Non-negative decimal string; must not exceed the Trader authorization", example: "0.0002" }
+        signature: { $ref: "#/components/schemas/Signature" }
+        nonce: { type: integer, format: int64 }
+        expiryAfter: { type: integer, format: int64, nullable: true, description: "Use `0` in the L1 connection ID when omitted or null." }
+        vaultAddress: { type: string, nullable: true }

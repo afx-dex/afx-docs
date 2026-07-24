@@ -75,6 +75,7 @@ python3 examples/websocket/subscribe_ticker.py
 
 **Exchange actions**
 
+
 * [faucet_claim.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/faucet_claim.py)
 * [approve_agent.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/approve_agent.py)
 * [revoke_agent.py](https://github.com/afx-dex/afx-python-sdk/blob/main/examples/exchange/revoke_agent.py)

@@ -1044,6 +1044,7 @@ components:
                       cumRealizedPnl: { type: string, description: "Cumulative realized P&L" }
                       curMarkPx: { type: string, description: "Current mark price" }
                       cumTransactionFee: { type: string, description: "Cumulative trading fees" }
+                      cumBuilderFee: { type: string, description: "Cumulative Builder fees; zero for legacy positions" }
                       marginTableId: { type: integer, description: "Risk limit table ID" }
                 settings:
                   type: array
@@ -1082,6 +1083,9 @@ components:
                   ordQty: { type: string, description: "Original order quantity" }
                   reduceOnly: { type: string, description: "NONE, REDUCE_ONLY, TP_FROM_POSITION, SL_FROM_POSITION" }
                   slippagePct: { type: string, description: "Slippage percentage" }
+                  builder: { type: string, nullable: true, description: "Builder address" }
+                  builderFee: { type: string, description: "Builder fee for this order event" }
+                  builderFeeRate: { type: number, description: "Builder fee rate; 0 for non-Builder orders" }
 
     UserFilledPush:
       type: object
@@ -1109,6 +1113,9 @@ components:
                   ordType: { type: string, description: "LIMIT or MARKET" }
                   openFee: { type: string, description: "Fee for opening position" }
                   closeFee: { type: string, description: "Fee for closing position" }
+                  builder: { type: string, nullable: true, description: "Builder address" }
+                  builderFee: { type: string, description: "Builder fee; zero for non-Builder fills" }
+                  builderFeeRate: { type: number, description: "Builder fee rate; 0 for non-Builder fills" }
                   posLongTerm: { type: integer, description: "Long position cycle identifier" }
                   posShortTerm: { type: integer, description: "Short position cycle identifier" }
                   txHash: { type: string, description: "On-chain transaction hash" }
@@ -1139,6 +1146,7 @@ components:
                   tradingFees: { type: string, description: "Total trading fees" }
                   fundingFees: { type: string, description: "Cumulative funding fees" }
                   realisedPnl: { type: string, description: "Realized P&L (after fees)" }
+                  builderFee: { type: string, description: "Builder fee for the closed position" }
                   roi: { type: string, description: "ROI percentage (e.g. '15.25' = 15.25%)" }
                   leverage: { type: string, description: "Max leverage during position" }
                   openTime: { type: integer, description: "Open time (ms)" }

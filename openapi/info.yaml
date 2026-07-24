@@ -1182,6 +1182,74 @@ paths:
             resp = requests.get(f"{BASE_URL}/info/referral/tiers")
 
   # ═══════════════════════════════════════════════════════════════════
+  #  Builder Code
+  # ═══════════════════════════════════════════════════════════════════
+  /info/builder/agents:
+    get:
+      operationId: getBuilderAgents
+      summary: Query Builder Agent Authorizations
+      tags: [Builder Code]
+      description: |
+        Query Trader-to-Builder-agent authorizations. By default, returns only non-expired relations in `APPROVED` state. `expiresAt` is a Unix timestamp in seconds. The server limits `pageSize` to 100.
+      parameters:
+        - name: builder
+          in: query
+          required: true
+          schema: { type: string }
+          description: Builder master wallet address
+        - name: wallet
+          in: query
+          schema: { type: string }
+          description: Trader master wallet address filter
+        - name: agent
+          in: query
+          schema: { type: string }
+          description: Builder agent address filter
+        - name: approveState
+          in: query
+          schema: { type: string, default: APPROVED }
+          description: Authorization state filter
+        - name: includeExpired
+          in: query
+          schema: { type: boolean, default: false }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1, minimum: 1 }
+        - name: pageSize
+          in: query
+          schema: { type: integer, default: 20, maximum: 100 }
+      responses:
+        "200":
+          description: Builder agent authorization page
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer, example: 0 }
+                  message: { type: string }
+                  data: { $ref: "#/components/schemas/BuilderAgentList" }
+      x-codeSamples:
+        - lang: Python
+          label: Python SDK
+          source: |
+            result = trader.info.get_builder_agents(
+                builder.wallet.master_address,
+                wallet=trader.wallet.master_address,
+                agent=builder.wallet.agent_address,
+            )
+            # Full example: https://github.com/afx-dex/afx-python-sdk/blob/main/examples/info/get_builder_agents.py
+        - lang: JavaScript
+          label: JavaScript SDK
+          source: |
+            const result = await trader.info.getBuilderAgents({
+              builder: builder.wallet.masterAddress,
+              wallet: trader.wallet.masterAddress,
+              agent: builder.wallet.agentAddress,
+            });
+            // Full example: https://github.com/afx-dex/afx-js-sdk/blob/main/examples/info/get-builder-agents.ts
+
+  # ═══════════════════════════════════════════════════════════════════
   #  Explorer
   # ═══════════════════════════════════════════════════════════════════
   /info/explore/transaction/page:
@@ -1467,3 +1535,24 @@ components:
         volume: { type: string }
         turnover: { type: string }
         tradeCount: { type: integer, format: int64 }
+
+    BuilderAgentList:
+      type: object
+      description: "GET /info/builder/agents; defaults to APPROVED and excludes expired relations."
+      properties:
+        builder: { type: string }
+        page: { type: integer }
+        pageSize: { type: integer, maximum: 100 }
+        total: { type: integer, format: int64 }
+        agents:
+          type: array
+          items:
+            type: object
+            properties:
+              wallet: { type: string }
+              agent: { type: string }
+              builder: { type: string }
+              maxFeeRate: { type: string, description: "Decimal string" }
+              expiresAt: { type: integer, format: int64, description: "Unix seconds" }
+              approveState: { type: string, enum: [APPROVED, REVOKED] }
+              expired: { type: boolean }
